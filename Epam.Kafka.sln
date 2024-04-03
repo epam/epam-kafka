@@ -1,0 +1,94 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.33424.131
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Epam.Kafka", "src\Epam.Kafka\Epam.Kafka.csproj", "{79C18F23-2E66-44AA-A771-50082C68282B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Misc", "Misc", "{A5013F6E-5A4E-4FC5-8A20-96AEB83BA9C7}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+		.gitignore = .gitignore
+		.runsettings = .runsettings
+		build.cmd = build.cmd
+		CHANGELOG.md = CHANGELOG.md
+		CONTRIBUTING.md = CONTRIBUTING.md
+		LICENSE.md = LICENSE.md
+		README.md = README.md
+	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Epam.Kafka.Tests", "tests\Epam.Kafka.Tests\Epam.Kafka.Tests.csproj", "{AFC21608-1D16-4D15-8266-A5E0E2705D3C}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Src", "Src", "{E0525F24-5B2C-4D26-A93F-6817B1540C87}"
+	ProjectSection(SolutionItems) = preProject
+		src\Directory.Build.props = src\Directory.Build.props
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Sample", "Sample", "{07C5B87A-BBE0-4E3E-83CB-8A95B2D6855E}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{837928B6-19AD-471C-A875-912C7F1F97C7}"
+	ProjectSection(SolutionItems) = preProject
+		tests\Directory.Build.props = tests\Directory.Build.props
+	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Epam.Kafka.PubSub", "src\Epam.Kafka.PubSub\Epam.Kafka.PubSub.csproj", "{182A3350-00C8-496B-A7C8-4F92B664D97D}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Epam.Kafka.PubSub.EntityFrameworkCore", "src\Epam.Kafka.PubSub.EntityFrameworkCore\Epam.Kafka.PubSub.EntityFrameworkCore.csproj", "{C74D6423-77F4-4778-8C25-9B4EA5512841}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Epam.Kafka.PubSub.Tests", "tests\Epam.Kafka.PubSub.Tests\Epam.Kafka.PubSub.Tests.csproj", "{1C278B5D-4685-4677-8895-90244028BEB3}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Epam.Kafka.PubSub.EntityFrameworkCore.Tests", "tests\Epam.Kafka.PubSub.EntityFrameworkCore.Tests\Epam.Kafka.PubSub.EntityFrameworkCore.Tests.csproj", "{B89145BF-B42C-4674-BDD5-61A9BFEB4AA3}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Epam.Kafka.Sample", "sample\Epam.Kafka.Sample\Epam.Kafka.Sample.csproj", "{46C55727-E63E-4571-BA2B-5C5A5A5D6EC9}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{79C18F23-2E66-44AA-A771-50082C68282B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{79C18F23-2E66-44AA-A771-50082C68282B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{79C18F23-2E66-44AA-A771-50082C68282B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{79C18F23-2E66-44AA-A771-50082C68282B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AFC21608-1D16-4D15-8266-A5E0E2705D3C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AFC21608-1D16-4D15-8266-A5E0E2705D3C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AFC21608-1D16-4D15-8266-A5E0E2705D3C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AFC21608-1D16-4D15-8266-A5E0E2705D3C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{182A3350-00C8-496B-A7C8-4F92B664D97D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{182A3350-00C8-496B-A7C8-4F92B664D97D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{182A3350-00C8-496B-A7C8-4F92B664D97D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{182A3350-00C8-496B-A7C8-4F92B664D97D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C74D6423-77F4-4778-8C25-9B4EA5512841}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C74D6423-77F4-4778-8C25-9B4EA5512841}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C74D6423-77F4-4778-8C25-9B4EA5512841}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C74D6423-77F4-4778-8C25-9B4EA5512841}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1C278B5D-4685-4677-8895-90244028BEB3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1C278B5D-4685-4677-8895-90244028BEB3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1C278B5D-4685-4677-8895-90244028BEB3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1C278B5D-4685-4677-8895-90244028BEB3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B89145BF-B42C-4674-BDD5-61A9BFEB4AA3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B89145BF-B42C-4674-BDD5-61A9BFEB4AA3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B89145BF-B42C-4674-BDD5-61A9BFEB4AA3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B89145BF-B42C-4674-BDD5-61A9BFEB4AA3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{46C55727-E63E-4571-BA2B-5C5A5A5D6EC9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{46C55727-E63E-4571-BA2B-5C5A5A5D6EC9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{46C55727-E63E-4571-BA2B-5C5A5A5D6EC9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{46C55727-E63E-4571-BA2B-5C5A5A5D6EC9}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{79C18F23-2E66-44AA-A771-50082C68282B} = {E0525F24-5B2C-4D26-A93F-6817B1540C87}
+		{AFC21608-1D16-4D15-8266-A5E0E2705D3C} = {837928B6-19AD-471C-A875-912C7F1F97C7}
+		{182A3350-00C8-496B-A7C8-4F92B664D97D} = {E0525F24-5B2C-4D26-A93F-6817B1540C87}
+		{C74D6423-77F4-4778-8C25-9B4EA5512841} = {E0525F24-5B2C-4D26-A93F-6817B1540C87}
+		{1C278B5D-4685-4677-8895-90244028BEB3} = {837928B6-19AD-471C-A875-912C7F1F97C7}
+		{B89145BF-B42C-4674-BDD5-61A9BFEB4AA3} = {837928B6-19AD-471C-A875-912C7F1F97C7}
+		{46C55727-E63E-4571-BA2B-5C5A5A5D6EC9} = {07C5B87A-BBE0-4E3E-83CB-8A95B2D6855E}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {12AADABB-DDF0-4214-9300-49F6F55819DA}
+	EndGlobalSection
+EndGlobal

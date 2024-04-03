@@ -1,0 +1,42 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!--See https://github.com/coverlet-coverage/coverlet/blob/master/Documentation/VSTestIntegration.md#advanced-options-supported-via-runsettings-->
+<RunSettings>
+	<RunConfiguration>
+		<ResultsDirectory>./artifacts/cob</ResultsDirectory>
+		<TestAdaptersPaths>.</TestAdaptersPaths>
+	</RunConfiguration>
+	<xUnit>
+		<LongRunningTestSeconds>40</LongRunningTestSeconds>
+		<ParallelizeTestCollections>true</ParallelizeTestCollections>
+	</xUnit>
+	<DataCollectionRunSettings>
+		<DataCollectors>
+			<DataCollector friendlyName="XPlat Code Coverage">
+				<Configuration>
+					<Format>cobertura</Format>
+					<Exclude>[*Tests]*</Exclude>
+					<!-- [Assembly-Filter]Type-Filter -->
+					<IncludeTestAssembly>false</IncludeTestAssembly>
+					<ExcludeByAttribute>GeneratedCodeAttribute,CompilerGeneratedAttribute,ExcludeFromCodeCoverage</ExcludeByAttribute>
+				</Configuration>
+			</DataCollector>
+		</DataCollectors>
+	</DataCollectionRunSettings>
+	<LoggerRunSettings>
+		<Loggers>
+			<Logger friendlyName="junit" enabled="True">
+				<Configuration>
+					<LogFilePath>./../../artifacts/junit/{assembly}-test-result.xml</LogFilePath>
+					<MethodFormat>Class</MethodFormat>
+					<FailureBodyFormat>Verbose</FailureBodyFormat>
+				</Configuration>
+			</Logger>
+			<Logger friendlyName="console" enabled="True">
+				<Configuration>
+					<Verbosity>normal</Verbosity>
+				</Configuration>
+			</Logger>
+		</Loggers>
+	</LoggerRunSettings>
+</RunSettings>
