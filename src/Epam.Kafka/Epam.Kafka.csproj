@@ -1,0 +1,28 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFrameworks>net8.0;net6.0;netstandard2.0;net462</TargetFrameworks>
+		<Description>
+			Simplify Confluent.Kafka usage by leveraging best patterns and practices:
+			* Abstraction to create various kafka related objects with fluent configuration in `IServiceCollection`.
+			* Options pattern implementation for consumer, producer, client, and schema registry configs.
+		</Description>
+	</PropertyGroup>
+
+	<ItemGroup>
+	  <PackageReference Include="Confluent.Kafka" Version="2.3.0" />
+	  <PackageReference Include="Confluent.SchemaRegistry" Version="2.3.0" />
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(TargetFramework)' == 'net6.0' or '$(TargetFramework)' == 'net462' or '$(TargetFramework)' == 'netstandard2.0'">
+		<PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="6.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Options" Version="6.0.0" />
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
+		<PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="8.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Options" Version="8.0.0" />
+	</ItemGroup>
+</Project>

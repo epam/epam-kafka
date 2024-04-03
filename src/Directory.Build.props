@@ -1,0 +1,39 @@
+<Project>
+	<PropertyGroup>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<TreatWarningsAsErrors>True</TreatWarningsAsErrors>
+		<EnableNETAnalyzers>True</EnableNETAnalyzers>
+		<AnalysisLevel>latest-all</AnalysisLevel>
+		<EnforceCodeStyleInBuild>True</EnforceCodeStyleInBuild>
+		<LangVersion>12</LangVersion>
+		<EnableConfigurationBindingGenerator>true</EnableConfigurationBindingGenerator>
+		<GenerateDocumentationFile>True</GenerateDocumentationFile>
+
+		<IsPackable>True</IsPackable>
+		<GeneratePackageOnBuild>False</GeneratePackageOnBuild>
+		<Title>$(AssemblyName)</Title>
+		<Authors>epam-systems</Authors>
+		<PackageReadmeFile>PACKAGE.md</PackageReadmeFile>
+		<Company>EPAM Systems</Company>
+		<Copyright>EPAM Systems 2023-$([System.DateTime]::UtcNow.Year)</Copyright>
+		<PackageProjectUrl>https://github.com/epam/epam-kafka</PackageProjectUrl>
+		<IncludeSymbols>true</IncludeSymbols>
+		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
+		<PackageTags>epam kafka</PackageTags>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<NeutralLanguage>en</NeutralLanguage>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<None Include="PACKAGE.md">
+			<Pack>True</Pack>
+			<PackagePath>\</PackagePath>
+		</None>
+	</ItemGroup>
+
+	<ItemGroup>
+		<InternalsVisibleTo Include="$(AssemblyName).Tests" />
+		<InternalsVisibleTo Include="DynamicProxyGenAssembly2" />
+	</ItemGroup>
+</Project>
