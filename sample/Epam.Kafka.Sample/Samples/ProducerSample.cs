@@ -31,6 +31,8 @@ public class ProducerSample : BackgroundService
             Console.WriteLine($"{result.Status:G} {result.TopicPartitionOffset}");
 
             await Task.Delay(5000, stoppingToken);
+
+            Environment.Exit(0);
         }
     }
 }

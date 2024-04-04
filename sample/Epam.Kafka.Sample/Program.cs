@@ -39,6 +39,7 @@ internal static class Program
                 // Also it is possible to run real kafka cluster in docker using provided 'docker-compose.yml' file.
                 options.ClientConfig.BootstrapServers = "localhost:9092";
                 options.ClientConfig.Debug = "all";
+                options.ClientConfig.AllowAutoCreateTopics = true;
             });
 
 
