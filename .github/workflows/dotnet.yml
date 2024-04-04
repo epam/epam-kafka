@@ -25,11 +25,11 @@ jobs:
     - name: Build
       run: dotnet build -c Debug
 
-    - name: Run Kafka KRaft Broker
-      uses: spicyparrot/kafka-kraft-action@v1.1.0
-      with:
-        kafka-version: "3.6.1"
-        kafka-topics: "example,1"
+    # - name: Run Kafka KRaft Broker
+    #   uses: spicyparrot/kafka-kraft-action@v1.1.0
+    #   with:
+    #     kafka-version: "3.6.1"
+    #     kafka-topics: "example,1"
 
     - name: Test
       run: dotnet test  -c Debug --no-build --verbosity normal --settings .runsettings

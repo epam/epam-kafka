@@ -74,11 +74,6 @@ public class PubServiceSuccessTests : TestWithServices, IClassFixture<MockCluste
     [Fact]
     public async Task PublishTransaction()
     {
-        if (MockCluster.RunningFromGitHubActions)
-        {
-            return;
-        }
-
         TestEntityKafka entity1 = new();
         PubSub.Publication.TopicMessage<string, TestEntityKafka> message1 = entity1.ToMessage();
         KeyValuePair<string, PubSub.Publication.DeliveryReport> report1 = message1.ToReport(0, this.AnyTopicName);

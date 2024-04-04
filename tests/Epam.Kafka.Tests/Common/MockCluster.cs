@@ -19,11 +19,11 @@ public sealed class MockCluster : IDisposable
     private readonly IAdminClient? _adminClient;
     private readonly string _mockBootstrapServers = "localhost:9092";
 
-    public static bool RunningFromGitHubActions => Environment.GetEnvironmentVariable("RUNNING_FROM_GITHUB_ACTIONS") != null;
+    //public static bool RunningFromGitHubActions => Environment.GetEnvironmentVariable("RUNNING_FROM_GITHUB_ACTIONS") != null;
 
     public MockCluster()
     {
-        if (!RunningFromGitHubActions)
+        //if (!RunningFromGitHubActions)
         {
             // Trick: we are going to connect with admin client first so we can get metadata and bootstrap servers from it
             var clientConfig = new ClientConfig();
@@ -87,6 +87,11 @@ public sealed class MockCluster : IDisposable
         }
 
         await Task.Run(() => producer.Poll(TimeSpan.FromSeconds(2)));
+
+        if (result.Count < count)
+        {
+            await Task.Run(() => producer.Poll(TimeSpan.FromSeconds(5)));
+        }
 
         result.Count.ShouldBe(count, $"Seed {count} items.");
 
