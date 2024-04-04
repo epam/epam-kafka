@@ -29,7 +29,7 @@ jobs:
       uses: spicyparrot/kafka-kraft-action@v1.1.0
       with:
         kafka-version: "3.6.1"
-        kafka-topics: "epam-kafka-sample-topic-1"
+        kafka-topics: "epam-kafka-sample-topic-1,1"
 
     - name: Sample
       run: dotnet run --project sample/Epam.Kafka.Sample/Epam.Kafka.Sample.csproj
