@@ -1,0 +1,124 @@
+namespace Epam.Kafka.PubSub.EntityFrameworkCore.Publication.Contracts
+{
+    public abstract class DbContextEntityPublicationHandler<TKey, TValue, TEntity, TContext> : Epam.Kafka.PubSub.EntityFrameworkCore.Publication.DbContextPublicationHandler<TKey, TValue, TEntity, TContext>
+        where TEntity :  class, Epam.Kafka.PubSub.EntityFrameworkCore.Publication.Contracts.IKafkaPublicationEntity
+        where TContext : Microsoft.EntityFrameworkCore.DbContext
+    {
+        protected DbContextEntityPublicationHandler(TContext context, Microsoft.Extensions.Logging.ILogger logger) { }
+        protected System.TimeSpan ErrorRetryTimeout { get; set; }
+        protected override System.Linq.Expressions.Expression<System.Func<TEntity, bool>> IsQueued { get; }
+        protected override sealed void Callback(TEntity entity, System.Collections.Generic.IReadOnlyCollection<Epam.Kafka.PubSub.Publication.DeliveryReport> reports, System.DateTimeOffset? transactionEnd) { }
+        protected override bool ConvertErrorHandled(TEntity entity, bool transaction, System.Exception exception) { }
+        protected virtual void ErrorCallback(TEntity entity, Epam.Kafka.PubSub.Publication.DeliveryReport report) { }
+        protected virtual void SuccessCallback(TEntity entity, System.Collections.Generic.IReadOnlyCollection<Epam.Kafka.PubSub.Publication.DeliveryReport> reports, System.DateTimeOffset? transactionEnd) { }
+        protected override void TransactionCommitted(System.Collections.Generic.IReadOnlyCollection<TEntity> entities, System.Threading.CancellationToken cancellationToken) { }
+    }
+    public interface IKafkaPublicationEntity
+    {
+        System.DateTime KafkaPubNbf { get; set; }
+        Epam.Kafka.PubSub.EntityFrameworkCore.Publication.Contracts.KafkaPublicationState KafkaPubState { get; set; }
+    }
+    public enum KafkaPublicationState
+    {
+        None = 0,
+        Queued = 1,
+        Delivered = 2,
+        Committed = 3,
+        Error = 4,
+    }
+}
+namespace Epam.Kafka.PubSub.EntityFrameworkCore.Publication
+{
+    public abstract class DbContextPublicationHandler<TKey, TValue, TEntity, TContext> : Epam.Kafka.PubSub.Publication.PublicationHandler<TKey, TValue, TEntity>
+        where TEntity :  class
+        where TContext : Microsoft.EntityFrameworkCore.DbContext
+    {
+        protected DbContextPublicationHandler(TContext context, Microsoft.Extensions.Logging.ILogger logger) { }
+        protected TContext Context { get; }
+        protected abstract System.Linq.Expressions.Expression<System.Func<TEntity, bool>> IsQueued { get; }
+        protected virtual Epam.Kafka.PubSub.EntityFrameworkCore.Publication.KafkaPublicationConcurrency OnConcurrencyException { get; }
+        protected override sealed void Callback(System.Collections.Generic.IReadOnlyDictionary<TEntity, System.Collections.Generic.IReadOnlyCollection<Epam.Kafka.PubSub.Publication.DeliveryReport>> reports, System.DateTimeOffset? transactionEnd, System.Threading.CancellationToken cancellationToken) { }
+        protected abstract void Callback(TEntity entity, System.Collections.Generic.IReadOnlyCollection<Epam.Kafka.PubSub.Publication.DeliveryReport> reports, System.DateTimeOffset? transactionEnd);
+        protected override System.Collections.Generic.IEnumerable<TEntity> GetEntities(int count, bool transaction, System.Threading.CancellationToken cancellationToken) { }
+        protected virtual System.Linq.IQueryable<TEntity> GetTable() { }
+        protected abstract System.Linq.IOrderedQueryable<TEntity> OrderBy(System.Linq.IQueryable<TEntity> query);
+    }
+    public enum KafkaPublicationConcurrency
+    {
+        Detach = 0,
+        Throw = 1,
+        ThrowIfTransaction = 2,
+    }
+}
+namespace Epam.Kafka.PubSub.EntityFrameworkCore
+{
+    public static class ServiceCollectionExtensions
+    {
+        public static Microsoft.Extensions.DependencyInjection.IServiceCollection TryAddKafkaDbContextState<TContext>(this Microsoft.Extensions.DependencyInjection.IServiceCollection services)
+            where TContext : Microsoft.EntityFrameworkCore.DbContext, Epam.Kafka.PubSub.EntityFrameworkCore.Subscription.State.IKafkaStateDbContext { }
+    }
+}
+namespace Epam.Kafka.PubSub.EntityFrameworkCore.Subscription
+{
+    public abstract class DbContextEntitySubscriptionHandler<TKey, TValue, TContext, TEntity> : Epam.Kafka.PubSub.EntityFrameworkCore.Subscription.DbContextSubscriptionHandler<TKey, TValue, TContext>
+        where TKey :  notnull
+        where TContext : Microsoft.EntityFrameworkCore.DbContext
+        where TEntity :  class
+    {
+        protected DbContextEntitySubscriptionHandler(TContext context, Microsoft.Extensions.Logging.ILogger logger) { }
+        protected Microsoft.EntityFrameworkCore.DbSet<TEntity> Set { get; }
+        protected override sealed object? FindLocal(Confluent.Kafka.ConsumeResult<TKey, TValue> value) { }
+        protected abstract TEntity? FindLocal(Microsoft.EntityFrameworkCore.DbSet<TEntity> dbSet, Confluent.Kafka.ConsumeResult<TKey, TValue> value);
+        protected override sealed void LoadEntitiesChunk(System.Collections.Generic.IReadOnlyCollection<Confluent.Kafka.ConsumeResult<TKey, TValue>> chunk) { }
+        protected abstract void LoadMainChunk(System.Linq.IQueryable<TEntity> queryable, System.Collections.Generic.IReadOnlyCollection<Confluent.Kafka.ConsumeResult<TKey, TValue>> chunk);
+        protected virtual void LoadRelatedChunk(System.Collections.Generic.IReadOnlyCollection<Confluent.Kafka.ConsumeResult<TKey, TValue>> chunk) { }
+        protected abstract bool TryCreate(Confluent.Kafka.ConsumeResult<TKey, TValue> value, out TEntity? entity);
+        protected override sealed bool TryCreate(Confluent.Kafka.ConsumeResult<TKey, TValue> value, out object? entity) { }
+        protected override sealed string? Update(Confluent.Kafka.ConsumeResult<TKey, TValue> value, object entity, bool created) { }
+        protected abstract string? Update(Confluent.Kafka.ConsumeResult<TKey, TValue> value, TEntity entity, bool created);
+    }
+    public abstract class DbContextSubscriptionHandler<TKey, TValue, TContext> : Epam.Kafka.PubSub.Subscription.SubscriptionHandler<TKey, TValue>
+        where TKey :  notnull
+        where TContext : Microsoft.EntityFrameworkCore.DbContext
+    {
+        protected DbContextSubscriptionHandler(TContext context, Microsoft.Extensions.Logging.ILogger logger) { }
+        protected int ChunkSize { get; set; }
+        protected TContext Context { get; }
+        protected abstract object? FindLocal(Confluent.Kafka.ConsumeResult<TKey, TValue> value);
+        protected abstract bool IsDeleted(Confluent.Kafka.ConsumeResult<TKey, TValue> value);
+        protected abstract void LoadEntitiesChunk(System.Collections.Generic.IReadOnlyCollection<Confluent.Kafka.ConsumeResult<TKey, TValue>> chunk);
+        protected override void ProcessBatch(System.Collections.Generic.IDictionary<Confluent.Kafka.ConsumeResult<TKey, TValue>, string?> items, System.Threading.CancellationToken cancellationToken) { }
+        protected override string ProcessSingle(Confluent.Kafka.ConsumeResult<TKey, TValue> item) { }
+        protected virtual void SaveChanges() { }
+        protected abstract bool TryCreate(Confluent.Kafka.ConsumeResult<TKey, TValue> value, out object? entity);
+        protected abstract string? Update(Confluent.Kafka.ConsumeResult<TKey, TValue> value, object entity, bool created);
+    }
+}
+namespace Epam.Kafka.PubSub.EntityFrameworkCore.Subscription.State
+{
+    public interface IKafkaStateDbContext
+    {
+        Microsoft.EntityFrameworkCore.DbSet<Epam.Kafka.PubSub.EntityFrameworkCore.Subscription.State.KafkaTopicState> KafkaTopicStates { get; }
+    }
+    public class KafkaTopicState
+    {
+        public KafkaTopicState() { }
+        [System.ComponentModel.DataAnnotations.Required]
+        public string ConsumerGroup { get; set; }
+        [System.ComponentModel.DataAnnotations.ConcurrencyCheck]
+        [System.ComponentModel.DataAnnotations.Required]
+        public long Offset { get; set; }
+        [System.ComponentModel.DataAnnotations.Range(0, 2147483647)]
+        [System.ComponentModel.DataAnnotations.Required]
+        public int Partition { get; set; }
+        [System.ComponentModel.DataAnnotations.Required]
+        public bool Pause { get; set; }
+        public System.DateTimeOffset Timestamp { get; set; }
+        [System.ComponentModel.DataAnnotations.Required]
+        public string? Topic { get; set; }
+    }
+    public static class KafkaTopicStateExtensions
+    {
+        public static Microsoft.EntityFrameworkCore.Metadata.Builders.EntityTypeBuilder<Epam.Kafka.PubSub.EntityFrameworkCore.Subscription.State.KafkaTopicState> AddKafkaState(this Microsoft.EntityFrameworkCore.ModelBuilder builder) { }
+    }
+}
