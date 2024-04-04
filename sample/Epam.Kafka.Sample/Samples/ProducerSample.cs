@@ -19,9 +19,9 @@ public class ProducerSample : BackgroundService
     {
         await Task.Yield();
 
-        ProducerConfig config = this._kafkaFactory.CreateProducerConfig();
+        ProducerConfig config = this._kafkaFactory.CreateProducerConfig("Default");
 
-        using IProducer<string, string> producer = this._kafkaFactory.CreateProducer<string, string>(config);
+        using IProducer<string, string> producer = this._kafkaFactory.CreateProducer<string, string>(config, "Sandbox");
 
         while (!stoppingToken.IsCancellationRequested)
         {

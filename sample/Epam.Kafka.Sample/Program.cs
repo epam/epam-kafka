@@ -27,43 +27,24 @@ internal static class Program
 
         hostBuilder.ConfigureServices(services =>
         {
-            // view health check results in console for demo purposes only.
-            services.AddSingleton<IHealthCheckPublisher, ConsoleHealthCheckPublisher>();
 
-            // view metrics in console for demo purposes only
-            services.AddOpenTelemetry().WithMetrics(mb =>
-                mb.AddMeter(PipelineMonitor.StatusMeterName, PipelineMonitor.HealthMeterName).AddConsoleExporter());
 
             KafkaBuilder kafkaBuilder = services.AddKafka();
+            //kafkaBuilder.WithProducerConfig("Default").Configure(x => x.)
 
-            kafkaBuilder.WithPubSubSummaryHealthCheck();
 
             kafkaBuilder.WithClusterConfig("Sandbox").Configure(options =>
             {
                 // For demo purposes run Mock server instead of real one and create required topics.
                 // Also it is possible to run real kafka cluster in docker using provided 'docker-compose.yml' file.
-                options.ClientConfig.BootstrapServers = RunMockServer();
+                options.ClientConfig.BootstrapServers = "localhost:9092";
+                options.ClientConfig.Debug = "all";
             });
 
-            services.AddDbContext<SampleDbContext>(x => x.UseInMemoryDatabase("sample"));
-            services.TryAddKafkaDbContextState<SampleDbContext>();
 
             // Sample of IKafkaFactory usage 
             services.AddHostedService<ProducerSample>();
-            services.AddHostedService<ConsumerSample>();
 
-            // Sample of subscription that read data from kafka and store data to database using EF Core.
-            kafkaBuilder.AddSubscription<string, KafkaEntity?, SubscriptionHandlerSample>("Sample")
-                .WithSubscribeAndExternalOffsets()
-                .WithValueDeserializer(_ => Utf8JsonSerializer.Instance)
-                .WithHealthChecks()
-                .WaitFor(SeedTopic);
-
-            // Sample of publication that read data from database using EF Core and write to kafka.
-            kafkaBuilder.AddPublication<string, KafkaEntity, PublicationHandlerSample>("Sample")
-                .WithValueSerializer(_ => Utf8JsonSerializer.Instance)
-                .WithHealthChecks()
-                .WaitFor(SeedDatabase);
         }).Build().Run();
     }
 
