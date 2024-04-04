@@ -17,17 +17,13 @@ public sealed class MockCluster : IDisposable
     private const string DefaultProducer = "Default";
 
     private readonly IAdminClient? _adminClient;
-    private readonly string _mockBootstrapServers;
+    private readonly string _mockBootstrapServers = "localhost:9092";
 
     public MockCluster()
     {
-        string? env = Environment.GetEnvironmentVariable("KAFKA_BOOTSTRAP_SERVERS");
+        string? env = Environment.GetEnvironmentVariable("RUNNING_FROM_GITHUB_ACTIONS");
 
-        if (env != null)
-        {
-            this._mockBootstrapServers = env;
-        }
-        else
+        if (env == null)
         {
             // Trick: we are going to connect with admin client first so we can get metadata and bootstrap servers from it
             var clientConfig = new ClientConfig();

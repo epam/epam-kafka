@@ -34,7 +34,7 @@ jobs:
     - name: Test
       run: dotnet test  -c Debug --no-build --verbosity normal --settings .runsettings
       env:
-        KAFKA_BOOTSTRAP_SERVERS: ${{ env.kafka_runner_address }}:9093
+        RUNNING_FROM_GITHUB_ACTIONS: "true"
     - name: Report
       run: |
         dotnet tool restore
