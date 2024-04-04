@@ -13,6 +13,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Misc", "Misc", "{A5013F6E-5
 		build.cmd = build.cmd
 		CHANGELOG.md = CHANGELOG.md
 		CONTRIBUTING.md = CONTRIBUTING.md
+		.github\workflows\dotnet.yml = .github\workflows\dotnet.yml
 		LICENSE.md = LICENSE.md
 		README.md = README.md
 	EndProjectSection
