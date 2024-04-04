@@ -9,11 +9,12 @@ on:
   pull_request:
     branches: [ "develop", "main" ]
 
+
 jobs:
   build:
 
-    runs-on: ubuntu-latest
-
+    runs-on: ubuntu-latest    
+    
     steps:
     - uses: actions/checkout@v4
     - name: Setup .NET
@@ -24,12 +25,15 @@ jobs:
       run: sudo ethtool -K eth0 tx off rx off
     - name: Build
       run: dotnet build -c Debug
-
+            
     # - name: Run Kafka KRaft Broker
     #   uses: spicyparrot/kafka-kraft-action@v1.1.0
     #   with:
     #     kafka-version: "3.6.1"
     #     kafka-topics: "example,1"
+      
+    - name: Start containers
+      run: docker-compose -p kfk -f "tests/docker-compose.yml" up -d
 
     - name: Test
       run: dotnet test  -c Debug --no-build --verbosity normal --settings .runsettings
@@ -41,6 +45,10 @@ jobs:
         dotnet tool restore
         dotnet reportgenerator -reports:./artifacts/cob/*/coverage.cobertura.xml -targetdir:artifacts/html -reporttypes:HtmlInline
         dotnet reportgenerator -reports:./artifacts/cob/*/coverage.cobertura.xml -targetdir:artifacts -reporttypes:"Cobertura;HtmlSummary;TextSummary"
+
+    - name: Stop containers
+      if: always()
+      run: docker-compose  -p kfk -f "tests/docker-compose.yml" down
 
     - name: Code Coverage Report
       uses: irongut/CodeCoverageSummary@v1.3.0

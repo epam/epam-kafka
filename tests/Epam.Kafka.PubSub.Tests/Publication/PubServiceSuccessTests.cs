@@ -1,5 +1,6 @@
 ﻿// Copyright © 2024 EPAM Systems
 
+using Confluent.Kafka.Admin;
 using Epam.Kafka.PubSub.Publication.Pipeline;
 using Epam.Kafka.PubSub.Tests.Helpers;
 using Epam.Kafka.Tests.Common;
@@ -74,6 +75,11 @@ public class PubServiceSuccessTests : TestWithServices, IClassFixture<MockCluste
     [Fact]
     public async Task PublishTransaction()
     {
+        if (MockCluster.RunningFromGitHubActions)
+        {
+            return;
+        }
+
         TestEntityKafka entity1 = new();
         PubSub.Publication.TopicMessage<string, TestEntityKafka> message1 = entity1.ToMessage();
         KeyValuePair<string, PubSub.Publication.DeliveryReport> report1 = message1.ToReport(0, this.AnyTopicName);

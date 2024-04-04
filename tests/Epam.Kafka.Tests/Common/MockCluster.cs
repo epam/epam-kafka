@@ -1,7 +1,7 @@
 ﻿// Copyright © 2024 EPAM Systems
 
 using Confluent.Kafka;
-
+using Confluent.Kafka.Admin;
 using Microsoft.Extensions.Configuration;
 using Shouldly;
 
@@ -19,11 +19,11 @@ public sealed class MockCluster : IDisposable
     private readonly IAdminClient? _adminClient;
     private readonly string _mockBootstrapServers = "localhost:9092";
 
-    //public static bool RunningFromGitHubActions => Environment.GetEnvironmentVariable("RUNNING_FROM_GITHUB_ACTIONS") != null;
+    public static bool RunningFromGitHubActions => Environment.GetEnvironmentVariable("RUNNING_FROM_GITHUB_ACTIONS") != null;
 
     public MockCluster()
     {
-        //if (!RunningFromGitHubActions)
+        if (!RunningFromGitHubActions)
         {
             // Trick: we are going to connect with admin client first so we can get metadata and bootstrap servers from it
             var clientConfig = new ClientConfig();
@@ -68,6 +68,25 @@ public sealed class MockCluster : IDisposable
     public static async Task<Dictionary<TestEntityKafka, TopicPartitionOffset>> SeedKafka(TestWithServices test,
         int count, TopicPartition tp)
     {
+        if (RunningFromGitHubActions)
+        {
+            try
+            {
+                await test.KafkaFactory.GetOrCreateClient().CreateDependentAdminClient().CreateTopicsAsync(new[]
+                {
+                    new TopicSpecification
+                    {
+                        Name = test.AnyTopicName,
+                        NumPartitions = 5,
+                        ReplicationFactor = 1
+                    }
+                });
+            }
+            catch (CreateTopicsException)
+            {
+            }
+        }
+
         ProducerConfig config = test.KafkaFactory.CreateProducerConfig();
 
         config.EnableIdempotence = true;
