@@ -1,7 +1,6 @@
 ﻿// Copyright © 2024 EPAM Systems
 
 using Confluent.Kafka;
-using Epam.Kafka.PubSub.Subscription.Options;
 using Epam.Kafka.PubSub.Subscription.Pipeline;
 using Epam.Kafka.PubSub.Tests.Helpers;
 using Epam.Kafka.Tests.Common;
@@ -9,9 +8,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Epam.Kafka.PubSub.Tests.Subscription.ExternalState;
+namespace Epam.Kafka.PubSub.IntegrationTests.Subscription.CombinedState;
 
-public class SerializationErrorTests : TestWithServices, IClassFixture<MockCluster>
+[Collection(SubscribeTests.Name)]
+public class SerializationErrorTests : TestWithServices
 {
     private readonly MockCluster _mockCluster;
 
@@ -23,29 +23,35 @@ public class SerializationErrorTests : TestWithServices, IClassFixture<MockClust
     [Fact]
     public async Task SinglePartitionAtBeginning()
     {
-        TopicPartition tp3 = new(this.AnyTopicName, 2);
+        TopicPartition tp3 = new(this.AnyTopicName, 3);
 
         TestException exc = new();
-        using TestObserver observer = new(this, 3);
+        using TestObserver observer = new(this, 5);
 
         var handler = new TestSubscriptionHandler(observer);
-        var offsets = new TestOffsetsStorage(observer);
+        var offsets = new TestOffsetsStorage(observer, 0, 1, 2);
         var deserializer = new TestDeserializer(observer);
 
         this.Services.AddScoped(_ => handler);
         this.Services.AddScoped(_ => offsets);
 
-        observer.CreateDefaultSubscription(this._mockCluster).WithAssignAndExternalOffsets<TestOffsetsStorage>().WithValueDeserializer(_ => deserializer)
-            .WithOptions(x => x.WithTopicPartitions(tp3));
+        observer.CreateDefaultSubscription(this._mockCluster).WithSubscribeAndExternalOffsets<TestOffsetsStorage>().WithValueDeserializer(_ => deserializer)
+            .WithOptions(x =>
+            {
+                x.BatchNotAssignedTimeout = TimeSpan.FromSeconds(10);
+                x.BatchRetryCount = 1;
+            });
 
         Dictionary<TestEntityKafka, TopicPartitionOffset> m1 = await MockCluster.SeedKafka(this, 5, tp3);
 
-        deserializer.WithError(1, exc, m1.Keys.First());
         deserializer.WithError(2, exc, m1.Keys.First());
+        deserializer.WithError(3, exc, m1.Keys.First());
+        deserializer.WithError(5, exc, m1.Keys.First());
 
         TopicPartitionOffset unset = new (tp3, Offset.Unset);
-        offsets.WithGet(1, unset);
         offsets.WithGet(2, unset);
+        offsets.WithGet(3, unset);
+        offsets.WithGet(5, unset);
 
         await this.RunBackgroundServices();
 
@@ -53,12 +59,24 @@ public class SerializationErrorTests : TestWithServices, IClassFixture<MockClust
         handler.Verify();
 
         // iteration 1
+        observer.AssertSubNotAssigned();
+
+        // iteration 2
         observer.AssertStart();
         observer.AssertAssign();
         observer.AssertRead();
         observer.AssertStop<ConsumeException>("Value deserialization error");
 
-        // iteration 2
+        // iteration 3
+        observer.AssertStart();
+        observer.AssertAssign();
+        observer.AssertRead();
+        observer.AssertStop<ConsumeException>("Value deserialization error");
+
+        // iteration 4 partition not assigned until 6 sec session timeout elapsed
+        observer.AssertSubNotAssigned();
+
+        // iteration 5
         observer.AssertStart();
         observer.AssertAssign();
         observer.AssertRead();
@@ -71,38 +89,41 @@ public class SerializationErrorTests : TestWithServices, IClassFixture<MockClust
         TopicPartition tp3 = new(this.AnyTopicName, 3);
 
         TestException exc = new();
-        using TestObserver observer = new(this, 2);
+        using TestObserver observer = new(this, 3);
 
         var handler = new TestSubscriptionHandler(observer);
-        var offsets = new TestOffsetsStorage(observer);
+        var offsets = new TestOffsetsStorage(observer, 0, 1, 2);
         var deserializer = new TestDeserializer(observer);
 
         this.Services.AddScoped(_ => handler);
         this.Services.AddScoped(_ => offsets);
 
-        observer.CreateDefaultSubscription(this._mockCluster).WithAssignAndExternalOffsets<TestOffsetsStorage>().WithValueDeserializer(_ => deserializer)
-            .WithOptions(x => x.WithTopicPartitions(tp3));
+        observer.CreateDefaultSubscription(this._mockCluster).WithSubscribeAndExternalOffsets<TestOffsetsStorage>().WithValueDeserializer(_ => deserializer)
+            .WithOptions(x => x.BatchNotAssignedTimeout = TimeSpan.FromSeconds(10));
 
         Dictionary<TestEntityKafka, TopicPartitionOffset> m1 = await MockCluster.SeedKafka(this, 5, tp3);
 
-        deserializer.WithSuccess(1, m1.Keys.ElementAt(0));
-        deserializer.WithError(1, exc, m1.Keys.ElementAt(1));
+        deserializer.WithSuccess(2, m1.Keys.ElementAt(0));
         deserializer.WithError(2, exc, m1.Keys.ElementAt(1));
+        deserializer.WithError(3, exc, m1.Keys.ElementAt(1));
 
-        handler.WithSuccess(1, m1.Take(1));
+        handler.WithSuccess(2, m1.Take(1));
 
         TopicPartitionOffset unset = new (tp3, Offset.Unset);
         TopicPartitionOffset offset1 = new (tp3, 1);
 
-        offsets.WithGet(1, unset);
-        offsets.WithSetAndGetForNextIteration(1, offset1);
+        offsets.WithGet(2, unset);
+        offsets.WithSetAndGetForNextIteration(2, offset1);
 
         await this.RunBackgroundServices();
 
         deserializer.Verify();
         handler.Verify();
 
-        // iteration 1 process deserialized items before error
+        // iteration 1
+        observer.AssertSubNotAssigned();
+
+        // iteration 2 process deserialized items before error
         observer.AssertStart();
         observer.AssertAssign();
         observer.AssertRead(1);
@@ -111,7 +132,7 @@ public class SerializationErrorTests : TestWithServices, IClassFixture<MockClust
         observer.AssertCommitKafka();
         observer.AssertStop(SubscriptionBatchResult.Processed);
 
-        // iteration 2
+        // iteration 3
         observer.AssertStart();
         observer.AssertAssign();
         observer.AssertRead();

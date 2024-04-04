@@ -1,0 +1,71 @@
+﻿// Copyright © 2024 EPAM Systems
+
+using Epam.Kafka.PubSub.Publication.Pipeline;
+using Epam.Kafka.PubSub.Tests.Helpers;
+using Epam.Kafka.Tests.Common;
+using Microsoft.Extensions.DependencyInjection;
+using Xunit;
+using Xunit.Abstractions;
+
+namespace Epam.Kafka.PubSub.IntegrationTests.Publication;
+
+public class PubServiceSuccessTests : TestWithServices, IClassFixture<MockCluster>
+{
+    private readonly MockCluster _mockCluster;
+
+    public PubServiceSuccessTests(ITestOutputHelper output, MockCluster mockCluster) : base(output)
+    {
+        this._mockCluster = mockCluster ?? throw new ArgumentNullException(nameof(mockCluster));
+    }
+
+    [Fact]
+    public async Task Publish()
+    {
+        TestEntityKafka entity = new();
+        PubSub.Publication.TopicMessage<string, TestEntityKafka> message = entity.ToMessage();
+
+        KeyValuePair<string, PubSub.Publication.DeliveryReport> report = message.ToReport(0, this.AnyTopicName);
+
+        using TestObserver observer = new(this, 2);
+
+        const int batchSize = 100;
+
+        TestPublicationHandler handler = new TestPublicationHandler(false, observer)
+            .WithBatch(1, batchSize, message).WithReport(1, report)
+            .WithBatch(2, batchSize);
+
+        TestSerializer serializer = new TestSerializer(observer).WithSuccess(1, entity);
+
+        this.Services.AddScoped(_ => handler);
+
+        this._mockCluster.LaunchMockCluster(this)
+            .AddPublication<string, TestEntityKafka, TestPublicationHandler>(observer.Name, ServiceLifetime.Scoped)
+            .WithValueSerializer(_ => serializer)
+            .WithOptions(options =>
+            {
+                options.DefaultTopic = this.AnyTopicName;
+                options.BatchSize = batchSize;
+            }).WithPartitioner(partitioner => partitioner.Default = (_, _, _, _) => 0);
+
+        await this.RunBackgroundServices();
+
+        serializer.Verify();
+        handler.Verify();
+
+        // iteration 1 (one item to publish)
+
+        observer.AssertStart();
+        observer.AssertNextActivity("src_read.Start");
+        observer.AssertNextActivity("src_read.Stop", 1);
+        observer.AssertNextActivity("serialize.Start");
+        observer.AssertNextActivity("serialize.Stop");
+        observer.AssertNextActivity("produce.Start");
+        observer.AssertNextActivity("produce.Stop");
+        observer.AssertNextActivity("src_report.Start");
+        observer.AssertNextActivity("src_report.Stop");
+        observer.AssertStop(PublicationBatchResult.Processed);
+
+        // iteration 2 (empty)
+        observer.AssertPubEmpty();
+    }
+}
