@@ -16,18 +16,27 @@ public sealed class MockCluster : IDisposable
 
     private const string DefaultProducer = "Default";
 
-    private readonly IAdminClient _adminClient;
+    private readonly IAdminClient? _adminClient;
     private readonly string _mockBootstrapServers;
 
     public MockCluster()
     {
-        // Trick: we are going to connect with admin client first so we can get metadata and bootstrap servers from it
-        var clientConfig = new ClientConfig();
-        clientConfig.Set("bootstrap.servers", "localhost:9200");
-        clientConfig.Set("test.mock.num.brokers", "1");
-        this._adminClient = new AdminClientBuilder(clientConfig).Build();
-        Metadata metadata = this._adminClient.GetMetadata(TimeSpan.FromSeconds(1));
-        this._mockBootstrapServers = string.Join(",", metadata.Brokers.Select(b => $"{b.Host}:{b.Port}"));
+        string? env = Environment.GetEnvironmentVariable("KAFKA_BOOTSTRAP_SERVERS");
+
+        if (env != null)
+        {
+            this._mockBootstrapServers = env;
+        }
+        else
+        {
+            // Trick: we are going to connect with admin client first so we can get metadata and bootstrap servers from it
+            var clientConfig = new ClientConfig();
+            clientConfig.Set("bootstrap.servers", "localhost:9200");
+            clientConfig.Set("test.mock.num.brokers", "1");
+            this._adminClient = new AdminClientBuilder(clientConfig).Build();
+            Metadata metadata = this._adminClient.GetMetadata(TimeSpan.FromSeconds(1));
+            this._mockBootstrapServers = string.Join(",", metadata.Brokers.Select(b => $"{b.Host}:{b.Port}"));
+        }
     }
 
     public KafkaBuilder LaunchMockCluster(TestWithServices test)
@@ -37,7 +46,7 @@ public sealed class MockCluster : IDisposable
 
     public void Dispose()
     {
-        this._adminClient.Dispose();
+        this._adminClient?.Dispose();
     }
 
     public static KafkaBuilder AddMockCluster(TestWithServices test, string? server = null)
