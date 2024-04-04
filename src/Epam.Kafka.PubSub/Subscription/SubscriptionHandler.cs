@@ -34,12 +34,12 @@ public abstract class SubscriptionHandler<TKey, TValue> : ISubscriptionHandler<T
     }
 
     /// <summary>
-    ///     Whether client side compaction allowed. Default <c>true</c>.
+    ///     Whether client side compaction allowed. Default <c>false</c>.
     ///     <remarks> If <c>true</c> </remarks>
     ///     and multiple messages with same key appeared in the batch,
     ///     then only last message for such kind of key will be passed to <see cref="ProcessBatch" /> for further processing.
     /// </summary>
-    protected bool AllowCompaction { get; set; } = true;
+    protected virtual bool AllowCompaction => false;
 
     /// <summary>
     ///     Predicate for client side message filtering. Default <c>null</c> means that filtering disabled.
