@@ -20,12 +20,10 @@ jobs:
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 8.0.x
-    - name: Restore dependencies
-      run: dotnet restore
     - name: Build
-      run: dotnet build -c Debug --no-restore
+      run: dotnet build -c Debug
     - name: Test
-      run: dotnet test  -c Debug --no-build --settings .runsettings
+      run: dotnet test  -c Debug --no-build --verbosity normal --settings .runsettings
     - name: Report
       run: |
         dotnet tool restore
