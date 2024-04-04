@@ -24,7 +24,7 @@ public abstract class TestWithServices : IDisposable, ILoggingBuilder
         {
             builder.SetMinimumLevel(LogLevel.Debug);
             builder.AddProvider(new TestLoggerProvider(this.Output)).AddFilter((s, l) =>
-                !(s?.StartsWith("Microsoft", StringComparison.Ordinal) ?? false) || l >= LogLevel.Information);
+                !(s?.StartsWith("Microsoft", StringComparison.Ordinal) ?? false) || l >= LogLevel.Debug);
         });
 
         this._services.AddSingleton<IConfiguration>(_ => this._configurationBuilder.Build());

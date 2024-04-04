@@ -32,7 +32,7 @@ jobs:
         kafka-topics: "example,1"
 
     - name: Test
-      run: dotnet test  -c Debug --no-build --verbosity normal --settings .runsettings
+      run: dotnet test  -c Debug --no-build --verbosity normal --settings .runsettings --logger:"console;verbosity=detailed"
       env:
         KAFKA_BOOTSTRAP_SERVERS: ${{ env.kafka_runner_address }}:9093
     - name: Report

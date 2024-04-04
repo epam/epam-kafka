@@ -41,6 +41,8 @@ public sealed class MockCluster : IDisposable
 
     public KafkaBuilder LaunchMockCluster(TestWithServices test)
     {
+        Console.WriteLine($"this._mockBootstrapServers: {this._mockBootstrapServers}");
+        test.Output.WriteLine($"this._mockBootstrapServers: {this._mockBootstrapServers}");
         return AddMockCluster(test, this._mockBootstrapServers);
     }
 
@@ -54,13 +56,14 @@ public sealed class MockCluster : IDisposable
         test.ConfigurationBuilder.AddInMemoryCollection(GetDefaultFactoryConfig());
 
         KafkaBuilder kafkaBuilder = test.Services.AddKafka();
-
+        
         if (server != null)
         {
             kafkaBuilder.WithClusterConfig(ClusterName).Configure(options =>
             {
                 options.ClientConfig.AllowAutoCreateTopics = true;
                 options.ClientConfig.BootstrapServers = server;
+                options.ClientConfig.Debug = "all";
             });
         }
 

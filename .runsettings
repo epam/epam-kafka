@@ -34,7 +34,7 @@
 			</Logger>
 			<Logger friendlyName="console" enabled="True">
 				<Configuration>
-					<Verbosity>normal</Verbosity>
+					<Verbosity>detailed</Verbosity>
 				</Configuration>
 			</Logger>
 		</Loggers>
