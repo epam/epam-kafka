@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+	  <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+
+
+	<ItemGroup>
+	  <ProjectReference Include="..\..\src\Epam.Kafka.PubSub\Epam.Kafka.PubSub.csproj" />
+	  <ProjectReference Include="..\Epam.Kafka.Tests\Epam.Kafka.Tests.csproj" />
+	</ItemGroup>
+
+</Project>
