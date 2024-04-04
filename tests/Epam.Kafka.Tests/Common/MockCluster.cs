@@ -25,7 +25,7 @@ public sealed class MockCluster : IDisposable
 
         if (env != null)
         {
-            this._mockBootstrapServers = env;
+            this._mockBootstrapServers = "localhost:9200";
         }
         else
         {
