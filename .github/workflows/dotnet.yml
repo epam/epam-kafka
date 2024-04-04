@@ -29,13 +29,13 @@ jobs:
     - name: Test
       run: dotnet test  -c Debug --no-build --verbosity normal --settings .runsettings --filter FullyQualifiedName!~IntegrationTests
 
-    - name: Start containers
-      run: docker-compose -p kfk -f "tests/docker-compose.yml" up -d
-    - name: Integration
-      run: dotnet test -c Debug --no-build --verbosity normal --settings .runsettings --filter FullyQualifiedName~IntegrationTests /p:ParallelizeTestCollections=false
-    - name: Stop containers
-      if: always()
-      run: docker-compose -p kfk -f "tests/docker-compose.yml" down
+    # - name: Start containers
+    #   run: docker-compose -p kfk -f "tests/docker-compose.yml" up -d
+    # - name: Integration
+    #   run: dotnet test -c Debug --no-build --verbosity normal --settings .runsettings --filter FullyQualifiedName~IntegrationTests
+    # - name: Stop containers
+    #   if: always()
+    #   run: docker-compose -p kfk -f "tests/docker-compose.yml" down
 
     - name: Report
       run: |

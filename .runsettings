@@ -8,7 +8,7 @@
 	</RunConfiguration>
 	<xUnit>
 		<LongRunningTestSeconds>40</LongRunningTestSeconds>
-		<!--<ParallelizeTestCollections>false</ParallelizeTestCollections>-->
+		<ParallelizeTestCollections>false</ParallelizeTestCollections>
 	</xUnit>
 	<DataCollectionRunSettings>
 		<DataCollectors>
