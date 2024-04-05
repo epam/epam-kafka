@@ -23,6 +23,9 @@
 		<PackageTags>epam kafka</PackageTags>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<NeutralLanguage>en</NeutralLanguage>
+
+		<VersionPrefix>0</VersionPrefix>
+		<Version>2.0.$(VersionPrefix)</Version>
 	</PropertyGroup>
 
 	<ItemGroup>

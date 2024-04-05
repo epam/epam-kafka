@@ -9,14 +9,23 @@ on:
   pull_request:
     branches: [ "develop", "main" ]
 
-
 jobs:
   build:
-
     runs-on: ubuntu-latest    
-    
+    outputs:
+      src: ${{ steps.filter.outputs.src }}
     steps:
     - uses: actions/checkout@v4
+  
+    # https://github.com/dorny/paths-filter
+    - uses: dorny/paths-filter@v3
+      if: ${{ github.event_name != 'pull_request' }}
+      id: filter
+      with:
+        filters: |
+          src:
+            - 'src/**'
+
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
@@ -25,28 +34,26 @@ jobs:
       run: dotnet restore
     - name: Build
       run: dotnet build -c Debug --no-restore      
-      
-    - name: Test
-      run: dotnet test  -c Debug --no-build --verbosity normal --settings .runsettings --filter FullyQualifiedName!~IntegrationTests
 
     - name: Start containers
-      run: docker-compose -p kfk -f "tests/docker-compose.yml" up -d
-    - name: Integration
-      run: dotnet test -c Debug --no-build --verbosity normal --settings .runsettings --filter FullyQualifiedName~IntegrationTests
+      run: ./kafka-start.cmd
+      working-directory: ./tests
+    - name: Test
+      run: dotnet test -c Debug --no-build --verbosity normal --settings .runsettings
     - name: Stop containers
       if: always()
-      run: docker-compose -p kfk -f "tests/docker-compose.yml" down
+      run: ./kafka-stop.cmd
+      working-directory: ./tests
 
     - name: Report
       run: |
         dotnet tool restore
-        dotnet reportgenerator -reports:./artifacts/cob/*/coverage.cobertura.xml -targetdir:artifacts/html -reporttypes:HtmlInline
-        dotnet reportgenerator -reports:./artifacts/cob/*/coverage.cobertura.xml -targetdir:artifacts -reporttypes:"Cobertura;HtmlSummary;TextSummary"    
+        dotnet reportgenerator -reports:./artifacts/cob/*/coverage.cobertura.xml -targetdir:artifacts -reporttypes:"Cobertura;HtmlSummary"    
 
     - name: Code Coverage Report
       uses: irongut/CodeCoverageSummary@v1.3.0
       with:
-        filename: artifacts/Cobertura.xml
+        filename: ./artifacts/Cobertura.xml
         badge: true
         fail_below_min: true
         format: markdown
@@ -54,10 +61,35 @@ jobs:
         hide_complexity: true
         indicators: true
         output: both
-        thresholds: '35 75'
+        thresholds: '75 80'
     - name: Add Coverage PR Comment
       uses: marocchino/sticky-pull-request-comment@v2
       if: github.event_name == 'pull_request'
       with:
         recreate: true
         path: code-coverage-results.md
+
+  publish:
+    runs-on: ubuntu-latest      
+    needs: "build"
+    if: ${{ needs.build.outputs.src == 'true' }} # publish only if src folder changed and if not pull request
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x
+        source-url: https://api.nuget.org/v3/index.json
+
+    - name: Restore
+      run: dotnet restore
+      if: steps.changes.outputs.src == 'true'
+    - name: Pack Rc
+      run: dotnet pack -c Release -p:VersionPrefix=${{ github.run_number }}-rc --output ./artifacts/nuget
+      if: github.ref == 'refs/heads/develop'
+    - name: Pack
+      run: dotnet pack -c Release -p:VersionPrefix=${{ github.run_number }} --output ./artifacts/nuget
+      if: github.ref == 'refs/heads/main'
+    - name: Push
+      run: dotnet nuget push ./artifacts/nuget/*  -k ${{ secrets.NUGET_TOKEN }}
+
