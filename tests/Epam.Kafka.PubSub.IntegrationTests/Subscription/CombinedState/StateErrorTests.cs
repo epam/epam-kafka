@@ -1,16 +1,13 @@
 ﻿// Copyright © 2024 EPAM Systems
 
 using Confluent.Kafka;
-
 using Epam.Kafka.PubSub.Tests.Helpers;
 using Epam.Kafka.Tests.Common;
-
 using Microsoft.Extensions.DependencyInjection;
-
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Epam.Kafka.PubSub.Tests.Subscription.CombinedState;
+namespace Epam.Kafka.PubSub.IntegrationTests.Subscription.CombinedState;
 
 [Collection(SubscribeTests.Name)]
 public class StateErrorTests : TestWithServices

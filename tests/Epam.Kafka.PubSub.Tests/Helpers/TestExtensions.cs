@@ -47,34 +47,4 @@ public static class TestExtensions
 
         return new TopicMessage<string, TestEntityKafka> { Key = entity.Id, Value = entity, Topic = topicName };
     }
-
-    public static SubscriptionBuilder<string, TestEntityKafka, TestSubscriptionHandler> CreateDefaultSubscription(
-        this TestObserver observer, MockCluster mockCluster)
-    {
-        if (observer == null) throw new ArgumentNullException(nameof(observer));
-        if (mockCluster == null) throw new ArgumentNullException(nameof(mockCluster));
-
-        KafkaBuilder kafkaBuilder = mockCluster.LaunchMockCluster(observer.Test);
-
-        // dedicated unique group for each test to avoid Group re-balance in progress exception on parallel test runs.
-        kafkaBuilder.WithConsumerConfig(MockCluster.DefaultConsumer)
-            .Configure(x =>
-            {
-                x.ConsumerConfig.GroupId = observer.Name;
-                x.ConsumerConfig.SessionTimeoutMs = 5_000;
-            });
-
-        return kafkaBuilder
-            .AddSubscription<string, TestEntityKafka, TestSubscriptionHandler>(observer.Name, ServiceLifetime.Scoped)
-            .WithOptions(options =>
-            {
-                options.ExternalStateCommitToKafka = true;
-                options.Topics = observer.Test.AnyTopicName;
-                options.BatchNotAssignedTimeout = TimeSpan.FromSeconds(1);
-                options.BatchEmptyTimeout = TimeSpan.Zero;
-                options.PipelineRetryTimeout = TimeSpan.Zero;
-                options.BatchPausedTimeout = TimeSpan.Zero;
-                options.BatchRetryMaxTimeout = TimeSpan.Zero;
-            });
-    }
 }

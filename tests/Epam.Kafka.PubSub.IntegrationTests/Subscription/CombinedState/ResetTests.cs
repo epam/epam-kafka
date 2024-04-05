@@ -4,13 +4,11 @@ using Confluent.Kafka;
 using Epam.Kafka.PubSub.Subscription.Pipeline;
 using Epam.Kafka.PubSub.Tests.Helpers;
 using Epam.Kafka.Tests.Common;
-
 using Microsoft.Extensions.DependencyInjection;
-
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Epam.Kafka.PubSub.Tests.Subscription.CombinedState;
+namespace Epam.Kafka.PubSub.IntegrationTests.Subscription.CombinedState;
 
 public class ResetTests : TestWithServices, IClassFixture<MockCluster>
 {
