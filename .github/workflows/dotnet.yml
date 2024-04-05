@@ -80,7 +80,8 @@ jobs:
       with:
         dotnet-version: 8.0.x
         source-url: https://api.nuget.org/v3/index.json
-
+      env:
+        NUGET_AUTH_TOKEN: ${{secrets.NUGET_TOKEN}}
     - name: Restore
       run: dotnet restore
       if: steps.changes.outputs.src == 'true'
@@ -91,5 +92,5 @@ jobs:
       run: dotnet pack -c Release -p:VersionPrefix=${{ github.run_number }} --output ./artifacts/nuget
       if: github.ref == 'refs/heads/main'
     - name: Push
-      run: dotnet nuget push ./artifacts/nuget/*  -k ${{ secrets.NUGET_TOKEN }}
+      run: dotnet nuget push ./artifacts/nuget/*
 

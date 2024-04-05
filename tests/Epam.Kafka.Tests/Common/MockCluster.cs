@@ -18,21 +18,10 @@ public sealed class MockCluster
 
     private readonly string _mockBootstrapServers = "localhost:9092";
 
-
-    public MockCluster()
-    {
-        
-    }
-
     public KafkaBuilder LaunchMockCluster(TestWithServices test)
     {
         return AddMockCluster(test, this._mockBootstrapServers);
     }
-
-    //public void Dispose()
-    //{
-    //    this._adminClient?.Dispose();
-    //}
 
     public static KafkaBuilder AddMockCluster(TestWithServices test, string? server = null)
     {
