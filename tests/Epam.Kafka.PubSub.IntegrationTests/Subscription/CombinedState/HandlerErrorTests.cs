@@ -8,7 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Epam.Kafka.PubSub.Tests.Subscription.InternalState;
+namespace Epam.Kafka.PubSub.IntegrationTests.Subscription.CombinedState;
 
 [Collection(SubscribeTests.Name)]
 public class HandlerErrorTests : TestWithServices
@@ -30,11 +30,14 @@ public class HandlerErrorTests : TestWithServices
         using TestObserver observer = new(this, 8);
 
         var handler = new TestSubscriptionHandler(observer);
+        var offsets = new TestOffsetsStorage(observer, 0, 1, 2);
         var deserializer = new TestDeserializer(observer);
 
         this.Services.AddScoped(_ => handler);
+        this.Services.AddScoped(_ => offsets);
 
-        observer.CreateDefaultSubscription(this._mockCluster).WithValueDeserializer(_ => deserializer).WithOptions(x =>
+        observer.CreateDefaultSubscription(this._mockCluster).WithValueDeserializer(_ => deserializer)
+            .WithSubscribeAndExternalOffsets<TestOffsetsStorage>().WithOptions(x =>
             {
                 x.BatchSize = 6;
             });
@@ -53,10 +56,25 @@ public class HandlerErrorTests : TestWithServices
         deserializer.WithSuccess(2, m1.Keys.ToArray());
         deserializer.WithSuccess(8, m2.Keys.ToArray());
 
+        var unset = new TopicPartitionOffset(tp3, Offset.Unset);
+        var offset1 = new TopicPartitionOffset(tp3, 1);
+        var offset6 = new TopicPartitionOffset(tp3, 6);
+        var offset10 = new TopicPartitionOffset(tp3, 10);
+
+        offsets.WithGet(2, unset);
+        offsets.WithGet(3, unset);
+        offsets.WithGet(4, unset);
+        offsets.WithGet(5, unset);
+        offsets.WithGet(6, unset);
+        offsets.WithSetAndGetForNextIteration(6, offset1);
+        offsets.WithSetAndGetForNextIteration(7, offset6);
+        offsets.WithSet(8, offset10);
+
         await this.RunBackgroundServices();
 
         deserializer.Verify();
         handler.Verify();
+        offsets.Verify();
 
         // iteration 1
         observer.AssertSubNotAssigned();
@@ -90,6 +108,7 @@ public class HandlerErrorTests : TestWithServices
         observer.AssertStart();
         observer.AssertAssign();
         observer.AssertProcess();
+        observer.AssertCommitExternal();
         observer.AssertCommitKafka();
         observer.AssertStop(SubscriptionBatchResult.Processed);
 
@@ -97,6 +116,7 @@ public class HandlerErrorTests : TestWithServices
         observer.AssertStart();
         observer.AssertAssign();
         observer.AssertProcess();
+        observer.AssertCommitExternal();
         observer.AssertCommitKafka();
         observer.AssertStop(SubscriptionBatchResult.Processed);
 
@@ -105,6 +125,7 @@ public class HandlerErrorTests : TestWithServices
         observer.AssertAssign();
         observer.AssertRead(4);
         observer.AssertProcess();
+        observer.AssertCommitExternal();
         observer.AssertCommitKafka();
         observer.AssertStop(SubscriptionBatchResult.Processed);
     }

@@ -1,13 +1,13 @@
 ﻿// Copyright © 2024 EPAM Systems
 
 using Confluent.Kafka;
-
+using Confluent.Kafka.Admin;
 using Microsoft.Extensions.Configuration;
 using Shouldly;
 
 namespace Epam.Kafka.Tests.Common;
 
-public sealed class MockCluster : IDisposable
+public sealed class MockCluster
 {
     public const string ClusterName = "Mock";
     public const string TransactionalProducer = "Transactional";
@@ -16,18 +16,12 @@ public sealed class MockCluster : IDisposable
 
     private const string DefaultProducer = "Default";
 
-    private readonly IAdminClient _adminClient;
-    private readonly string _mockBootstrapServers;
+    private readonly string _mockBootstrapServers = "localhost:9092";
+
 
     public MockCluster()
     {
-        // Trick: we are going to connect with admin client first so we can get metadata and bootstrap servers from it
-        var clientConfig = new ClientConfig();
-        clientConfig.Set("bootstrap.servers", "localhost:9200");
-        clientConfig.Set("test.mock.num.brokers", "1");
-        this._adminClient = new AdminClientBuilder(clientConfig).Build();
-        Metadata metadata = this._adminClient.GetMetadata(TimeSpan.FromSeconds(1));
-        this._mockBootstrapServers = string.Join(",", metadata.Brokers.Select(b => $"{b.Host}:{b.Port}"));
+        
     }
 
     public KafkaBuilder LaunchMockCluster(TestWithServices test)
@@ -35,10 +29,10 @@ public sealed class MockCluster : IDisposable
         return AddMockCluster(test, this._mockBootstrapServers);
     }
 
-    public void Dispose()
-    {
-        this._adminClient.Dispose();
-    }
+    //public void Dispose()
+    //{
+    //    this._adminClient?.Dispose();
+    //}
 
     public static KafkaBuilder AddMockCluster(TestWithServices test, string? server = null)
     {
@@ -63,6 +57,22 @@ public sealed class MockCluster : IDisposable
     public static async Task<Dictionary<TestEntityKafka, TopicPartitionOffset>> SeedKafka(TestWithServices test,
         int count, TopicPartition tp)
     {
+        try
+        {
+            await test.KafkaFactory.GetOrCreateClient().CreateDependentAdminClient().CreateTopicsAsync(new[]
+            {
+                new TopicSpecification
+                {
+                    Name = test.AnyTopicName,
+                    NumPartitions = 4,
+                    ReplicationFactor = 1
+                }
+            });
+        }
+        catch (CreateTopicsException)
+        {
+        }
+
         ProducerConfig config = test.KafkaFactory.CreateProducerConfig();
 
         config.EnableIdempotence = true;
@@ -82,6 +92,11 @@ public sealed class MockCluster : IDisposable
         }
 
         await Task.Run(() => producer.Poll(TimeSpan.FromSeconds(2)));
+
+        if (result.Count < count)
+        {
+            await Task.Run(() => producer.Poll(TimeSpan.FromSeconds(5)));
+        }
 
         result.Count.ShouldBe(count, $"Seed {count} items.");
 

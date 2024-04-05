@@ -9,7 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Epam.Kafka.PubSub.Tests.Subscription.ExternalState;
+namespace Epam.Kafka.PubSub.IntegrationTests.Subscription.ExternalState;
 
 public class ResetTests : TestWithServices, IClassFixture<MockCluster>
 {
