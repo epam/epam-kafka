@@ -44,8 +44,10 @@ public class SerializationErrorTests : TestWithServices, IClassFixture<MockClust
         deserializer.WithError(2, exc, m1.Keys.First());
 
         TopicPartitionOffset unset = new (tp3, Offset.Unset);
+        TopicPartitionOffset autoReset = new (tp3, 0);
         offsets.WithGet(1, unset);
-        offsets.WithGet(2, unset);
+        offsets.WithSet(1, autoReset);
+        offsets.WithGet(2, autoReset);
 
         await this.RunBackgroundServices();
 
@@ -92,9 +94,11 @@ public class SerializationErrorTests : TestWithServices, IClassFixture<MockClust
         handler.WithSuccess(1, m1.Take(1));
 
         TopicPartitionOffset unset = new (tp3, Offset.Unset);
+        TopicPartitionOffset autoReset = new (tp3, 0);
         TopicPartitionOffset offset1 = new (tp3, 1);
 
         offsets.WithGet(1, unset);
+        offsets.WithSet(1, autoReset);
         offsets.WithSetAndGetForNextIteration(1, offset1);
 
         await this.RunBackgroundServices();

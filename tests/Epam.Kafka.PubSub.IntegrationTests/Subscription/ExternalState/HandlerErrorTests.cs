@@ -59,15 +59,17 @@ public class HandlerErrorTests : TestWithServices, IClassFixture<MockCluster>
         deserializer.WithSuccess(7, m2.Keys.ToArray());
 
         var unset = new TopicPartitionOffset(tp3, Offset.Unset);
+        var autoReset = new TopicPartitionOffset(tp3, 0);
         var offset1 = new TopicPartitionOffset(tp3, 1);
         var offset6 = new TopicPartitionOffset(tp3, 6);
         var offset10 = new TopicPartitionOffset(tp3, 10);
 
         offsets.WithGet(1, unset);
-        offsets.WithGet(2, unset);
-        offsets.WithGet(3, unset);
-        offsets.WithGet(4, unset);
-        offsets.WithGet(5, unset);
+        offsets.WithSet(1, autoReset);
+        offsets.WithGet(2, autoReset);
+        offsets.WithGet(3, autoReset);
+        offsets.WithGet(4, autoReset);
+        offsets.WithGet(5, autoReset);
         offsets.WithSetAndGetForNextIteration(5, offset1);
         offsets.WithSetAndGetForNextIteration(6, offset6);
         offsets.WithSet(7, offset10);
