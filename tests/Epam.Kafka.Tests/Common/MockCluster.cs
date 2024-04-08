@@ -43,8 +43,7 @@ public sealed class MockCluster
         return kafkaBuilder;
     }
 
-    public static async Task<Dictionary<TestEntityKafka, TopicPartitionOffset>> SeedKafka(TestWithServices test,
-        int count, TopicPartition tp)
+    public static async Task SeedKafka(TestWithServices test)
     {
         try
         {
@@ -61,6 +60,12 @@ public sealed class MockCluster
         catch (CreateTopicsException)
         {
         }
+    }
+
+    public static async Task<Dictionary<TestEntityKafka, TopicPartitionOffset>> SeedKafka(TestWithServices test,
+        int count, TopicPartition tp)
+    {
+        await SeedKafka(test);
 
         ProducerConfig config = test.KafkaFactory.CreateProducerConfig();
 

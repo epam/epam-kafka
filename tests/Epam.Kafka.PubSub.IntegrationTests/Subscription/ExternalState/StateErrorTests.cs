@@ -85,11 +85,13 @@ public class StateErrorTests : TestWithServices, IClassFixture<MockCluster>
         deserializer.WithSuccess(1, m1.Keys.ToArray());
 
         var unset = new TopicPartitionOffset(tp3, Offset.Unset);
+        var autoReset = new TopicPartitionOffset(tp3, 0);
         var offset5 = new TopicPartitionOffset(tp3, 5);
 
         offsets.WithGet(1, unset);
+        offsets.WithSet(1, autoReset);
         offsets.WithSetError(1, exception, offset5);
-        offsets.WithGet(2, unset);
+        offsets.WithGet(2, autoReset);
         offsets.WithSetError(2, exception, offset5);
 
         await this.RunBackgroundServices();

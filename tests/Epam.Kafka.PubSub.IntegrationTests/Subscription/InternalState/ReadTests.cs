@@ -111,4 +111,74 @@ public class ReadTests : TestWithServices, IClassFixture<MockCluster>
         // iteration 4
         observer.AssertSubEmpty();
     }
+
+    [Fact]
+    public async Task AutoOffsetResetError()
+    {
+        TopicPartition tp1 = new(this.AnyTopicName, 1);
+
+        using TestObserver observer = new(this, 2);
+
+        var handler = new TestSubscriptionHandler(observer);
+        var deserializer = new TestDeserializer(observer);
+
+        this.Services.AddScoped(_ => handler);
+
+        observer.CreateDefaultSubscription(this._mockCluster, AutoOffsetReset.Error).WithValueDeserializer(_ => deserializer)
+            .WithOptions(x =>
+            {
+                x.BatchSize = 5;
+            });
+
+        await MockCluster.SeedKafka(this, 5, tp1);
+
+        await this.RunBackgroundServices();
+
+        deserializer.Verify();
+        handler.Verify();
+
+        // iteration 1
+        observer.AssertSubNotAssigned();
+
+        // iteration 2
+        observer.AssertStart();
+        observer.AssertAssign();
+        observer.AssertRead();
+        observer.AssertStop<ConsumeException>("Local: No offset stored");
+    }
+
+    [Fact]
+    public async Task AutoOffsetResetLatest()
+    {
+        TopicPartition tp1 = new(this.AnyTopicName, 1);
+
+        using TestObserver observer = new(this, 3);
+
+        var handler = new TestSubscriptionHandler(observer);
+        var deserializer = new TestDeserializer(observer);
+
+        this.Services.AddScoped(_ => handler);
+
+        observer.CreateDefaultSubscription(this._mockCluster, AutoOffsetReset.Latest).WithValueDeserializer(_ => deserializer)
+            .WithOptions(x =>
+            {
+                x.BatchSize = 5;
+            });
+
+        await MockCluster.SeedKafka(this, 5, tp1);
+
+        await this.RunBackgroundServices();
+
+        deserializer.Verify();
+        handler.Verify();
+
+        // iteration 1
+        observer.AssertSubNotAssigned();
+
+        // iteration 2
+        observer.AssertSubNotAssigned();
+
+        // iteration 3
+        observer.AssertSubEmpty();
+    }
 }

@@ -44,11 +44,13 @@ public class StateErrorTests : TestWithServices
         deserializer.WithSuccess(2, m1.Keys.ToArray());
 
         var unset = new TopicPartitionOffset(tp3, Offset.Unset);
+        var autoReset = new TopicPartitionOffset(tp3, 0);
         var offset5 = new TopicPartitionOffset(tp3, 5);
 
         offsets.WithGet(2, unset);
+        offsets.WithSet(2, autoReset);
         offsets.WithSetError(2, exception, offset5);
-        offsets.WithGet(3, unset);
+        offsets.WithGet(3, autoReset);
         offsets.WithSetError(3, exception, offset5);
 
         await this.RunBackgroundServices();
