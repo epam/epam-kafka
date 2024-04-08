@@ -1,10 +1,13 @@
 ﻿// Copyright © 2024 EPAM Systems
 
 using Confluent.Kafka;
+
 using Epam.Kafka.PubSub.Subscription.Pipeline;
 using Epam.Kafka.PubSub.Tests.Helpers;
 using Epam.Kafka.Tests.Common;
+
 using Microsoft.Extensions.DependencyInjection;
+
 using Xunit;
 using Xunit.Abstractions;
 
@@ -48,10 +51,11 @@ public class SerializationErrorTests : TestWithServices
         deserializer.WithError(3, exc, m1.Keys.First());
         deserializer.WithError(5, exc, m1.Keys.First());
 
-        TopicPartitionOffset unset = new (tp3, Offset.Unset);
+        TopicPartitionOffset unset = new(tp3, Offset.Unset);
+        TopicPartitionOffset autoReset = new(tp3, 0);
         offsets.WithGet(2, unset);
-        offsets.WithGet(3, unset);
-        offsets.WithGet(5, unset);
+        offsets.WithSetAndGetForNextIteration(2, autoReset);
+        offsets.WithGet(5, autoReset);
 
         await this.RunBackgroundServices();
 
@@ -109,10 +113,12 @@ public class SerializationErrorTests : TestWithServices
 
         handler.WithSuccess(2, m1.Take(1));
 
-        TopicPartitionOffset unset = new (tp3, Offset.Unset);
-        TopicPartitionOffset offset1 = new (tp3, 1);
+        TopicPartitionOffset unset = new(tp3, Offset.Unset);
+        TopicPartitionOffset autoReset = new(tp3, 0);
+        TopicPartitionOffset offset1 = new(tp3, 1);
 
         offsets.WithGet(2, unset);
+        offsets.WithSet(2, autoReset);
         offsets.WithSetAndGetForNextIteration(2, offset1);
 
         await this.RunBackgroundServices();

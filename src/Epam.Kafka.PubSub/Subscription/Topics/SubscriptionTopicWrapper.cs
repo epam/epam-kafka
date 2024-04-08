@@ -18,6 +18,8 @@ internal sealed class SubscriptionTopicWrapper<TKey, TValue> : IDisposable
 
     private Exception? _exception;
 
+    private readonly ConsumerConfig _config;
+
     public SubscriptionTopicWrapper(IKafkaFactory kafkaFactory,
         SubscriptionMonitor monitor,
         SubscriptionOptions options,
@@ -38,6 +40,8 @@ internal sealed class SubscriptionTopicWrapper<TKey, TValue> : IDisposable
         ConsumerConfig config = kafkaFactory.CreateConsumerConfig(options.Consumer);
 
         this.ConfigureConsumerConfig(config);
+
+        this._config = config;
 
         this.Consumer = kafkaFactory.CreateConsumer<TKey, TValue>(config, options.Cluster, b =>
         {
@@ -64,7 +68,7 @@ internal sealed class SubscriptionTopicWrapper<TKey, TValue> : IDisposable
     public IConsumer<TKey, TValue> Consumer { get; }
     public string? ConsumerGroup { get; private set; }
 
-    public Func<IReadOnlyCollection<TopicPartition>, IEnumerable<TopicPartitionOffset>>? ExternalState { get; set; }
+    public Func<IReadOnlyCollection<TopicPartition>, IReadOnlyCollection<TopicPartitionOffset>>? ExternalState { get; set; }
 
     public void Dispose()
     {
@@ -82,6 +86,67 @@ internal sealed class SubscriptionTopicWrapper<TKey, TValue> : IDisposable
             this.Logger.ConsumerDisposeError(exception, this.Monitor.Name);
         }
 #pragma warning restore CA1031 // Do not catch general exception types
+    }
+
+    public IReadOnlyCollection<TopicPartitionOffset> GetAndResetState(
+        IExternalOffsetsStorage storage, 
+        IReadOnlyCollection<TopicPartition> topicPartitions,
+        CancellationToken cancellationToken)
+    {
+        IReadOnlyCollection<TopicPartitionOffset> state =
+            storage.GetOrCreate(topicPartitions, this.ConsumerGroup, cancellationToken);
+
+        if (state.Any(x => x.Offset == Offset.Unset))
+        {
+            state = this.AutoResetOffsets(state, out var toCommit);
+
+            if (toCommit.Count > 0)
+            {
+                storage.CommitOrReset(toCommit, this.ConsumerGroup, cancellationToken);
+            }
+        }
+
+        return state;
+    }
+
+    private List<TopicPartitionOffset> AutoResetOffsets(IReadOnlyCollection<TopicPartitionOffset> offsets, out List<TopicPartitionOffset> toReset)
+    {
+        toReset = new List<TopicPartitionOffset>(offsets.Count);
+        List<TopicPartitionOffset> result = new(offsets.Count);
+
+        foreach (var tpo in offsets)
+        {
+            if (tpo.Offset == Offset.Unset)
+            {
+                TopicPartition topicPartition = tpo.TopicPartition;
+
+                var q = this.Consumer.QueryWatermarkOffsets(topicPartition, TimeSpan.FromSeconds(5));
+
+                switch (this._config.AutoOffsetReset)
+                {
+                    case AutoOffsetReset.Earliest:
+                        var low = new TopicPartitionOffset(topicPartition, q.Low);
+                        toReset.Add(low);
+                        result.Add(low);
+                        break;
+                    case AutoOffsetReset.Latest:
+                        var high = new TopicPartitionOffset(topicPartition, q.High);
+                        toReset.Add(high);
+                        result.Add(high);
+                        break;
+                    case AutoOffsetReset.Error:
+                        throw new KafkaException(ErrorCode.Local_NoOffset);
+
+                    default: result.Add(tpo); break;
+                }
+            }
+            else
+            {
+                result.Add(tpo);
+            }
+        }
+
+        return result;
     }
 
     public void ClearIfNotAssigned()
@@ -202,7 +267,12 @@ internal sealed class SubscriptionTopicWrapper<TKey, TValue> : IDisposable
 #pragma warning disable CA1031 // can't throw exceptions in handler callback because it triggers incorrect state in librdkafka and some times leads to app crash. 
                 try
                 {
-                    TopicPartitionOffset[] state = this.ExternalState.Invoke(tp).ToArray();
+                    var state = this.ExternalState.Invoke(tp);
+
+                    foreach (var tpo in state)
+                    {
+                        this.Offsets[tpo.TopicPartition] = tpo.Offset;
+                    }
 
                     list.AddRange(state);
                 }

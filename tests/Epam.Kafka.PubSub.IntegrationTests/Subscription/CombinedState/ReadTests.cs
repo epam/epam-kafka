@@ -44,6 +44,7 @@ public class ReadTests : TestWithServices, IClassFixture<MockCluster>
         deserializer.WithSuccess(2, m1.Keys.Concat(m2.Keys).ToArray());
 
         offsets.WithGet(2, new TopicPartitionOffset(tp1, Offset.Unset), new TopicPartitionOffset(tp2, Offset.Unset));
+        offsets.WithSet(2, new TopicPartitionOffset(tp1, 0), new TopicPartitionOffset(tp2, 0));
         offsets.WithSetAndGetForNextIteration(2, new TopicPartitionOffset(tp1, 5), new TopicPartitionOffset(tp2, 5));
 
         await this.RunBackgroundServices();
@@ -94,11 +95,13 @@ public class ReadTests : TestWithServices, IClassFixture<MockCluster>
         deserializer.WithSuccess(3, m2.Keys.ToArray());
 
         var unset = new TopicPartitionOffset(tp3, Offset.Unset);
+        var autoReset = new TopicPartitionOffset(tp3, 0);
         var offset5 = new TopicPartitionOffset(tp3, 5);
         var offset10 = new TopicPartitionOffset(tp3, 10);
 
         offsets.WithGet(2, unset);
 
+        offsets.WithSet(2, autoReset);
         offsets.WithSetAndGetForNextIteration(2, offset5);
         offsets.WithSetAndGetForNextIteration(3, offset10);
 
@@ -131,5 +134,86 @@ public class ReadTests : TestWithServices, IClassFixture<MockCluster>
 
         // iteration 4
         observer.AssertSubEmpty();
+    }
+
+    [Fact]
+    public async Task AutoOffsetResetLatest()
+    {
+        TopicPartition tp3 = new(this.AnyTopicName, 3);
+
+        using TestObserver observer = new(this, 3);
+
+        var handler = new TestSubscriptionHandler(observer);
+        var offsets = new TestOffsetsStorage(observer, 0, 1, 2);
+        var deserializer = new TestDeserializer(observer);
+
+        this.Services.AddScoped(_ => handler);
+        this.Services.AddScoped(_ => offsets);
+
+        observer.CreateDefaultSubscription(this._mockCluster, AutoOffsetReset.Latest).WithValueDeserializer(_ => deserializer)
+            .WithSubscribeAndExternalOffsets<TestOffsetsStorage>().WithOptions(x =>
+            {
+                x.BatchSize = 5;
+            });
+
+        await MockCluster.SeedKafka(this, 5, tp3);
+
+        offsets.WithGet(2, new TopicPartitionOffset(tp3, Offset.Unset));
+        offsets.WithSetAndGetForNextIteration(2, new TopicPartitionOffset(tp3, 5));
+
+        await this.RunBackgroundServices();
+
+        deserializer.Verify();
+        handler.Verify();
+        offsets.Verify();
+
+        // iteration 1
+        observer.AssertSubNotAssigned();
+
+        // iteration 2
+        observer.AssertSubNotAssigned();
+
+        // iteration 3
+        observer.AssertSubEmpty();
+    }
+
+    [Fact]
+    public async Task AutoOffsetResetError()
+    {
+        TopicPartition tp3 = new(this.AnyTopicName, 3);
+
+        using TestObserver observer = new(this, 2);
+
+        var handler = new TestSubscriptionHandler(observer);
+        var offsets = new TestOffsetsStorage(observer, 0, 1, 2);
+        var deserializer = new TestDeserializer(observer);
+
+        this.Services.AddScoped(_ => handler);
+        this.Services.AddScoped(_ => offsets);
+
+        observer.CreateDefaultSubscription(this._mockCluster, AutoOffsetReset.Error).WithValueDeserializer(_ => deserializer)
+            .WithSubscribeAndExternalOffsets<TestOffsetsStorage>().WithOptions(x =>
+            {
+                x.BatchSize = 5;
+            });
+
+        await MockCluster.SeedKafka(this, 5, tp3);
+
+        //offsets.WithGet(1, new TopicPartitionOffset(tp3, Offset.Unset));
+        offsets.WithGet(2, new TopicPartitionOffset(tp3, Offset.Unset));
+
+        await this.RunBackgroundServices();
+
+        deserializer.Verify();
+        handler.Verify();
+        offsets.Verify();
+
+        observer.AssertSubNotAssigned();
+
+        // iteration 1
+        observer.AssertStart();
+        observer.AssertAssign();
+        observer.AssertRead();
+        observer.AssertStop<KafkaException>("Local: No offset stored");
     }
 }

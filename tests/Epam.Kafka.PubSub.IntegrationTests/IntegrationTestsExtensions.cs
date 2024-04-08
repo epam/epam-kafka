@@ -1,5 +1,6 @@
 ﻿// Copyright © 2024 EPAM Systems
 
+using Confluent.Kafka;
 using Epam.Kafka.PubSub.Subscription;
 using Epam.Kafka.PubSub.Tests.Helpers;
 using Epam.Kafka.Tests.Common;
@@ -10,7 +11,7 @@ namespace Epam.Kafka.PubSub.IntegrationTests;
 public static class IntegrationTestsExtensions
 {
     public static SubscriptionBuilder<string, TestEntityKafka, TestSubscriptionHandler> CreateDefaultSubscription(
-        this TestObserver observer, MockCluster mockCluster)
+        this TestObserver observer, MockCluster mockCluster, AutoOffsetReset autoOffsetReset = AutoOffsetReset.Earliest)
     {
         if (observer == null) throw new ArgumentNullException(nameof(observer));
         if (mockCluster == null) throw new ArgumentNullException(nameof(mockCluster));
@@ -23,6 +24,7 @@ public static class IntegrationTestsExtensions
             {
                 x.ConsumerConfig.GroupId = observer.Name;
                 x.ConsumerConfig.SessionTimeoutMs = 10_000;
+                x.ConsumerConfig.AutoOffsetReset = autoOffsetReset;
             });
 
         return kafkaBuilder

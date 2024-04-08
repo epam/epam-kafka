@@ -57,15 +57,17 @@ public class HandlerErrorTests : TestWithServices
         deserializer.WithSuccess(8, m2.Keys.ToArray());
 
         var unset = new TopicPartitionOffset(tp3, Offset.Unset);
+        var autoReset = new TopicPartitionOffset(tp3, 0);
         var offset1 = new TopicPartitionOffset(tp3, 1);
         var offset6 = new TopicPartitionOffset(tp3, 6);
         var offset10 = new TopicPartitionOffset(tp3, 10);
 
         offsets.WithGet(2, unset);
-        offsets.WithGet(3, unset);
-        offsets.WithGet(4, unset);
-        offsets.WithGet(5, unset);
-        offsets.WithGet(6, unset);
+        offsets.WithSet(2, autoReset);
+        offsets.WithGet(3, autoReset);
+        offsets.WithGet(4, autoReset);
+        offsets.WithGet(5, autoReset);
+        offsets.WithGet(6, autoReset);
         offsets.WithSetAndGetForNextIteration(6, offset1);
         offsets.WithSetAndGetForNextIteration(7, offset6);
         offsets.WithSet(8, offset10);

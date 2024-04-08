@@ -12,7 +12,6 @@ internal sealed class DbContextOffsetsStorage<TContext> : IExternalOffsetsStorag
     where TContext : DbContext, IKafkaStateDbContext
 {
     private readonly TContext _context;
-    private bool _committed;
 
     public DbContextOffsetsStorage(TContext context)
     {
@@ -75,11 +74,6 @@ internal sealed class DbContextOffsetsStorage<TContext> : IExternalOffsetsStorag
             throw new ArgumentNullException(nameof(offsets));
 
         consumerGroup ??= string.Empty;
-
-        if (this._committed)
-            throw new InvalidOperationException("CommitOrReset was already been executed");
-
-        this._committed = true;
 
         foreach (TopicPartitionOffset item in offsets)
         {
