@@ -14,10 +14,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="..\Epam.Kafka.PubSub.EntityFrameworkCore.Tests\PublicApiTests.cs" Link="PublicApiTests.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\..\src\Epam.Kafka.PubSub.EntityFramework6\Epam.Kafka.PubSub.EntityFramework6.csproj" />
 
     <ProjectReference Include="..\Epam.Kafka.Tests\Epam.Kafka.Tests.csproj" />
