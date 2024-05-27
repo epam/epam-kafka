@@ -1,5 +1,9 @@
 ﻿namespace Epam.Kafka.PubSub.EntityFramework6.Subscription.State
 {
+    public interface IKafkaStateDbContext
+    {
+        System.Data.Entity.DbSet<Epam.Kafka.PubSub.EntityFramework6.Subscription.State.KafkaTopicState> KafkaTopicStates { get; }
+    }
     public class KafkaTopicState
     {
         public KafkaTopicState() { }
@@ -16,5 +20,9 @@
         public System.DateTimeOffset Timestamp { get; set; }
         [System.ComponentModel.DataAnnotations.Required]
         public string? Topic { get; set; }
+    }
+    public static class KafkaTopicStateExtensions
+    {
+        public static System.Data.Entity.ModelConfiguration.EntityTypeConfiguration<Epam.Kafka.PubSub.EntityFramework6.Subscription.State.KafkaTopicState> AddKafkaState(this System.Data.Entity.DbModelBuilder builder) { }
     }
 }

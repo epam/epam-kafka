@@ -2,7 +2,7 @@
 
 using System.ComponentModel.DataAnnotations;
 
-#if NET462 || NETSTANDARD2_1
+#if EF6
 namespace Epam.Kafka.PubSub.EntityFramework6.Subscription.State;
 #else
 namespace Epam.Kafka.PubSub.EntityFrameworkCore.Subscription.State;

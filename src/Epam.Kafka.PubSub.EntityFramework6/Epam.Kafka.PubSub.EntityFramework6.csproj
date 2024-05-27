@@ -6,8 +6,14 @@
 		<Nullable>enable</Nullable>
 	</PropertyGroup>
 
+	<PropertyGroup>
+		<DefineConstants>$(DefineConstants);EF6</DefineConstants>
+	</PropertyGroup>
+
 	<ItemGroup>
+		<Compile Include="..\Epam.Kafka.PubSub.EntityFrameworkCore\Subscription\State\IKafkaStateDbContext.cs" Link="Subscription\State\IKafkaStateDbContext.cs" />
 		<Compile Include="..\Epam.Kafka.PubSub.EntityFrameworkCore\Subscription\State\KafkaTopicState.cs" Link="Subscription\State\KafkaTopicState.cs" />
+		<Compile Include="..\Epam.Kafka.PubSub.EntityFrameworkCore\Subscription\State\KafkaTopicStateExtensions.cs" Link="Subscription\State\KafkaTopicStateExtensions.cs" />
 	</ItemGroup>
 
 	<ItemGroup>
