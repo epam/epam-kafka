@@ -2,7 +2,11 @@
 
 using System.ComponentModel.DataAnnotations;
 
+#if NET462 || NETSTANDARD2_1
+namespace Epam.Kafka.PubSub.EntityFramework6.Subscription.State;
+#else
 namespace Epam.Kafka.PubSub.EntityFrameworkCore.Subscription.State;
+#endif
 
 /// <summary>
 ///     Represent subscription processing state (offsets for unique combination of topic name, consumer group name,

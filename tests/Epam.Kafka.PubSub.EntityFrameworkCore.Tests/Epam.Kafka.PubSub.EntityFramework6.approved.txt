@@ -1,0 +1,20 @@
+﻿namespace Epam.Kafka.PubSub.EntityFramework6.Subscription.State
+{
+    public class KafkaTopicState
+    {
+        public KafkaTopicState() { }
+        [System.ComponentModel.DataAnnotations.Required]
+        public string ConsumerGroup { get; set; }
+        [System.ComponentModel.DataAnnotations.ConcurrencyCheck]
+        [System.ComponentModel.DataAnnotations.Required]
+        public long Offset { get; set; }
+        [System.ComponentModel.DataAnnotations.Range(0, 2147483647)]
+        [System.ComponentModel.DataAnnotations.Required]
+        public int Partition { get; set; }
+        [System.ComponentModel.DataAnnotations.Required]
+        public bool Pause { get; set; }
+        public System.DateTimeOffset Timestamp { get; set; }
+        [System.ComponentModel.DataAnnotations.Required]
+        public string? Topic { get; set; }
+    }
+}

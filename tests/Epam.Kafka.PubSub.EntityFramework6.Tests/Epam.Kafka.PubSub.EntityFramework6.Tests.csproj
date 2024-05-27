@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DefineConstants>$(DefineConstants);EF6</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DefineConstants>$(DefineConstants);EF6</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\Epam.Kafka.PubSub.EntityFrameworkCore.Tests\PublicApiTests.cs" Link="PublicApiTests.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Epam.Kafka.PubSub.EntityFramework6\Epam.Kafka.PubSub.EntityFramework6.csproj" />
+
+    <ProjectReference Include="..\Epam.Kafka.Tests\Epam.Kafka.Tests.csproj" />
+  </ItemGroup>
+
+
+</Project>

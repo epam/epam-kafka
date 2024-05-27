@@ -7,11 +7,19 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="..\Epam.Kafka.PubSub.EntityFrameworkCore\Subscription\State\KafkaTopicState.cs" Link="Subscription\State\KafkaTopicState.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="EntityFramework" Version="6.4.4" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Epam.Kafka.PubSub\Epam.Kafka.PubSub.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Subscription\State\" />
   </ItemGroup>
 
 </Project>
