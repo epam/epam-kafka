@@ -44,7 +44,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Epam.Kafka.PubSub.EntityFra
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Epam.Kafka.Sample", "sample\Epam.Kafka.Sample\Epam.Kafka.Sample.csproj", "{46C55727-E63E-4571-BA2B-5C5A5A5D6EC9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Epam.Kafka.PubSub.IntegrationTests", "tests\Epam.Kafka.PubSub.IntegrationTests\Epam.Kafka.PubSub.IntegrationTests.csproj", "{2E0E5146-9022-41A4-A8F6-7460F69639B1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Epam.Kafka.PubSub.IntegrationTests", "tests\Epam.Kafka.PubSub.IntegrationTests\Epam.Kafka.PubSub.IntegrationTests.csproj", "{2E0E5146-9022-41A4-A8F6-7460F69639B1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Epam.Kafka.PubSub.EntityFramework6", "src\Epam.Kafka.PubSub.EntityFramework6\Epam.Kafka.PubSub.EntityFramework6.csproj", "{191052C8-A238-40F2-9322-A8B98CECA156}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -84,6 +86,10 @@ Global
 		{2E0E5146-9022-41A4-A8F6-7460F69639B1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2E0E5146-9022-41A4-A8F6-7460F69639B1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2E0E5146-9022-41A4-A8F6-7460F69639B1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{191052C8-A238-40F2-9322-A8B98CECA156}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{191052C8-A238-40F2-9322-A8B98CECA156}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{191052C8-A238-40F2-9322-A8B98CECA156}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{191052C8-A238-40F2-9322-A8B98CECA156}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -96,6 +102,7 @@ Global
 		{1C278B5D-4685-4677-8895-90244028BEB3} = {837928B6-19AD-471C-A875-912C7F1F97C7}
 		{B89145BF-B42C-4674-BDD5-61A9BFEB4AA3} = {837928B6-19AD-471C-A875-912C7F1F97C7}
 		{46C55727-E63E-4571-BA2B-5C5A5A5D6EC9} = {07C5B87A-BBE0-4E3E-83CB-8A95B2D6855E}
+		{191052C8-A238-40F2-9322-A8B98CECA156} = {E0525F24-5B2C-4D26-A93F-6817B1540C87}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {12AADABB-DDF0-4214-9300-49F6F55819DA}
