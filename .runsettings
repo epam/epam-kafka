@@ -27,7 +27,7 @@
 		<Loggers>
 			<Logger friendlyName="junit" enabled="True">
 				<Configuration>
-					<LogFilePath>./../../artifacts/junit/{assembly}-test-result.xml</LogFilePath>
+					<LogFilePath>./../../artifacts/junit/{assembly}-{framework}-test-result.xml</LogFilePath>
 					<MethodFormat>Class</MethodFormat>
 					<FailureBodyFormat>Verbose</FailureBodyFormat>
 				</Configuration>

@@ -32,9 +32,8 @@ public class TestEntityKafka
         return Enumerable.Range(0, 5).Select(i =>
                 new KeyValuePair<TestEntityKafka, TopicPartitionOffset>(new TestEntityKafka(),
                     new TopicPartitionOffset(topic, partition, offset + i)))
-#if NET462
+#if !NET8_0_OR_GREATER
             .ToDictionary(x => x.Key, x => x.Value);
-
 #else
             .ToDictionary();
 #endif

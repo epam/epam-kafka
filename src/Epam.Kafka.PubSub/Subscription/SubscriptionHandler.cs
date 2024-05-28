@@ -98,7 +98,13 @@ public abstract class SubscriptionHandler<TKey, TValue> : ISubscriptionHandler<T
             throw new ArgumentNullException(nameof(items));
         }
 
-        foreach (KeyValuePair<ConsumeResult<TKey, TValue>, string?> item in items.Where(x => x.Value == null))
+        var filtered = items.Where(x => x.Value == null);
+
+#if !NET6_0_OR_GREATER
+        filtered = filtered.ToArray(); // to prevent collection modification
+#endif
+
+        foreach (KeyValuePair<ConsumeResult<TKey, TValue>, string?> item in filtered)
         {
             cancellationToken.ThrowIfCancellationRequested();
             items[item.Key] = this.ProcessSingle(item.Key);
