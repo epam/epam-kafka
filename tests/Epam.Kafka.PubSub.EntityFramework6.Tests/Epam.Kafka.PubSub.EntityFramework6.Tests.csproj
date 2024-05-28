@@ -10,6 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="..\Epam.Kafka.PubSub.EntityFrameworkCore.Tests\DbContextEntitySubscriptionHandlerTests.cs" Link="DbContextEntitySubscriptionHandlerTests.cs" />
     <Compile Include="..\Epam.Kafka.PubSub.EntityFrameworkCore.Tests\DbContextOffsetsStorageTests.cs" Link="DbContextOffsetsStorageTests.cs" />
   </ItemGroup>
 

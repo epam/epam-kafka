@@ -23,8 +23,6 @@ using Epam.Kafka.PubSub.EntityFrameworkCore.Tests.Helpers;
 namespace Epam.Kafka.PubSub.EntityFrameworkCore.Tests;
 #endif
 
-
-
 public class DbContextOffsetsStorageTests : TestWithContext
 {
     public DbContextOffsetsStorageTests(ITestOutputHelper output) : base(output)

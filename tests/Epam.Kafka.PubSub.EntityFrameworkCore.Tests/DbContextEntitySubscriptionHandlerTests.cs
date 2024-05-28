@@ -2,7 +2,6 @@
 
 using Confluent.Kafka;
 
-using Epam.Kafka.PubSub.EntityFrameworkCore.Tests.Helpers;
 using Epam.Kafka.Tests.Common;
 
 using Microsoft.Extensions.DependencyInjection;
@@ -10,7 +9,15 @@ using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 using Xunit.Abstractions;
 
+#if EF6
+using Epam.Kafka.PubSub.EntityFramework6.Tests.Helpers;
+
+namespace Epam.Kafka.PubSub.EntityFramework6.Tests;
+#else
+using Epam.Kafka.PubSub.EntityFrameworkCore.Tests.Helpers;
+
 namespace Epam.Kafka.PubSub.EntityFrameworkCore.Tests;
+#endif
 
 public class DbContextEntitySubscriptionHandlerTests : TestWithContext
 {

@@ -29,7 +29,9 @@ public class
     protected override void LoadMainChunk(IQueryable<TestEntityDb> queryable,
         IReadOnlyCollection<ConsumeResult<string, TestEntityKafka>> chunk)
     {
-        queryable.Where(x => chunk.Select(v => v.Message.Key).Contains(x.ExternalId)).Load();
+        IEnumerable<string> keys = chunk.Select(v => v.Message.Key);
+
+        queryable.Where(x => keys.Contains(x.ExternalId)).Load();
     }
 
     protected override TestEntityDb? FindLocal(DbSet<TestEntityDb> dbSet, ConsumeResult<string, TestEntityKafka> value)
