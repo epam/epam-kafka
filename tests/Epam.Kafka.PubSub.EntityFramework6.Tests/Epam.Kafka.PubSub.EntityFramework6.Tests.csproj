@@ -9,11 +9,23 @@
     <DefineConstants>$(DefineConstants);EF6</DefineConstants>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Compile Include="..\Epam.Kafka.PubSub.EntityFrameworkCore.Tests\DbContextOffsetsStorageTests.cs" Link="DbContextOffsetsStorageTests.cs" />
+  </ItemGroup>
+
 	<ItemGroup>
     <ProjectReference Include="..\..\src\Epam.Kafka.PubSub.EntityFramework6\Epam.Kafka.PubSub.EntityFramework6.csproj" />
 
     <ProjectReference Include="..\Epam.Kafka.Tests\Epam.Kafka.Tests.csproj" />
   </ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="Helpers\" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <PackageReference Include="Effort.EF6" Version="2.2.17" />
+	</ItemGroup>
 
 
 </Project>

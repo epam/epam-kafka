@@ -2,8 +2,7 @@
 
 using Confluent.Kafka;
 
-using Epam.Kafka.PubSub.EntityFrameworkCore.Subscription.State;
-using Epam.Kafka.PubSub.EntityFrameworkCore.Tests.Helpers;
+
 using Epam.Kafka.PubSub.Subscription;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -12,7 +11,19 @@ using Shouldly;
 using Xunit;
 using Xunit.Abstractions;
 
+#if EF6
+using Epam.Kafka.PubSub.EntityFramework6.Subscription.State;
+using Epam.Kafka.PubSub.EntityFramework6.Tests.Helpers;
+
+namespace Epam.Kafka.PubSub.EntityFramework6.Tests;
+#else
+using Epam.Kafka.PubSub.EntityFrameworkCore.Subscription.State;
+using Epam.Kafka.PubSub.EntityFrameworkCore.Tests.Helpers;
+
 namespace Epam.Kafka.PubSub.EntityFrameworkCore.Tests;
+#endif
+
+
 
 public class DbContextOffsetsStorageTests : TestWithContext
 {

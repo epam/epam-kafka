@@ -11,6 +11,7 @@ internal static class CompatibilityExtensions
     public static IQueryable<T> AsTracking<T>(this IQueryable<T> queryable) => queryable;
 
     public static int SaveChanges(this DbContext context, bool acceptAllChangesOnSuccess) => context.SaveChanges();
+
     public static void Add(this DbContext context, object entity)
     {
         if (entity == null) throw new ArgumentNullException(nameof(entity));
