@@ -8,7 +8,7 @@ namespace Epam.Kafka.Tests.Common;
 
 public class TestEntityKafka
 {
-    public string Id { get; init; } = Guid.NewGuid().ToString("N");
+    public string Id { get; set; } = Guid.NewGuid().ToString("N");
     public string Name => $"Name for {this.Id}";
 
     public Message<string, byte[]> ToBytesMessage()
@@ -32,6 +32,11 @@ public class TestEntityKafka
         return Enumerable.Range(0, 5).Select(i =>
                 new KeyValuePair<TestEntityKafka, TopicPartitionOffset>(new TestEntityKafka(),
                     new TopicPartitionOffset(topic, partition, offset + i)))
+#if NET462
+            .ToDictionary(x => x.Key, x => x.Value);
+
+#else
             .ToDictionary();
+#endif
     }
 }

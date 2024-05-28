@@ -1,8 +1,9 @@
 <Project>
 	<PropertyGroup>
-		<TargetFramework>net8.0</TargetFramework>
+		<TargetFrameworks>net8.0;net462</TargetFrameworks>
 		<NoWarn>1591;CA1014;CA2007;CA1848;NU1803</NoWarn>
 		<IsPackable>false</IsPackable>
+		<LangVersion>12</LangVersion>
 	</PropertyGroup>
 
 	<ItemGroup>

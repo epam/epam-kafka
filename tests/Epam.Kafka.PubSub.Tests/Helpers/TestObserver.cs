@@ -28,7 +28,7 @@ public sealed class TestObserver : IObserver<KeyValuePair<string, object?>>, IDi
     }
 
     public TestObserver(TestWithServices test, byte maxBatchIterations) : this(test,
-        "PS" + Guid.NewGuid().ToString("N")[..10], maxBatchIterations)
+        "PS" + Guid.NewGuid().ToString("N").Substring(0, 10), maxBatchIterations)
     {
     }
 
