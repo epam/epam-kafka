@@ -1,14 +1,24 @@
 ﻿// Copyright © 2024 EPAM Systems
 
+#if EF6
+using Epam.Kafka.PubSub.EntityFramework6.Subscription;
+using Epam.Kafka.PubSub.EntityFramework6.Subscription.State;
+using System.Data.Entity;
+#else
 using Epam.Kafka.PubSub.EntityFrameworkCore.Subscription;
 using Epam.Kafka.PubSub.EntityFrameworkCore.Subscription.State;
+using Microsoft.EntityFrameworkCore;
+#endif
 using Epam.Kafka.PubSub.Subscription;
 
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
+#if EF6
+namespace Epam.Kafka.PubSub.EntityFramework6;
+#else
 namespace Epam.Kafka.PubSub.EntityFrameworkCore;
+#endif
 
 /// <summary>
 ///     Extension methods to configure an <see cref="IServiceCollection" /> for <see cref="IExternalOffsetsStorage" />.

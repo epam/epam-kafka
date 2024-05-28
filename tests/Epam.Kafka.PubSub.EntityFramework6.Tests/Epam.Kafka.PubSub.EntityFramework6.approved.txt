@@ -1,4 +1,48 @@
-﻿namespace Epam.Kafka.PubSub.EntityFramework6.Subscription.State
+﻿namespace Epam.Kafka.PubSub.EntityFramework6
+{
+    public static class ServiceCollectionExtensions
+    {
+        public static Microsoft.Extensions.DependencyInjection.IServiceCollection TryAddKafkaDbContextState<TContext>(this Microsoft.Extensions.DependencyInjection.IServiceCollection services)
+            where TContext : System.Data.Entity.DbContext, Epam.Kafka.PubSub.EntityFramework6.Subscription.State.IKafkaStateDbContext { }
+    }
+}
+namespace Epam.Kafka.PubSub.EntityFramework6.Subscription
+{
+    public abstract class DbContextEntitySubscriptionHandler<TKey, TValue, TContext, TEntity> : Epam.Kafka.PubSub.EntityFramework6.Subscription.DbContextSubscriptionHandler<TKey, TValue, TContext>
+        where TKey :  notnull
+        where TContext : System.Data.Entity.DbContext
+        where TEntity :  class
+    {
+        protected DbContextEntitySubscriptionHandler(TContext context, Microsoft.Extensions.Logging.ILogger logger) { }
+        protected System.Data.Entity.DbSet<TEntity> Set { get; }
+        protected override sealed object? FindLocal(Confluent.Kafka.ConsumeResult<TKey, TValue> value) { }
+        protected abstract TEntity? FindLocal(System.Data.Entity.DbSet<TEntity> dbSet, Confluent.Kafka.ConsumeResult<TKey, TValue> value);
+        protected override sealed void LoadEntitiesChunk(System.Collections.Generic.IReadOnlyCollection<Confluent.Kafka.ConsumeResult<TKey, TValue>> chunk) { }
+        protected abstract void LoadMainChunk(System.Linq.IQueryable<TEntity> queryable, System.Collections.Generic.IReadOnlyCollection<Confluent.Kafka.ConsumeResult<TKey, TValue>> chunk);
+        protected virtual void LoadRelatedChunk(System.Collections.Generic.IReadOnlyCollection<Confluent.Kafka.ConsumeResult<TKey, TValue>> chunk) { }
+        protected abstract bool TryCreate(Confluent.Kafka.ConsumeResult<TKey, TValue> value, out TEntity? entity);
+        protected override sealed bool TryCreate(Confluent.Kafka.ConsumeResult<TKey, TValue> value, out object? entity) { }
+        protected override sealed string? Update(Confluent.Kafka.ConsumeResult<TKey, TValue> value, object entity, bool created) { }
+        protected abstract string? Update(Confluent.Kafka.ConsumeResult<TKey, TValue> value, TEntity entity, bool created);
+    }
+    public abstract class DbContextSubscriptionHandler<TKey, TValue, TContext> : Epam.Kafka.PubSub.Subscription.SubscriptionHandler<TKey, TValue>
+        where TKey :  notnull
+        where TContext : System.Data.Entity.DbContext
+    {
+        protected DbContextSubscriptionHandler(TContext context, Microsoft.Extensions.Logging.ILogger logger) { }
+        protected int ChunkSize { get; set; }
+        protected TContext Context { get; }
+        protected abstract object? FindLocal(Confluent.Kafka.ConsumeResult<TKey, TValue> value);
+        protected abstract bool IsDeleted(Confluent.Kafka.ConsumeResult<TKey, TValue> value);
+        protected abstract void LoadEntitiesChunk(System.Collections.Generic.IReadOnlyCollection<Confluent.Kafka.ConsumeResult<TKey, TValue>> chunk);
+        protected override void ProcessBatch(System.Collections.Generic.IDictionary<Confluent.Kafka.ConsumeResult<TKey, TValue>, string?> items, System.Threading.CancellationToken cancellationToken) { }
+        protected override string ProcessSingle(Confluent.Kafka.ConsumeResult<TKey, TValue> item) { }
+        protected virtual void SaveChanges() { }
+        protected abstract bool TryCreate(Confluent.Kafka.ConsumeResult<TKey, TValue> value, out object? entity);
+        protected abstract string? Update(Confluent.Kafka.ConsumeResult<TKey, TValue> value, object entity, bool created);
+    }
+}
+namespace Epam.Kafka.PubSub.EntityFramework6.Subscription.State
 {
     public interface IKafkaStateDbContext
     {

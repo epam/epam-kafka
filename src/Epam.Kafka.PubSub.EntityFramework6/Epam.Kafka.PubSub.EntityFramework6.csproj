@@ -11,6 +11,10 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<Compile Include="..\Epam.Kafka.PubSub.EntityFrameworkCore\ServiceCollectionExtensions.cs" Link="ServiceCollectionExtensions.cs" />
+		<Compile Include="..\Epam.Kafka.PubSub.EntityFrameworkCore\Subscription\DbContextEntitySubscriptionHandler.cs" Link="Subscription\DbContextEntitySubscriptionHandler.cs" />
+		<Compile Include="..\Epam.Kafka.PubSub.EntityFrameworkCore\Subscription\DbContextOffsetsStorage.cs" Link="Subscription\DbContextOffsetsStorage.cs" />
+		<Compile Include="..\Epam.Kafka.PubSub.EntityFrameworkCore\Subscription\DbContextSubscriptionHandler.cs" Link="Subscription\DbContextSubscriptionHandler.cs" />
 		<Compile Include="..\Epam.Kafka.PubSub.EntityFrameworkCore\Subscription\State\IKafkaStateDbContext.cs" Link="Subscription\State\IKafkaStateDbContext.cs" />
 		<Compile Include="..\Epam.Kafka.PubSub.EntityFrameworkCore\Subscription\State\KafkaTopicState.cs" Link="Subscription\State\KafkaTopicState.cs" />
 		<Compile Include="..\Epam.Kafka.PubSub.EntityFrameworkCore\Subscription\State\KafkaTopicStateExtensions.cs" Link="Subscription\State\KafkaTopicStateExtensions.cs" />
