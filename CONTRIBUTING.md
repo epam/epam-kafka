@@ -34,7 +34,7 @@ Before you ask a question, it is best to search for existing [issues](https://gi
 
 If you still feel the need to ask a question and need clarification, we recommend the following:
 
-- Open a new [Discussion](https://github.com/epam/epam-kafka/discussions/new);
+- Open a new [Discussion](https://github.com/epam/epam-kafka/discussions/new?category=q-a);
 - Provide as much context as you can about what you're running into;
 - Add corresponding label
 
