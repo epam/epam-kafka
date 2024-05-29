@@ -7,11 +7,15 @@ using System.Threading.Tasks;
 
 using System;
 using System.Linq;
+using Effort.Provider;
+using Epam.Kafka.PubSub;
+using Epam.Kafka.PubSub.EntityFramework6;
 using Epam.Kafka.PubSub.EntityFramework6.Publication.Contracts;
 using Epam.Kafka.Sample.Net462.Data;
 using Epam.Kafka.Sample.Net462.Json;
 using Microsoft.Extensions.DependencyInjection;
 using Epam.Kafka.Sample.Net462.Samples;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Epam.Kafka.Sample.Net462
 {
@@ -33,6 +37,22 @@ namespace Epam.Kafka.Sample.Net462
                 // Sample of IKafkaFactory usage 
                 services.AddHostedService<ProducerSample>();
                 services.AddHostedService<ConsumerSample>();
+
+                // add in memory db context and configure it to store offsets
+                services.TryAddSingleton(Effort.DbConnectionFactory.CreatePersistent(Guid.NewGuid().ToString("N")));
+                services.TryAddScoped(sp => new SampleDbContext(sp.GetRequiredService<EffortConnection>()));
+                services.TryAddKafkaDbContextState<SampleDbContext>();
+
+                // Sample of subscription that read data from kafka and store data to database using EF Core.
+                kafkaBuilder.AddSubscription<string, KafkaEntity, SubscriptionHandlerSample>("Sample")
+                    .WithSubscribeAndExternalOffsets()
+                    .WithValueDeserializer(_ => Utf8JsonSerializer.Instance)
+                    .WaitFor(SeedTopic);
+
+                // Sample of publication that read data from database using EF Core and write to kafka.
+                kafkaBuilder.AddPublication<string, KafkaEntity, PublicationHandlerSample>("Sample")
+                    .WithValueSerializer(_ => Utf8JsonSerializer.Instance)
+                    .WaitFor(SeedDatabase);
 
             }).Build().Run();
         }
