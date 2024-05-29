@@ -17,10 +17,10 @@
 Prepare context.
 ```
 public class SampleDbContext : DbContext, IKafkaStateDbContext
-{
+{    
     public DbSet<KafkaTopicState> KafkaTopicStates => this.Set<KafkaTopicState>();
 
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    protected override void OnModelCreating(DbModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
 
