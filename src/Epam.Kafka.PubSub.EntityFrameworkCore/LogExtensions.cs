@@ -2,7 +2,11 @@
 
 using Microsoft.Extensions.Logging;
 
+#if EF6
+namespace Epam.Kafka.PubSub.EntityFramework6;
+#else
 namespace Epam.Kafka.PubSub.EntityFrameworkCore;
+#endif
 
 internal static partial class LogExtensions
 {

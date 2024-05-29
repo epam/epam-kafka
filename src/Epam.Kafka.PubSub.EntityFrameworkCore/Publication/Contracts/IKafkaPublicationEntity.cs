@@ -1,6 +1,10 @@
 ﻿// Copyright © 2024 EPAM Systems
 
+#if EF6
+namespace Epam.Kafka.PubSub.EntityFramework6.Publication.Contracts;
+#else
 namespace Epam.Kafka.PubSub.EntityFrameworkCore.Publication.Contracts;
+#endif
 
 /// <summary>
 ///     Interface to define entity that use <see cref="KafkaPublicationState" /> for publication state management.

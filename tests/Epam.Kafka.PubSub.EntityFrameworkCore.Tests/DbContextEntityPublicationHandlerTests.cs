@@ -2,18 +2,28 @@
 
 using Confluent.Kafka;
 
-using Epam.Kafka.PubSub.EntityFrameworkCore.Publication.Contracts;
-using Epam.Kafka.PubSub.EntityFrameworkCore.Tests.Helpers;
-using Epam.Kafka.PubSub.Publication;
-using Epam.Kafka.PubSub.Tests.Helpers;
-using Epam.Kafka.Tests.Common;
-
 using Microsoft.Extensions.DependencyInjection;
 
 using Xunit;
 using Xunit.Abstractions;
 
+using Epam.Kafka.Tests.Common;
+using Epam.Kafka.PubSub.Publication;
+
+#if EF6
+using Epam.Kafka.PubSub.EntityFramework6.Publication.Contracts;
+using Epam.Kafka.PubSub.EntityFramework6.Tests.Helpers;
+using Epam.Kafka.PubSub.Tests.Helpers;
+
+namespace Epam.Kafka.PubSub.EntityFramework6.Tests;
+#else
+using Epam.Kafka.PubSub.EntityFrameworkCore.Publication.Contracts;
+using Epam.Kafka.PubSub.EntityFrameworkCore.Tests.Helpers;
+using Epam.Kafka.PubSub.Tests.Helpers;
+
 namespace Epam.Kafka.PubSub.EntityFrameworkCore.Tests;
+#endif
+
 
 public class DbContextEntityPublicationHandlerTests : TestWithContext
 {

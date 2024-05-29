@@ -1,10 +1,17 @@
 ﻿// Copyright © 2024 EPAM Systems
 
+#if EF6
+using Epam.Kafka.PubSub.EntityFramework6.Publication.Contracts;
+
+namespace Epam.Kafka.PubSub.EntityFramework6.Tests.Helpers;
+#else
 using Epam.Kafka.PubSub.EntityFrameworkCore.Publication.Contracts;
+
+namespace Epam.Kafka.PubSub.EntityFrameworkCore.Tests.Helpers;
+#endif
 
 using System.ComponentModel.DataAnnotations;
 
-namespace Epam.Kafka.PubSub.EntityFrameworkCore.Tests.Helpers;
 
 public class TestEntityDb : IKafkaPublicationEntity
 {

@@ -1,12 +1,22 @@
 ﻿// Copyright © 2024 EPAM Systems
 
 using Confluent.Kafka;
-using Epam.Kafka.PubSub.EntityFrameworkCore.Subscription.State;
 using Epam.Kafka.PubSub.Subscription;
 
+#if EF6
+using Epam.Kafka.PubSub.EntityFramework6.Subscription.State;
+using System.Data.Entity;
+using System.Data.Entity.Infrastructure;
+#else
+using Epam.Kafka.PubSub.EntityFrameworkCore.Subscription.State;
 using Microsoft.EntityFrameworkCore;
+#endif
 
+#if EF6
+namespace Epam.Kafka.PubSub.EntityFramework6.Subscription;
+#else
 namespace Epam.Kafka.PubSub.EntityFrameworkCore.Subscription;
+#endif
 
 internal sealed class DbContextOffsetsStorage<TContext> : IExternalOffsetsStorage
     where TContext : DbContext, IKafkaStateDbContext
@@ -96,17 +106,22 @@ internal sealed class DbContextOffsetsStorage<TContext> : IExternalOffsetsStorag
         }
         catch (DbUpdateException exception)
         {
-            foreach (Microsoft.EntityFrameworkCore.ChangeTracking.EntityEntry entry in exception.Entries)
+            foreach (var entry in exception.Entries)
             {
                 if (entry.Entity is KafkaTopicState)
                 {
-                    Microsoft.EntityFrameworkCore.ChangeTracking.PropertyValues proposedValues = entry.CurrentValues;
-                    Microsoft.EntityFrameworkCore.ChangeTracking.PropertyValues? databaseValues =
-                        entry.GetDatabaseValues();
+                    var proposedValues = entry.CurrentValues;
+                    var databaseValues = entry.GetDatabaseValues();
 
                     if (databaseValues != null)
                     {
-                        foreach (Microsoft.EntityFrameworkCore.Metadata.IProperty property in proposedValues.Properties)
+                        foreach (var property in
+#if EF6
+                                 proposedValues.PropertyNames
+#else
+                                 proposedValues.Properties
+#endif
+                                 )
                         {
                             proposedValues[property] = databaseValues[property];
                         }
@@ -123,7 +138,9 @@ internal sealed class DbContextOffsetsStorage<TContext> : IExternalOffsetsStorag
         return this.GetLocalState(offsets.Select(x => x.TopicPartition).ToList(), consumerGroup, out _);
     }
 
-    private List<TopicPartitionOffset> GetLocalState(IReadOnlyCollection<TopicPartition> topics, string? consumerGroup,
+    private List<TopicPartitionOffset> GetLocalState(
+        IReadOnlyCollection<TopicPartition> topics,
+        string? consumerGroup,
         out List<TopicPartition> toRequest)
     {
         var result = new List<TopicPartitionOffset>(topics.Count);
@@ -136,7 +153,10 @@ internal sealed class DbContextOffsetsStorage<TContext> : IExternalOffsetsStorag
                 x.Topic == item.Topic && x.Partition == item.Partition && x.ConsumerGroup == consumerGroup);
 
             if (local != null)
+            {
+
                 result.Add(new TopicPartitionOffset(item, local.Pause ? Offset.End : local.Offset));
+            }
             else
             {
                 toRequest.Add(item);

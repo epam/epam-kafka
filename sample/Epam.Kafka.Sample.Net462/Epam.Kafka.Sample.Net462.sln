@@ -1,0 +1,43 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.8.34309.116
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Epam.Kafka.Sample.Net462", "Epam.Kafka.Sample.Net462.csproj", "{4364B858-25BE-4C3F-B459-B6B1428C1968}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Epam.Kafka", "..\..\src\Epam.Kafka\Epam.Kafka.csproj", "{200C2E01-91A2-42F0-B25D-CDC515537413}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Epam.Kafka.PubSub", "..\..\src\Epam.Kafka.PubSub\Epam.Kafka.PubSub.csproj", "{4AE97F97-41AD-4742-905C-6C4AA5A01031}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Epam.Kafka.PubSub.EntityFramework6", "..\..\src\Epam.Kafka.PubSub.EntityFramework6\Epam.Kafka.PubSub.EntityFramework6.csproj", "{69A460EA-F7E9-42DD-943C-E9552A08744B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{4364B858-25BE-4C3F-B459-B6B1428C1968}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4364B858-25BE-4C3F-B459-B6B1428C1968}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4364B858-25BE-4C3F-B459-B6B1428C1968}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4364B858-25BE-4C3F-B459-B6B1428C1968}.Release|Any CPU.Build.0 = Release|Any CPU
+		{200C2E01-91A2-42F0-B25D-CDC515537413}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{200C2E01-91A2-42F0-B25D-CDC515537413}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{200C2E01-91A2-42F0-B25D-CDC515537413}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{200C2E01-91A2-42F0-B25D-CDC515537413}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4AE97F97-41AD-4742-905C-6C4AA5A01031}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4AE97F97-41AD-4742-905C-6C4AA5A01031}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4AE97F97-41AD-4742-905C-6C4AA5A01031}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4AE97F97-41AD-4742-905C-6C4AA5A01031}.Release|Any CPU.Build.0 = Release|Any CPU
+		{69A460EA-F7E9-42DD-943C-E9552A08744B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{69A460EA-F7E9-42DD-943C-E9552A08744B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{69A460EA-F7E9-42DD-943C-E9552A08744B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{69A460EA-F7E9-42DD-943C-E9552A08744B}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {81ECA932-17E3-4D3A-AA17-5BD56DF8B014}
+	EndGlobalSection
+EndGlobal

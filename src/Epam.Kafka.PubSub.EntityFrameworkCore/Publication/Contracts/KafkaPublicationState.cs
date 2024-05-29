@@ -1,6 +1,10 @@
 ﻿// Copyright © 2024 EPAM Systems
 
+#if EF6
+namespace Epam.Kafka.PubSub.EntityFramework6.Publication.Contracts;
+#else
 namespace Epam.Kafka.PubSub.EntityFrameworkCore.Publication.Contracts;
+#endif
 
 /// <summary>
 ///     Default entity state that can be used to build publication pipeline. Not mandatory, any convenient way of state
