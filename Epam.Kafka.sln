@@ -11,7 +11,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Misc", "Misc", "{A5013F6E-5
 		.gitignore = .gitignore
 		.runsettings = .runsettings
 		build.cmd = build.cmd
-		CHANGELOG.md = CHANGELOG.md
 		.github\CODEOWNERS = .github\CODEOWNERS
 		.github\workflows\codeql.yml = .github\workflows\codeql.yml
 		tests\docker-compose.yml = tests\docker-compose.yml
@@ -46,7 +45,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Epam.Kafka.Sample", "sample
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Epam.Kafka.PubSub.IntegrationTests", "tests\Epam.Kafka.PubSub.IntegrationTests\Epam.Kafka.PubSub.IntegrationTests.csproj", "{2E0E5146-9022-41A4-A8F6-7460F69639B1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Epam.Kafka.PubSub.EntityFramework6", "src\Epam.Kafka.PubSub.EntityFramework6\Epam.Kafka.PubSub.EntityFramework6.csproj", "{191052C8-A238-40F2-9322-A8B98CECA156}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Epam.Kafka.PubSub.EntityFramework6", "src\Epam.Kafka.PubSub.EntityFramework6\Epam.Kafka.PubSub.EntityFramework6.csproj", "{191052C8-A238-40F2-9322-A8B98CECA156}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Epam.Kafka.PubSub.EntityFramework6.Tests", "tests\Epam.Kafka.PubSub.EntityFramework6.Tests\Epam.Kafka.PubSub.EntityFramework6.Tests.csproj", "{9BF7230E-5647-44F5-A7E5-CAA5C80A5A94}"
 EndProject
