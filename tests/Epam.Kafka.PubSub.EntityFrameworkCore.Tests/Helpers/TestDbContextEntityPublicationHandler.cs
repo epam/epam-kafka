@@ -1,12 +1,19 @@
 ﻿// Copyright © 2024 EPAM Systems
 
-using Epam.Kafka.PubSub.EntityFrameworkCore.Publication.Contracts;
 using Epam.Kafka.PubSub.Publication;
 using Epam.Kafka.Tests.Common;
 
 using Microsoft.Extensions.Logging;
 
+#if EF6
+using Epam.Kafka.PubSub.EntityFramework6.Publication.Contracts;
+
+namespace Epam.Kafka.PubSub.EntityFramework6.Tests.Helpers;
+#else
+using Epam.Kafka.PubSub.EntityFrameworkCore.Publication.Contracts;
+
 namespace Epam.Kafka.PubSub.EntityFrameworkCore.Tests.Helpers;
+#endif
 
 public class
     TestDbContextEntityPublicationHandler : DbContextEntityPublicationHandler<string, TestEntityKafka, TestEntityDb,

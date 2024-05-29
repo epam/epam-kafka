@@ -141,8 +141,8 @@ public abstract class
     }
 
     /// <summary>
-    ///     The callback method that invoked when delivery reports for messages produced from entity are available. Used to
-    ///     update entity state used by <see cref="IsQueued" /> expression to prevent infinite publication.
+    ///     The callback method that invoked when delivery reports for messages produced from entity are available. Use it to
+    ///     update entity state checked by <see cref="IsQueued" /> expression to prevent infinite publication.
     /// </summary>
     /// <param name="entity">The entity.</param>
     /// <param name="reports">The delivery reports for messages produced from entity.</param>

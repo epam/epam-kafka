@@ -1,32 +1,35 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
+	<PropertyGroup>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+	</PropertyGroup>
 
-  <PropertyGroup>
-    <DefineConstants>$(DefineConstants);EF6</DefineConstants>
-  </PropertyGroup>
-
-  <ItemGroup>
-    <Compile Include="..\Epam.Kafka.PubSub.EntityFrameworkCore.Tests\DbContextEntitySubscriptionHandlerTests.cs" Link="DbContextEntitySubscriptionHandlerTests.cs" />
-    <Compile Include="..\Epam.Kafka.PubSub.EntityFrameworkCore.Tests\DbContextOffsetsStorageTests.cs" Link="DbContextOffsetsStorageTests.cs" />
-  </ItemGroup>
+	<PropertyGroup>
+		<DefineConstants>$(DefineConstants);EF6</DefineConstants>
+	</PropertyGroup>
 
 	<ItemGroup>
-    <ProjectReference Include="..\..\src\Epam.Kafka.PubSub.EntityFramework6\Epam.Kafka.PubSub.EntityFramework6.csproj" />
-
-    <ProjectReference Include="..\Epam.Kafka.Tests\Epam.Kafka.Tests.csproj" />
-  </ItemGroup>
-
-	<ItemGroup>
-	  <Folder Include="Helpers\" />
+		<Compile Include="..\Epam.Kafka.PubSub.EntityFrameworkCore.Tests\DbContextEntityPublicationHandlerTests.cs" Link="DbContextEntityPublicationHandlerTests.cs" />
+		<Compile Include="..\Epam.Kafka.PubSub.EntityFrameworkCore.Tests\DbContextEntitySubscriptionHandlerTests.cs" Link="DbContextEntitySubscriptionHandlerTests.cs" />
+		<Compile Include="..\Epam.Kafka.PubSub.EntityFrameworkCore.Tests\DbContextOffsetsStorageTests.cs" Link="DbContextOffsetsStorageTests.cs" />
+		<Compile Include="..\Epam.Kafka.PubSub.EntityFrameworkCore.Tests\Helpers\TestDbContextEntityPublicationHandler.cs" Link="Helpers\TestDbContextEntityPublicationHandler.cs" />
+		<Compile Include="..\Epam.Kafka.PubSub.EntityFrameworkCore.Tests\Helpers\TestDbContextEntitySubscriptionHandler.cs" Link="Helpers\TestDbContextEntitySubscriptionHandler.cs" />
+		<Compile Include="..\Epam.Kafka.PubSub.EntityFrameworkCore.Tests\Helpers\TestEntityDb.cs" Link="Helpers\TestEntityDb.cs" />
 	</ItemGroup>
 
 	<ItemGroup>
-	  <PackageReference Include="Effort.EF6" Version="2.2.17" />
+		<ProjectReference Include="..\..\src\Epam.Kafka.PubSub.EntityFramework6\Epam.Kafka.PubSub.EntityFramework6.csproj" />
+		<ProjectReference Include="..\Epam.Kafka.PubSub.Tests\Epam.Kafka.PubSub.Tests.csproj" />
+		<ProjectReference Include="..\Epam.Kafka.Tests\Epam.Kafka.Tests.csproj" />
 	</ItemGroup>
 
+	<ItemGroup>
+		<Folder Include="Helpers\" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Effort.EF6" Version="2.2.17" />
+	</ItemGroup>
 
 </Project>
