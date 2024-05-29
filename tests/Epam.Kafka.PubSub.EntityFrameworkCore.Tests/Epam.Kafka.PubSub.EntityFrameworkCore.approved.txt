@@ -39,6 +39,7 @@ namespace Epam.Kafka.PubSub.EntityFrameworkCore.Publication
         protected virtual Epam.Kafka.PubSub.EntityFrameworkCore.Publication.KafkaPublicationConcurrency OnConcurrencyException { get; }
         protected override sealed void Callback(System.Collections.Generic.IReadOnlyDictionary<TEntity, System.Collections.Generic.IReadOnlyCollection<Epam.Kafka.PubSub.Publication.DeliveryReport>> reports, System.DateTimeOffset? transactionEnd, System.Threading.CancellationToken cancellationToken) { }
         protected abstract void Callback(TEntity entity, System.Collections.Generic.IReadOnlyCollection<Epam.Kafka.PubSub.Publication.DeliveryReport> reports, System.DateTimeOffset? transactionEnd);
+        protected virtual object? FindPrimaryKeyForLogs(Microsoft.EntityFrameworkCore.ChangeTracking.EntityEntry entry) { }
         protected override System.Collections.Generic.IEnumerable<TEntity> GetEntities(int count, bool transaction, System.Threading.CancellationToken cancellationToken) { }
         protected virtual System.Linq.IQueryable<TEntity> GetTable() { }
         protected abstract System.Linq.IOrderedQueryable<TEntity> OrderBy(System.Linq.IQueryable<TEntity> query);

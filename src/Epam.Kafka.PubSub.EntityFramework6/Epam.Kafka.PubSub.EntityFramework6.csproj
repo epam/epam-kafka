@@ -11,6 +11,12 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<Compile Include="..\Epam.Kafka.PubSub.EntityFrameworkCore\LogExtensions.cs" Link="LogExtensions.cs" />
+		<Compile Include="..\Epam.Kafka.PubSub.EntityFrameworkCore\Publication\Contracts\DbContextEntityPublicationHandler.cs" Link="Publication\Contracts\DbContextEntityPublicationHandler.cs" />
+		<Compile Include="..\Epam.Kafka.PubSub.EntityFrameworkCore\Publication\Contracts\IKafkaPublicationEntity.cs" Link="Publication\Contracts\IKafkaPublicationEntity.cs" />
+		<Compile Include="..\Epam.Kafka.PubSub.EntityFrameworkCore\Publication\Contracts\KafkaPublicationState.cs" Link="Publication\Contracts\KafkaPublicationState.cs" />
+		<Compile Include="..\Epam.Kafka.PubSub.EntityFrameworkCore\Publication\DbContextPublicationHandler.cs" Link="Publication\DbContextPublicationHandler.cs" />
+		<Compile Include="..\Epam.Kafka.PubSub.EntityFrameworkCore\Publication\KafkaPublicationConcurrency.cs" Link="Publication\KafkaPublicationConcurrency.cs" />
 		<Compile Include="..\Epam.Kafka.PubSub.EntityFrameworkCore\ServiceCollectionExtensions.cs" Link="ServiceCollectionExtensions.cs" />
 		<Compile Include="..\Epam.Kafka.PubSub.EntityFrameworkCore\Subscription\DbContextEntitySubscriptionHandler.cs" Link="Subscription\DbContextEntitySubscriptionHandler.cs" />
 		<Compile Include="..\Epam.Kafka.PubSub.EntityFrameworkCore\Subscription\DbContextOffsetsStorage.cs" Link="Subscription\DbContextOffsetsStorage.cs" />
@@ -34,6 +40,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<Folder Include="Publication\Contracts\" />
 		<Folder Include="Subscription\State\" />
 	</ItemGroup>
 

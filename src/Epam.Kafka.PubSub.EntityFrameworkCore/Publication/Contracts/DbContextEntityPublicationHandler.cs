@@ -2,12 +2,21 @@
 
 using Epam.Kafka.PubSub.Publication;
 
+#if EF6
+using System.Data.Entity;
+using System.Data.Entity.Infrastructure;
+#else
 using Microsoft.EntityFrameworkCore;
+#endif
 using Microsoft.Extensions.Logging;
 
 using System.Linq.Expressions;
 
+#if EF6
+namespace Epam.Kafka.PubSub.EntityFramework6.Publication.Contracts;
+#else
 namespace Epam.Kafka.PubSub.EntityFrameworkCore.Publication.Contracts;
+#endif
 
 /// <summary>
 ///     Base class to implement publication source that publish entities that implement
@@ -60,10 +69,9 @@ public abstract class
         }
         catch (DbUpdateConcurrencyException exception)
         {
-            foreach (Microsoft.EntityFrameworkCore.ChangeTracking.EntityEntry entry in exception.Entries)
+            foreach (var entry in exception.Entries)
             {
-                this.Logger.PublicationEntityDetached(exception, "Commit",
-                    entry.Metadata.FindPrimaryKey()?.Properties.Select(x => entry.CurrentValues[x]), typeof(TEntity));
+                this.Logger.PublicationEntityDetached(exception, "Commit", this.FindPrimaryKeyForLogs(entry), typeof(TEntity));
             }
         }
     }

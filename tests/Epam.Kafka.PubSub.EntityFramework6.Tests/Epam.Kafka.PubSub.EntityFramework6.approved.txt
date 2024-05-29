@@ -1,4 +1,57 @@
-﻿namespace Epam.Kafka.PubSub.EntityFramework6
+﻿namespace Epam.Kafka.PubSub.EntityFramework6.Publication.Contracts
+{
+    public abstract class DbContextEntityPublicationHandler<TKey, TValue, TEntity, TContext> : Epam.Kafka.PubSub.EntityFramework6.Publication.DbContextPublicationHandler<TKey, TValue, TEntity, TContext>
+        where TEntity :  class, Epam.Kafka.PubSub.EntityFramework6.Publication.Contracts.IKafkaPublicationEntity
+        where TContext : System.Data.Entity.DbContext
+    {
+        protected DbContextEntityPublicationHandler(TContext context, Microsoft.Extensions.Logging.ILogger logger) { }
+        protected System.TimeSpan ErrorRetryTimeout { get; set; }
+        protected override System.Linq.Expressions.Expression<System.Func<TEntity, bool>> IsQueued { get; }
+        protected override sealed void Callback(TEntity entity, System.Collections.Generic.IReadOnlyCollection<Epam.Kafka.PubSub.Publication.DeliveryReport> reports, System.DateTimeOffset? transactionEnd) { }
+        protected override bool ConvertErrorHandled(TEntity entity, bool transaction, System.Exception exception) { }
+        protected virtual void ErrorCallback(TEntity entity, Epam.Kafka.PubSub.Publication.DeliveryReport report) { }
+        protected virtual void SuccessCallback(TEntity entity, System.Collections.Generic.IReadOnlyCollection<Epam.Kafka.PubSub.Publication.DeliveryReport> reports, System.DateTimeOffset? transactionEnd) { }
+        protected override void TransactionCommitted(System.Collections.Generic.IReadOnlyCollection<TEntity> entities, System.Threading.CancellationToken cancellationToken) { }
+    }
+    public interface IKafkaPublicationEntity
+    {
+        System.DateTime KafkaPubNbf { get; set; }
+        Epam.Kafka.PubSub.EntityFramework6.Publication.Contracts.KafkaPublicationState KafkaPubState { get; set; }
+    }
+    public enum KafkaPublicationState
+    {
+        None = 0,
+        Queued = 1,
+        Delivered = 2,
+        Committed = 3,
+        Error = 4,
+    }
+}
+namespace Epam.Kafka.PubSub.EntityFramework6.Publication
+{
+    public abstract class DbContextPublicationHandler<TKey, TValue, TEntity, TContext> : Epam.Kafka.PubSub.Publication.PublicationHandler<TKey, TValue, TEntity>
+        where TEntity :  class
+        where TContext : System.Data.Entity.DbContext
+    {
+        protected DbContextPublicationHandler(TContext context, Microsoft.Extensions.Logging.ILogger logger) { }
+        protected TContext Context { get; }
+        protected abstract System.Linq.Expressions.Expression<System.Func<TEntity, bool>> IsQueued { get; }
+        protected virtual Epam.Kafka.PubSub.EntityFramework6.Publication.KafkaPublicationConcurrency OnConcurrencyException { get; }
+        protected override sealed void Callback(System.Collections.Generic.IReadOnlyDictionary<TEntity, System.Collections.Generic.IReadOnlyCollection<Epam.Kafka.PubSub.Publication.DeliveryReport>> reports, System.DateTimeOffset? transactionEnd, System.Threading.CancellationToken cancellationToken) { }
+        protected abstract void Callback(TEntity entity, System.Collections.Generic.IReadOnlyCollection<Epam.Kafka.PubSub.Publication.DeliveryReport> reports, System.DateTimeOffset? transactionEnd);
+        protected virtual object? FindPrimaryKeyForLogs(System.Data.Entity.Infrastructure.DbEntityEntry entry) { }
+        protected override System.Collections.Generic.IEnumerable<TEntity> GetEntities(int count, bool transaction, System.Threading.CancellationToken cancellationToken) { }
+        protected virtual System.Linq.IQueryable<TEntity> GetTable() { }
+        protected abstract System.Linq.IOrderedQueryable<TEntity> OrderBy(System.Linq.IQueryable<TEntity> query);
+    }
+    public enum KafkaPublicationConcurrency
+    {
+        Detach = 0,
+        Throw = 1,
+        ThrowIfTransaction = 2,
+    }
+}
+namespace Epam.Kafka.PubSub.EntityFramework6
 {
     public static class ServiceCollectionExtensions
     {

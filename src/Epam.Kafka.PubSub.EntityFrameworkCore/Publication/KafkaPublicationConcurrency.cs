@@ -1,6 +1,10 @@
 ﻿// Copyright © 2024 EPAM Systems
 
+#if EF6
+namespace Epam.Kafka.PubSub.EntityFramework6.Publication;
+#else
 namespace Epam.Kafka.PubSub.EntityFrameworkCore.Publication;
+#endif
 
 /// <summary>
 ///     Behaviour configuration for concurrency exception on update of entity publication state.

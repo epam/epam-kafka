@@ -2,13 +2,23 @@
 
 using Epam.Kafka.PubSub.Publication;
 
+#if EF6
+using System.Data.Entity;
+using System.Data.Entity.Infrastructure;
+using TEntry = System.Data.Entity.Infrastructure.DbEntityEntry;
+#else
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
+using TEntry = Microsoft.EntityFrameworkCore.ChangeTracking.EntityEntry;
+#endif
 using Microsoft.Extensions.Logging;
 
 using System.Linq.Expressions;
 
+#if EF6
+namespace Epam.Kafka.PubSub.EntityFramework6.Publication;
+#else
 namespace Epam.Kafka.PubSub.EntityFrameworkCore.Publication;
+#endif
 
 /// <summary>
 ///     Base class to implement publication source that publish entities from database via DB Context to kafka topics.
@@ -93,17 +103,41 @@ public abstract class
                 throw;
             }
 
-            foreach (EntityEntry entry in exception.Entries)
+            foreach (var entry in exception.Entries)
             {
                 entry.State = EntityState.Detached;
 
-                this.Logger.PublicationEntityDetached(exception, "Report",
-                    entry.Metadata.FindPrimaryKey()?.Properties.Select(x => entry.CurrentValues[x]).ToArray()
-                        .FirstOrDefault(), typeof(TEntity));
+                this.Logger.PublicationEntityDetached(exception, "Report", this.FindPrimaryKeyForLogs(entry), typeof(TEntity));
             }
 
             this.Context.SaveChanges(true);
         }
+    }
+
+    /// <summary>
+    /// Find entry primary key for logging.
+    /// </summary>
+    /// <param name="entry"></param>
+    /// <returns></returns>
+    protected virtual object? FindPrimaryKeyForLogs(TEntry entry)
+    {
+        if (entry == null) return null;
+
+#pragma warning disable CA1031 // Don't fail in case of issue with logging.
+        try
+        {
+#if EF6
+            return null; // Unable to get it for EF6
+#else
+        return entry.Metadata.FindPrimaryKey()?.Properties.Select(x => entry.CurrentValues[x]).ToArray().FirstOrDefault();
+#endif
+        }
+        // 
+        catch
+        {
+            return null;
+        }
+#pragma warning restore CA1031
     }
 
     /// <summary>
