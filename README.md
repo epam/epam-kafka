@@ -30,11 +30,10 @@ Also it is a framework for building pub/sub batch processing applications.
 
 ## Packages
 
-| Package | 
-| ------- | 
-| [Epam.Kafka](https://www.nuget.org/packages/Epam.Kafka) |
-| [Epam.Kafka.PubSub](https://www.nuget.org/packages/Epam.Kafka.PubSub) |
-| [Epam.Kafka.PubSub.EntityFrameworkCore](https://www.nuget.org/packages/Epam.Kafka.PubSub.EntityFrameworkCore) |
+ *  [Epam.Kafka](https://www.nuget.org/packages/Epam.Kafka)
+ *  [Epam.Kafka.PubSub](https://www.nuget.org/packages/Epam.Kafka.PubSub)
+ *  [Epam.Kafka.PubSub.EntityFrameworkCore](https://www.nuget.org/packages/Epam.Kafka.PubSub.EntityFrameworkCore)
+ *  [Epam.Kafka.PubSub.EntityFramework6](https://www.nuget.org/packages/Epam.Kafka.PubSub.EntityFramework6)
 
 ## License
 
