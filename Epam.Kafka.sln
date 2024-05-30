@@ -11,13 +11,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Misc", "Misc", "{A5013F6E-5
 		.gitignore = .gitignore
 		.runsettings = .runsettings
 		build.cmd = build.cmd
-		.github\CODEOWNERS = .github\CODEOWNERS
-		.github\workflows\codeql.yml = .github\workflows\codeql.yml
-		CONTRIBUTING.md = CONTRIBUTING.md
-		tests\docker-compose.yml = tests\docker-compose.yml
-		.github\workflows\dotnet.yml = .github\workflows\dotnet.yml
-		LICENSE.md = LICENSE.md
-		README.md = README.md
+		.config\dotnet-tools.json = .config\dotnet-tools.json
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Epam.Kafka.Tests", "tests\Epam.Kafka.Tests\Epam.Kafka.Tests.csproj", "{AFC21608-1D16-4D15-8266-A5E0E2705D3C}"
@@ -49,6 +43,29 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Epam.Kafka.PubSub.EntityFramework6", "src\Epam.Kafka.PubSub.EntityFramework6\Epam.Kafka.PubSub.EntityFramework6.csproj", "{191052C8-A238-40F2-9322-A8B98CECA156}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Epam.Kafka.PubSub.EntityFramework6.Tests", "tests\Epam.Kafka.PubSub.EntityFramework6.Tests\Epam.Kafka.PubSub.EntityFramework6.Tests.csproj", "{9BF7230E-5647-44F5-A7E5-CAA5C80A5A94}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github", ".github", "{A87B39B7-FF58-4305-83E5-5AE99D3ECC1A}"
+	ProjectSection(SolutionItems) = preProject
+		.github\ISSUE_TEMPLATE\bug-report.md = .github\ISSUE_TEMPLATE\bug-report.md
+		.github\CODEOWNERS = .github\CODEOWNERS
+		.github\workflows\codeql.yml = .github\workflows\codeql.yml
+		.github\workflows\dotnet.yml = .github\workflows\dotnet.yml
+		.github\ISSUE_TEMPLATE\enhancement.md = .github\ISSUE_TEMPLATE\enhancement.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docker", "Docker", "{222BCFF6-0433-4BE2-B19F-800790CC9261}"
+	ProjectSection(SolutionItems) = preProject
+		tests\docker-compose.yml = tests\docker-compose.yml
+		tests\kafka-start.cmd = tests\kafka-start.cmd
+		tests\kafka-stop.cmd = tests\kafka-stop.cmd
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{CC45261E-D51D-43F4-829D-34BDC3D68EEE}"
+	ProjectSection(SolutionItems) = preProject
+		CONTRIBUTING.md = CONTRIBUTING.md
+		LICENSE = LICENSE
+		README.md = README.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -110,6 +127,9 @@ Global
 		{46C55727-E63E-4571-BA2B-5C5A5A5D6EC9} = {07C5B87A-BBE0-4E3E-83CB-8A95B2D6855E}
 		{191052C8-A238-40F2-9322-A8B98CECA156} = {E0525F24-5B2C-4D26-A93F-6817B1540C87}
 		{9BF7230E-5647-44F5-A7E5-CAA5C80A5A94} = {837928B6-19AD-471C-A875-912C7F1F97C7}
+		{A87B39B7-FF58-4305-83E5-5AE99D3ECC1A} = {A5013F6E-5A4E-4FC5-8A20-96AEB83BA9C7}
+		{222BCFF6-0433-4BE2-B19F-800790CC9261} = {837928B6-19AD-471C-A875-912C7F1F97C7}
+		{CC45261E-D51D-43F4-829D-34BDC3D68EEE} = {A5013F6E-5A4E-4FC5-8A20-96AEB83BA9C7}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {12AADABB-DDF0-4214-9300-49F6F55819DA}

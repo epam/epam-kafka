@@ -20,21 +20,20 @@ Also it is a framework for building pub/sub batch processing applications.
  * Subscribe and internal offsets (default): kafka internal offsets storage. Partition assignment performed by group’s coordinator kafka broker.
  * Subscribe and external offsets: `IExternalOffsetsStorage` interface implementation for offsets storage. Partition assignment performed by group’s coordinator kafka broker.
  * Assign and external offsets: `IExternalOffsetsStorage` interface implementation for offsets storage. Partition assigmnent based on configuration.
- * Default implementation for `IExternalOffsetsStorage` using EntityFrameworkCore.
- * Default implementation for subscription that store data using EntityFrameworkCore. Possibility to commit data and offsets in same database transaction.
+ * Default implementation for `IExternalOffsetsStorage` using EntityFramework (Core and EF6).
+ * Default implementation for subscription that store data using EntityFramework (Core and EF6). Possibility to commit data and offsets in same database transaction.
 
 ### Publication specific
 
- * Default implementation to publish data from EntityFrameworkCore context.
+ * Default implementation to publish data from EntityFramework (Core and EF6) context.
  * Support for transactional producers. 
 
 ## Packages
 
-| Package | 
-| ------- | 
-| [Epam.Kafka](https://www.nuget.org/packages/Epam.Kafka) |
-| [Epam.Kafka.PubSub](https://www.nuget.org/packages/Epam.Kafka.PubSub) |
-| [Epam.Kafka.PubSub.EntityFrameworkCore](https://www.nuget.org/packages/Epam.Kafka.PubSub.EntityFrameworkCore) |
+ *  [Epam.Kafka](https://www.nuget.org/packages/Epam.Kafka)
+ *  [Epam.Kafka.PubSub](https://www.nuget.org/packages/Epam.Kafka.PubSub)
+ *  [Epam.Kafka.PubSub.EntityFrameworkCore](https://www.nuget.org/packages/Epam.Kafka.PubSub.EntityFrameworkCore)
+ *  [Epam.Kafka.PubSub.EntityFramework6](https://www.nuget.org/packages/Epam.Kafka.PubSub.EntityFramework6)
 
 ## License
 
