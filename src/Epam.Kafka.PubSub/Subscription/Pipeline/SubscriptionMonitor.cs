@@ -9,7 +9,10 @@ namespace Epam.Kafka.PubSub.Subscription.Pipeline;
 /// </summary>
 public class SubscriptionMonitor : PubSubMonitor<SubscriptionBatchResult>
 {
-    internal const string Prefix = "Epam.Kafka.Subscription";
+    /// <summary>
+    /// Name prefix for all subscriptions
+    /// </summary>
+    public const string Prefix = "Epam.Kafka.Subscription";
 
     internal SubscriptionMonitor(string name) : base(BuildFullName(name))
     {
