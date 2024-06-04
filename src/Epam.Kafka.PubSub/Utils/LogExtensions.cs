@@ -8,8 +8,6 @@ namespace Epam.Kafka.PubSub.Utils;
 
 internal static partial class LogExtensions
 {
-    public const string IndexedKey = "IndexedKey";
-
     [LoggerMessage(
         EventId = 0,
         EventName = "WaitBegin",
