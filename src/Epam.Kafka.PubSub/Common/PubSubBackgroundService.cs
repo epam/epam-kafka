@@ -179,8 +179,7 @@ internal abstract class PubSubBackgroundService<TOptions, TBatchResult, TMonitor
 
                 this.Monitor.PipelineRetryIteration++;
 
-                this.Monitor.Pipeline.Update(
-                    PipelineStatus.RetryTimeout);
+                this.Monitor.Pipeline.Update(PipelineStatus.RetryTimeout);
 
                 this.Logger.PipelineRetry(exception, this.Monitor.Name, this.Monitor.PipelineRetryIteration,
                     this.Options.PipelineRetryCount, this.Options.PipelineRetryTimeout);
@@ -247,7 +246,7 @@ internal abstract class PubSubBackgroundService<TOptions, TBatchResult, TMonitor
     {
         return batchPolicy.Execute(ct =>
         {
-            using ActivityWrapper transaction = new(this._diagnosticListener, this.Monitor.FullName, this.Monitor.Name);
+            using ActivityWrapper transaction = new(this._diagnosticListener, this.Monitor.FullName);
 
             IServiceScope serviceScope = this._serviceScopeFactory.CreateScope();
 

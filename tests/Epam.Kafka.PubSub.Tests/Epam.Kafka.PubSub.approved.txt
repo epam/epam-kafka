@@ -160,7 +160,10 @@ namespace Epam.Kafka.PubSub.Publication.Pipeline
         Processed = 3,
         ProcessedPartial = 30,
     }
-    public class PublicationMonitor : Epam.Kafka.PubSub.Common.Pipeline.PubSubMonitor<Epam.Kafka.PubSub.Publication.Pipeline.PublicationBatchResult> { }
+    public class PublicationMonitor : Epam.Kafka.PubSub.Common.Pipeline.PubSubMonitor<Epam.Kafka.PubSub.Publication.Pipeline.PublicationBatchResult>
+    {
+        public const string Prefix = "Epam.Kafka.Publication";
+    }
 }
 namespace Epam.Kafka.PubSub.Subscription
 {
@@ -227,5 +230,8 @@ namespace Epam.Kafka.PubSub.Subscription.Pipeline
         NotAssigned = 4,
         Paused = 5,
     }
-    public class SubscriptionMonitor : Epam.Kafka.PubSub.Common.Pipeline.PubSubMonitor<Epam.Kafka.PubSub.Subscription.Pipeline.SubscriptionBatchResult> { }
+    public class SubscriptionMonitor : Epam.Kafka.PubSub.Common.Pipeline.PubSubMonitor<Epam.Kafka.PubSub.Subscription.Pipeline.SubscriptionBatchResult>
+    {
+        public const string Prefix = "Epam.Kafka.Subscription";
+    }
 }
