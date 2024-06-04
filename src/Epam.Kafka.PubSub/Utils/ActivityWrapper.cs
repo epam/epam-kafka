@@ -65,7 +65,7 @@ internal sealed class ActivityWrapper : IDisposable
 
         if (value is Exception exception)
         {
-            this._activity.SetStatus(ActivityStatusCode.Error, exception.Message);
+            this._activity.SetStatus(ActivityStatusCode.Error, exception.GetType().Name);
         }
         else
         {
