@@ -262,8 +262,6 @@ internal sealed class SubscriptionTopicWrapper<TKey, TValue> : IDisposable
             {
                 var tp = list.Select(x => x.TopicPartition).ToList();
 
-                list.Clear();
-
 #pragma warning disable CA1031 // can't throw exceptions in handler callback because it triggers incorrect state in librdkafka and some times leads to app crash. 
                 try
                 {
@@ -274,6 +272,7 @@ internal sealed class SubscriptionTopicWrapper<TKey, TValue> : IDisposable
                         this.Offsets[tpo.TopicPartition] = tpo.Offset;
                     }
 
+                    list.Clear();
                     list.AddRange(state);
                 }
                 catch (Exception exception)
