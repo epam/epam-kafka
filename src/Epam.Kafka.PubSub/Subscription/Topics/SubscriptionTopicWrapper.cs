@@ -89,7 +89,7 @@ internal sealed class SubscriptionTopicWrapper<TKey, TValue> : IDisposable
     }
 
     public IReadOnlyCollection<TopicPartitionOffset> GetAndResetState(
-        IExternalOffsetsStorage storage, 
+        IExternalOffsetsStorage storage,
         IReadOnlyCollection<TopicPartition> topicPartitions,
         CancellationToken cancellationToken)
     {
@@ -262,6 +262,8 @@ internal sealed class SubscriptionTopicWrapper<TKey, TValue> : IDisposable
             {
                 var tp = list.Select(x => x.TopicPartition).ToList();
 
+                list.Clear();
+
 #pragma warning disable CA1031 // can't throw exceptions in handler callback because it triggers incorrect state in librdkafka and some times leads to app crash. 
                 try
                 {
@@ -272,7 +274,6 @@ internal sealed class SubscriptionTopicWrapper<TKey, TValue> : IDisposable
                         this.Offsets[tpo.TopicPartition] = tpo.Offset;
                     }
 
-                    list.Clear();
                     list.AddRange(state);
                 }
                 catch (Exception exception)
@@ -281,8 +282,8 @@ internal sealed class SubscriptionTopicWrapper<TKey, TValue> : IDisposable
                     exception.DoNotRetryBatch();
                     this._exception = exception;
 
-                    this.Logger.PartitionsAssignError(exception, this.Monitor.Name, c.MemberId, tp);
-
+                        this.Logger.PartitionsAssignError(exception, this.Monitor.Name, c.MemberId, tp);
+                    
                     // set Offset.End special value to prevent reading from topic partitions until pipeline restart.
                     list.AddRange(tp.Select(x => new TopicPartitionOffset(x, Offset.End)));
 
