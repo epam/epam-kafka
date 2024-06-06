@@ -89,7 +89,7 @@ internal sealed class SubscriptionTopicWrapper<TKey, TValue> : IDisposable
     }
 
     public IReadOnlyCollection<TopicPartitionOffset> GetAndResetState(
-        IExternalOffsetsStorage storage, 
+        IExternalOffsetsStorage storage,
         IReadOnlyCollection<TopicPartition> topicPartitions,
         CancellationToken cancellationToken)
     {
@@ -282,7 +282,14 @@ internal sealed class SubscriptionTopicWrapper<TKey, TValue> : IDisposable
                     exception.DoNotRetryBatch();
                     this._exception = exception;
 
-                    this.Logger.PartitionsAssignError(exception, this.Monitor.Name, c.MemberId, tp);
+                    if (exception is not OperationCanceledException)
+                    {
+                        this.Logger.PartitionsAssignError(exception, this.Monitor.Name, c.MemberId, tp);
+                    }
+                    else
+                    {
+                        this.Logger.PartitionsAssignCancelled(this.Monitor.Name, c.MemberId, tp);
+                    }
 
                     // set Offset.End special value to prevent reading from topic partitions until pipeline restart.
                     list.AddRange(tp.Select(x => new TopicPartitionOffset(x, Offset.End)));
