@@ -1,14 +1,20 @@
 ﻿// Copyright © 2024 EPAM Systems
 
 using Confluent.Kafka;
-
-using Epam.Kafka.PubSub.EntityFrameworkCore.Subscription;
 using Epam.Kafka.Tests.Common;
-
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
+#if EF6
+using Epam.Kafka.PubSub.EntityFramework6.Subscription;
+using System.Data.Entity;
+
+namespace Epam.Kafka.PubSub.EntityFramework6.Tests.Helpers;
+#else
+using Epam.Kafka.PubSub.EntityFrameworkCore.Subscription;
+using Microsoft.EntityFrameworkCore;
+
 namespace Epam.Kafka.PubSub.EntityFrameworkCore.Tests.Helpers;
+#endif
 
 public class
     TestDbContextEntitySubscriptionHandler : DbContextEntitySubscriptionHandler<string, TestEntityKafka, TestContext,
@@ -27,7 +33,9 @@ public class
     protected override void LoadMainChunk(IQueryable<TestEntityDb> queryable,
         IReadOnlyCollection<ConsumeResult<string, TestEntityKafka>> chunk)
     {
-        queryable.Where(x => chunk.Select(v => v.Message.Key).Contains(x.ExternalId)).Load();
+        IEnumerable<string> keys = chunk.Select(v => v.Message.Key);
+
+        queryable.Where(x => keys.Contains(x.ExternalId)).Load();
     }
 
     protected override TestEntityDb? FindLocal(DbSet<TestEntityDb> dbSet, ConsumeResult<string, TestEntityKafka> value)

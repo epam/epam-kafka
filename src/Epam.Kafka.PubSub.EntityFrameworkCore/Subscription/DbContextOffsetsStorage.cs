@@ -1,12 +1,22 @@
 ﻿// Copyright © 2024 EPAM Systems
 
 using Confluent.Kafka;
-using Epam.Kafka.PubSub.EntityFrameworkCore.Subscription.State;
 using Epam.Kafka.PubSub.Subscription;
 
+#if EF6
+using Epam.Kafka.PubSub.EntityFramework6.Subscription.State;
+using System.Data.Entity;
+using System.Data.Entity.Infrastructure;
+#else
+using Epam.Kafka.PubSub.EntityFrameworkCore.Subscription.State;
 using Microsoft.EntityFrameworkCore;
+#endif
 
+#if EF6
+namespace Epam.Kafka.PubSub.EntityFramework6.Subscription;
+#else
 namespace Epam.Kafka.PubSub.EntityFrameworkCore.Subscription;
+#endif
 
 internal sealed class DbContextOffsetsStorage<TContext> : IExternalOffsetsStorage
     where TContext : DbContext, IKafkaStateDbContext
@@ -22,12 +32,18 @@ internal sealed class DbContextOffsetsStorage<TContext> : IExternalOffsetsStorag
         string? consumerGroup, CancellationToken cancellationToken)
     {
         if (topics == null)
+        {
             throw new ArgumentNullException(nameof(topics));
+        }
 
         consumerGroup ??= string.Empty;
 
+        cancellationToken.ThrowIfCancellationRequested();
+        DbSet<KafkaTopicState> dbSet = this._context.KafkaTopicStates;
+        ICollection<KafkaTopicState> locals = dbSet.Local;
+
         List<TopicPartitionOffset> result =
-            this.GetLocalState(topics, consumerGroup, out List<TopicPartition> toRequest);
+            GetLocalState(locals, topics, consumerGroup, out List<TopicPartition> toRequest);
 
         if (toRequest.Count > 0)
         {
@@ -35,24 +51,28 @@ internal sealed class DbContextOffsetsStorage<TContext> : IExternalOffsetsStorag
             {
                 int[] partitions = g.Select(tp => tp.Partition.Value).ToArray();
 
-                this._context.KafkaTopicStates.AsTracking().Where(x =>
-                    x.ConsumerGroup == consumerGroup && x.Topic == g.Key && partitions.Contains(x.Partition)
-                ).Load();
+                cancellationToken.ThrowIfCancellationRequested();
+
+                dbSet.AsTracking()
+                    .Where(x => x.ConsumerGroup == consumerGroup && x.Topic == g.Key && partitions.Contains(x.Partition))
+                    .Load();
             }
         }
 
         foreach (TopicPartition item in toRequest)
         {
-            KafkaTopicState? local = this._context.KafkaTopicStates.Local.SingleOrDefault(x =>
+            KafkaTopicState? local = locals.SingleOrDefault(x =>
                 x.Topic == item.Topic && x.Partition == item.Partition && x.ConsumerGroup == consumerGroup);
 
             if (local != null)
+            {
                 result.Add(new TopicPartitionOffset(item, local.Pause ? Offset.End : local.Offset));
+            }
             else
             {
                 // don't have information in database yet;
                 result.Add(new TopicPartitionOffset(item, Offset.Unset));
-                this._context.KafkaTopicStates.Add(new KafkaTopicState
+                dbSet.Add(new KafkaTopicState
                 {
                     Topic = item.Topic,
                     Partition = item.Partition,
@@ -66,18 +86,24 @@ internal sealed class DbContextOffsetsStorage<TContext> : IExternalOffsetsStorag
         return result;
     }
 
-    public IReadOnlyCollection<TopicPartitionOffset> CommitOrReset(IReadOnlyCollection<TopicPartitionOffset> offsets,
+    public IReadOnlyCollection<TopicPartitionOffset> CommitOrReset(
+        IReadOnlyCollection<TopicPartitionOffset> offsets,
         string? consumerGroup,
         CancellationToken cancellationToken)
     {
         if (offsets == null)
+        {
             throw new ArgumentNullException(nameof(offsets));
+        }
 
         consumerGroup ??= string.Empty;
 
+        DbSet<KafkaTopicState> dbSet = this._context.KafkaTopicStates;
+        ICollection<KafkaTopicState> locals = dbSet.Local;
+
         foreach (TopicPartitionOffset item in offsets)
         {
-            KafkaTopicState local = this._context.KafkaTopicStates.Local.Single(x =>
+            KafkaTopicState local = locals.Single(x =>
                 x.Topic == item.Topic && x.Partition == item.Partition && x.ConsumerGroup == consumerGroup);
 
             if (local.Pause && item.Offset == Offset.End)
@@ -96,17 +122,24 @@ internal sealed class DbContextOffsetsStorage<TContext> : IExternalOffsetsStorag
         }
         catch (DbUpdateException exception)
         {
-            foreach (Microsoft.EntityFrameworkCore.ChangeTracking.EntityEntry entry in exception.Entries)
+            cancellationToken.ThrowIfCancellationRequested();
+
+            foreach (var entry in exception.Entries)
             {
                 if (entry.Entity is KafkaTopicState)
                 {
-                    Microsoft.EntityFrameworkCore.ChangeTracking.PropertyValues proposedValues = entry.CurrentValues;
-                    Microsoft.EntityFrameworkCore.ChangeTracking.PropertyValues? databaseValues =
-                        entry.GetDatabaseValues();
+                    var proposedValues = entry.CurrentValues;
+                    var databaseValues = entry.GetDatabaseValues();
 
                     if (databaseValues != null)
                     {
-                        foreach (Microsoft.EntityFrameworkCore.Metadata.IProperty property in proposedValues.Properties)
+                        foreach (var property in
+#if EF6
+                                 proposedValues.PropertyNames
+#else
+                                 proposedValues.Properties
+#endif
+                                 )
                         {
                             proposedValues[property] = databaseValues[property];
                         }
@@ -120,10 +153,13 @@ internal sealed class DbContextOffsetsStorage<TContext> : IExternalOffsetsStorag
             this._context.SaveChanges(true);
         }
 
-        return this.GetLocalState(offsets.Select(x => x.TopicPartition).ToList(), consumerGroup, out _);
+        return GetLocalState(locals, offsets.Select(x => x.TopicPartition).ToList(), consumerGroup, out _);
     }
 
-    private List<TopicPartitionOffset> GetLocalState(IReadOnlyCollection<TopicPartition> topics, string? consumerGroup,
+    private static List<TopicPartitionOffset> GetLocalState(
+        ICollection<KafkaTopicState> locals,
+        IReadOnlyCollection<TopicPartition> topics,
+        string? consumerGroup,
         out List<TopicPartition> toRequest)
     {
         var result = new List<TopicPartitionOffset>(topics.Count);
@@ -132,11 +168,13 @@ internal sealed class DbContextOffsetsStorage<TContext> : IExternalOffsetsStorag
 
         foreach (TopicPartition item in topics)
         {
-            KafkaTopicState? local = this._context.KafkaTopicStates.Local.SingleOrDefault(x =>
+            KafkaTopicState? local = locals.SingleOrDefault(x =>
                 x.Topic == item.Topic && x.Partition == item.Partition && x.ConsumerGroup == consumerGroup);
 
             if (local != null)
+            {
                 result.Add(new TopicPartitionOffset(item, local.Pause ? Offset.End : local.Offset));
+            }
             else
             {
                 toRequest.Add(item);

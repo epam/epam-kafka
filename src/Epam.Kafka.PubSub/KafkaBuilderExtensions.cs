@@ -6,7 +6,8 @@ using Epam.Kafka.PubSub.Publication;
 using Epam.Kafka.PubSub.Publication.Options;
 using Epam.Kafka.PubSub.Subscription;
 using Epam.Kafka.PubSub.Subscription.Options;
-
+using Epam.Kafka.PubSub.Subscription.Pipeline;
+using Epam.Kafka.PubSub.Publication.Pipeline;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
@@ -121,19 +122,79 @@ public static class KafkaBuilderExtensions
         IEnumerable<string>? tags = null,
         HealthStatus? failureStatus = null)
     {
+        return builder.WithSummaryHealthCheck(PubSubSummaryHealthCheck.Name, tags, failureStatus);
+    }
+
+    /// <summary>
+    ///     Register health check that verify all publications and returns:
+    ///     <list type="string"><see cref="HealthStatus.Healthy" /> if ALL publications in Healthy state.</list>
+    ///     <list type="string"><see cref="HealthStatus.Unhealthy" /> if ALL publications in Unhealthy state.</list>
+    ///     <list type="string"><see cref="HealthStatus.Degraded" /> otherwise.</list>
+    /// </summary>
+    /// <param name="builder">The <see cref="IHealthChecksBuilder" />.</param>
+    /// <param name="tags">A list of tags that can be used to filter health checks.</param>
+    /// <param name="failureStatus">
+    ///     The <see cref="HealthStatus" /> that should be reported when the health check reports a failure. If the provided
+    ///     value
+    ///     is <c>null</c>, then <see cref="HealthStatus.Unhealthy" /> will be reported.
+    /// </param>
+    /// <remarks>
+    ///     This method will use
+    ///     <see
+    ///         cref="HealthChecksBuilderAddCheckExtensions.AddCheck{T}(IHealthChecksBuilder,string,HealthStatus?,IEnumerable{string})" />
+    ///     to register the health check.
+    /// </remarks>
+    /// <returns>The <see cref="KafkaBuilder" />.</returns>
+    /// <exception cref="ArgumentNullException"></exception>
+    public static KafkaBuilder WithPublicationSummaryHealthCheck(this KafkaBuilder builder,
+        IEnumerable<string>? tags = null,
+        HealthStatus? failureStatus = null)
+    {
+        return builder.WithSummaryHealthCheck(PublicationMonitor.Prefix, tags, failureStatus);
+    }
+
+    /// <summary>
+    ///     Register health check that verify all subscriptions and returns:
+    ///     <list type="string"><see cref="HealthStatus.Healthy" /> if ALL subscriptions in Healthy state.</list>
+    ///     <list type="string"><see cref="HealthStatus.Unhealthy" /> if ALL subscriptions in Unhealthy state.</list>
+    ///     <list type="string"><see cref="HealthStatus.Degraded" /> otherwise.</list>
+    /// </summary>
+    /// <param name="builder">The <see cref="IHealthChecksBuilder" />.</param>
+    /// <param name="tags">A list of tags that can be used to filter health checks.</param>
+    /// <param name="failureStatus">
+    ///     The <see cref="HealthStatus" /> that should be reported when the health check reports a failure. If the provided
+    ///     value
+    ///     is <c>null</c>, then <see cref="HealthStatus.Unhealthy" /> will be reported.
+    /// </param>
+    /// <remarks>
+    ///     This method will use
+    ///     <see
+    ///         cref="HealthChecksBuilderAddCheckExtensions.AddCheck{T}(IHealthChecksBuilder,string,HealthStatus?,IEnumerable{string})" />
+    ///     to register the health check.
+    /// </remarks>
+    /// <returns>The <see cref="KafkaBuilder" />.</returns>
+    /// <exception cref="ArgumentNullException"></exception>
+    public static KafkaBuilder WithSubscriptionSummaryHealthCheck(this KafkaBuilder builder,
+        IEnumerable<string>? tags = null,
+        HealthStatus? failureStatus = null)
+    {
+        return builder.WithSummaryHealthCheck(SubscriptionMonitor.Prefix, tags, failureStatus);
+    }
+
+    private static KafkaBuilder WithSummaryHealthCheck(this KafkaBuilder builder,
+        string name,
+        IEnumerable<string>? tags,
+        HealthStatus? failureStatus)
+    {
         if (builder == null)
         {
             throw new ArgumentNullException(nameof(builder));
         }
 
-        if (builder.Services.All(x => x.ServiceType != typeof(PubSubSummaryHealthCheck)))
-        {
-            builder.Services.AddSingleton<PubSubSummaryHealthCheck>();
+        builder.Services.TryAddSingleton<PubSubSummaryHealthCheck>();
 
-            builder.Services.AddHealthChecks().AddCheck<PubSubSummaryHealthCheck>(
-                PubSubSummaryHealthCheck.Name, tags: tags, failureStatus: failureStatus,
-                timeout: null);
-        }
+        builder.Services.AddHealthChecks().AddCheck<PubSubSummaryHealthCheck>(
+            name, tags: tags, failureStatus: failureStatus, timeout: null);
 
         return builder;
     }

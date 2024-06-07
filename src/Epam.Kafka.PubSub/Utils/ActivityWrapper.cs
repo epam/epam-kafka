@@ -8,14 +8,13 @@ namespace Epam.Kafka.PubSub.Utils;
 #pragma warning disable CA2000 // StartActivity returns same activity object, so it will be disposed.
 internal sealed class ActivityWrapper : IDisposable
 {
-    private const string IndexedKey = LogExtensions.IndexedKey;
     private const string Result = "Result";
 
     private readonly Activity _activity;
-    private readonly string _key;
+
     private readonly DiagnosticListener _listener;
 
-    public ActivityWrapper(DiagnosticListener listener, string name, string key)
+    public ActivityWrapper(DiagnosticListener listener, string name)
     {
         if (name == null)
         {
@@ -23,9 +22,8 @@ internal sealed class ActivityWrapper : IDisposable
         }
 
         this._listener = listener ?? throw new ArgumentNullException(nameof(listener));
-        this._key = key ?? throw new ArgumentNullException(nameof(key));
 
-        this._activity = this._listener.StartActivity(new Activity(name).AddTag(IndexedKey, key), null);
+        this._activity = this._listener.StartActivity(new Activity(name), null);
     }
 
     public void Dispose()
@@ -37,7 +35,7 @@ internal sealed class ActivityWrapper : IDisposable
 
     public ActivityWrapper CreateSpan(string name)
     {
-        return new ActivityWrapper(this._listener, name, this._key);
+        return new ActivityWrapper(this._listener, name);
     }
 
     public void SetResult(object? value)
@@ -67,16 +65,20 @@ internal sealed class ActivityWrapper : IDisposable
 
         if (value is Exception exception)
         {
-            this._activity.SetStatus(ActivityStatusCode.Error, exception.Message);
+            this._activity.SetStatus(ActivityStatusCode.Error, exception.GetType().Name);
         }
         else
         {
-            this._activity.SetStatus(ActivityStatusCode.Ok);
+            string? description = null;
 
             if (value is Enum en)
             {
-                this._activity.SetTag(Result, en.ToString("G"));
+                description = en.ToString("G");
+
+                this._activity.SetTag(Result, description);
             }
+ 
+            this._activity.SetStatus(ActivityStatusCode.Ok, description);
         }
     }
 }

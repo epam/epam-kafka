@@ -94,6 +94,8 @@ namespace Epam.Kafka.PubSub
         public static Epam.Kafka.PubSub.Subscription.SubscriptionBuilder<TKey, TValue, THandler> AddSubscription<TKey, TValue, THandler>(this Epam.Kafka.KafkaBuilder builder, string name, Microsoft.Extensions.DependencyInjection.ServiceLifetime handlerLifetime = 2)
             where THandler : Epam.Kafka.PubSub.Subscription.ISubscriptionHandler<TKey, TValue> { }
         public static Epam.Kafka.KafkaBuilder WithPubSubSummaryHealthCheck(this Epam.Kafka.KafkaBuilder builder, System.Collections.Generic.IEnumerable<string>? tags = null, Microsoft.Extensions.Diagnostics.HealthChecks.HealthStatus? failureStatus = default) { }
+        public static Epam.Kafka.KafkaBuilder WithPublicationSummaryHealthCheck(this Epam.Kafka.KafkaBuilder builder, System.Collections.Generic.IEnumerable<string>? tags = null, Microsoft.Extensions.Diagnostics.HealthChecks.HealthStatus? failureStatus = default) { }
+        public static Epam.Kafka.KafkaBuilder WithSubscriptionSummaryHealthCheck(this Epam.Kafka.KafkaBuilder builder, System.Collections.Generic.IEnumerable<string>? tags = null, Microsoft.Extensions.Diagnostics.HealthChecks.HealthStatus? failureStatus = default) { }
     }
 }
 namespace Epam.Kafka.PubSub.Publication
@@ -160,7 +162,10 @@ namespace Epam.Kafka.PubSub.Publication.Pipeline
         Processed = 3,
         ProcessedPartial = 30,
     }
-    public class PublicationMonitor : Epam.Kafka.PubSub.Common.Pipeline.PubSubMonitor<Epam.Kafka.PubSub.Publication.Pipeline.PublicationBatchResult> { }
+    public class PublicationMonitor : Epam.Kafka.PubSub.Common.Pipeline.PubSubMonitor<Epam.Kafka.PubSub.Publication.Pipeline.PublicationBatchResult>
+    {
+        public const string Prefix = "Epam.Kafka.Publication";
+    }
 }
 namespace Epam.Kafka.PubSub.Subscription
 {
@@ -227,5 +232,8 @@ namespace Epam.Kafka.PubSub.Subscription.Pipeline
         NotAssigned = 4,
         Paused = 5,
     }
-    public class SubscriptionMonitor : Epam.Kafka.PubSub.Common.Pipeline.PubSubMonitor<Epam.Kafka.PubSub.Subscription.Pipeline.SubscriptionBatchResult> { }
+    public class SubscriptionMonitor : Epam.Kafka.PubSub.Common.Pipeline.PubSubMonitor<Epam.Kafka.PubSub.Subscription.Pipeline.SubscriptionBatchResult>
+    {
+        public const string Prefix = "Epam.Kafka.Subscription";
+    }
 }

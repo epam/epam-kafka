@@ -9,7 +9,10 @@ namespace Epam.Kafka.PubSub.Publication.Pipeline;
 /// </summary>
 public class PublicationMonitor : PubSubMonitor<PublicationBatchResult>
 {
-    internal const string Prefix = "Epam.Kafka.Publication";
+    /// <summary>
+    /// Name prefix for all publications
+    /// </summary>
+    public const string Prefix = "Epam.Kafka.Publication";
 
     internal PublicationMonitor(string name) : base(BuildFullName(name))
     {

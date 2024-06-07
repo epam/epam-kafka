@@ -44,7 +44,7 @@ jobs:
       working-directory: ./tests
     - name: Test
       if: steps.filter.outputs.tst == 'true'
-      run: dotnet test -c Debug --no-build --verbosity normal --settings .runsettings
+      run: dotnet test -c Debug -f net8.0 --no-build --verbosity normal --settings .runsettings
     - name: Stop containers
       if: always()
       run: ./kafka-stop.cmd

@@ -1,0 +1,47 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFrameworks>net462;netstandard2.1</TargetFrameworks>
+		<Description>EntityFramework 6 (https://learn.microsoft.com/en-us/ef/ef6/) implementation for key abstractions defined in [Epam.Kafka.PubSub](https://www.nuget.org/packages/Epam.Kafka.PubSub)</Description>
+		<PackageReleaseNotes></PackageReleaseNotes>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<DefineConstants>$(DefineConstants);EF6</DefineConstants>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<Compile Include="..\Epam.Kafka.PubSub.EntityFrameworkCore\LogExtensions.cs" Link="LogExtensions.cs" />
+		<Compile Include="..\Epam.Kafka.PubSub.EntityFrameworkCore\Publication\Contracts\DbContextEntityPublicationHandler.cs" Link="Publication\Contracts\DbContextEntityPublicationHandler.cs" />
+		<Compile Include="..\Epam.Kafka.PubSub.EntityFrameworkCore\Publication\Contracts\IKafkaPublicationEntity.cs" Link="Publication\Contracts\IKafkaPublicationEntity.cs" />
+		<Compile Include="..\Epam.Kafka.PubSub.EntityFrameworkCore\Publication\Contracts\KafkaPublicationState.cs" Link="Publication\Contracts\KafkaPublicationState.cs" />
+		<Compile Include="..\Epam.Kafka.PubSub.EntityFrameworkCore\Publication\DbContextPublicationHandler.cs" Link="Publication\DbContextPublicationHandler.cs" />
+		<Compile Include="..\Epam.Kafka.PubSub.EntityFrameworkCore\Publication\KafkaPublicationConcurrency.cs" Link="Publication\KafkaPublicationConcurrency.cs" />
+		<Compile Include="..\Epam.Kafka.PubSub.EntityFrameworkCore\ServiceCollectionExtensions.cs" Link="ServiceCollectionExtensions.cs" />
+		<Compile Include="..\Epam.Kafka.PubSub.EntityFrameworkCore\Subscription\DbContextEntitySubscriptionHandler.cs" Link="Subscription\DbContextEntitySubscriptionHandler.cs" />
+		<Compile Include="..\Epam.Kafka.PubSub.EntityFrameworkCore\Subscription\DbContextOffsetsStorage.cs" Link="Subscription\DbContextOffsetsStorage.cs" />
+		<Compile Include="..\Epam.Kafka.PubSub.EntityFrameworkCore\Subscription\DbContextSubscriptionHandler.cs" Link="Subscription\DbContextSubscriptionHandler.cs" />
+		<Compile Include="..\Epam.Kafka.PubSub.EntityFrameworkCore\Subscription\State\IKafkaStateDbContext.cs" Link="Subscription\State\IKafkaStateDbContext.cs" />
+		<Compile Include="..\Epam.Kafka.PubSub.EntityFrameworkCore\Subscription\State\KafkaTopicState.cs" Link="Subscription\State\KafkaTopicState.cs" />
+		<Compile Include="..\Epam.Kafka.PubSub.EntityFrameworkCore\Subscription\State\KafkaTopicStateExtensions.cs" Link="Subscription\State\KafkaTopicStateExtensions.cs" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="EntityFramework" Version="6.4.4" />
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.1'">
+		<!--security scan fixes-->
+		<PackageReference Include="System.Data.SqlClient" Version="4.8.6" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\Epam.Kafka.PubSub\Epam.Kafka.PubSub.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Folder Include="Publication\Contracts\" />
+		<Folder Include="Subscription\State\" />
+	</ItemGroup>
+
+</Project>

@@ -8,8 +8,6 @@ namespace Epam.Kafka.PubSub.Utils;
 
 internal static partial class LogExtensions
 {
-    public const string IndexedKey = "IndexedKey";
-
     [LoggerMessage(
         EventId = 0,
         EventName = "WaitBegin",
@@ -191,6 +189,15 @@ internal static partial class LogExtensions
         Level = LogLevel.Warning,
         Message = "Producer dispose error for '{IndexedKey}'.")]
     public static partial void ProducerDisposeError(this ILogger logger, Exception exception, string indexedKey);
+
+    [LoggerMessage(
+        EventId = 37,
+        EventName = "PartitionsAssignCancelled",
+        Level = LogLevel.Warning,
+        Message = "Partitions assign cancelled for '{IndexedKey}'. {TopicPartitions} {MemberId}")]
+    public static partial void PartitionsAssignCancelled(this ILogger logger, string indexedKey,
+        string memberId,
+        IEnumerable<TopicPartition> topicPartitions);
 
     [LoggerMessage(
         EventId = 500,

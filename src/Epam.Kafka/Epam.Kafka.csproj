@@ -7,11 +7,12 @@
 			* Abstraction to create various kafka related objects with fluent configuration in `IServiceCollection`.
 			* Options pattern implementation for consumer, producer, client, and schema registry configs.
 		</Description>
+		<PackageReleaseNotes>Confluent.Kafka and Confluent.SchemaRegistry updated to 2.4.0. Minor fixes for log messages.</PackageReleaseNotes>
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <PackageReference Include="Confluent.Kafka" Version="2.3.0" />
-	  <PackageReference Include="Confluent.SchemaRegistry" Version="2.3.0" />
+	  <PackageReference Include="Confluent.Kafka" Version="2.4.0" />
+	  <PackageReference Include="Confluent.SchemaRegistry" Version="2.4.0" />
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)' == 'net6.0' or '$(TargetFramework)' == 'net462' or '$(TargetFramework)' == 'netstandard2.0'">

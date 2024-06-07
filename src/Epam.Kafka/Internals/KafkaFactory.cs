@@ -12,6 +12,8 @@ namespace Epam.Kafka.Internals;
 
 internal sealed class KafkaFactory : IKafkaFactory, IDisposable
 {
+    private const string LoggerCategoryName = "Epam.Kafka.Factory";
+
     private readonly Dictionary<KafkaClusterOptions, AdminClient> _clients = new();
     private readonly IOptionsMonitor<KafkaClusterOptions> _clusterOptions;
     private readonly IOptionsMonitor<KafkaConsumerOptions> _consumerOptions;
@@ -35,7 +37,7 @@ internal sealed class KafkaFactory : IKafkaFactory, IDisposable
         this._consumerOptions = consumerOptions ?? throw new ArgumentNullException(nameof(consumerOptions));
         this._producerOptions = producerOptions ?? throw new ArgumentNullException(nameof(producerOptions));
         this._loggerFactory = loggerFactory;
-        this._logger = loggerFactory?.CreateLogger("Epam.Kafka.Factory");
+        this._logger = loggerFactory?.CreateLogger(LoggerCategoryName);
     }
 
     public void Dispose()

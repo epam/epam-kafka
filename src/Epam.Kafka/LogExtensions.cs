@@ -58,7 +58,7 @@ public static partial class LogExtensions
         EventId = 201,
         EventName = "ConsumerCreated",
         Level = LogLevel.Information,
-        Message = "Consumer created. KeyType: {KeyType}, ValueType: {ValueType}) Config: {Config}.")]
+        Message = "Consumer created. KeyType: {KeyType}, ValueType: {ValueType}, Config: {Config}.")]
     internal static partial void ConsumerCreateOk(this ILogger logger, IEnumerable<KeyValuePair<string, string>> config,
         Type keyType, Type valueType);
 
@@ -66,7 +66,7 @@ public static partial class LogExtensions
         EventId = 501,
         EventName = "ConsumerCreateError",
         Level = LogLevel.Error,
-        Message = "Consumer create error. KeyType: {KeyType}, ValueType: {ValueType}) Config: {Config}.")]
+        Message = "Consumer create error. KeyType: {KeyType}, ValueType: {ValueType}, Config: {Config}.")]
     internal static partial void ConsumerCreateError(this ILogger logger, Exception exception,
         IEnumerable<KeyValuePair<string, string>> config, Type keyType, Type valueType);
 
@@ -74,7 +74,7 @@ public static partial class LogExtensions
         EventId = 202,
         EventName = "ProducerCreated",
         Level = LogLevel.Information,
-        Message = "Producer created. KeyType: {KeyType}, ValueType: {ValueType}) Config: {Config}.")]
+        Message = "Producer created. KeyType: {KeyType}, ValueType: {ValueType}, Config: {Config}.")]
     internal static partial void ProducerCreateOk(this ILogger logger, IEnumerable<KeyValuePair<string, string>> config,
         Type keyType, Type valueType);
 
@@ -82,7 +82,7 @@ public static partial class LogExtensions
         EventId = 502,
         EventName = "ProducerCreateError",
         Level = LogLevel.Error,
-        Message = "Producer create error. KeyType: {KeyType}, ValueType: {ValueType}) Config: {Config}.")]
+        Message = "Producer create error. KeyType: {KeyType}, ValueType: {ValueType}, Config: {Config}.")]
     internal static partial void ProducerCreateError(this ILogger logger, Exception exception,
         IEnumerable<KeyValuePair<string, string>> config, Type keyType, Type valueType);
 }
