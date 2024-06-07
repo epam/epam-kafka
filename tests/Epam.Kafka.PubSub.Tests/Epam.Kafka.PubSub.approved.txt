@@ -94,6 +94,8 @@ namespace Epam.Kafka.PubSub
         public static Epam.Kafka.PubSub.Subscription.SubscriptionBuilder<TKey, TValue, THandler> AddSubscription<TKey, TValue, THandler>(this Epam.Kafka.KafkaBuilder builder, string name, Microsoft.Extensions.DependencyInjection.ServiceLifetime handlerLifetime = 2)
             where THandler : Epam.Kafka.PubSub.Subscription.ISubscriptionHandler<TKey, TValue> { }
         public static Epam.Kafka.KafkaBuilder WithPubSubSummaryHealthCheck(this Epam.Kafka.KafkaBuilder builder, System.Collections.Generic.IEnumerable<string>? tags = null, Microsoft.Extensions.Diagnostics.HealthChecks.HealthStatus? failureStatus = default) { }
+        public static Epam.Kafka.KafkaBuilder WithPublicationSummaryHealthCheck(this Epam.Kafka.KafkaBuilder builder, System.Collections.Generic.IEnumerable<string>? tags = null, Microsoft.Extensions.Diagnostics.HealthChecks.HealthStatus? failureStatus = default) { }
+        public static Epam.Kafka.KafkaBuilder WithSubscriptionSummaryHealthCheck(this Epam.Kafka.KafkaBuilder builder, System.Collections.Generic.IEnumerable<string>? tags = null, Microsoft.Extensions.Diagnostics.HealthChecks.HealthStatus? failureStatus = default) { }
     }
 }
 namespace Epam.Kafka.PubSub.Publication
