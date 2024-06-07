@@ -33,44 +33,55 @@ internal class PubSubSummaryHealthCheck : IHealthCheck
     public Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context,
         CancellationToken cancellationToken = new())
     {
-        static void AppendStatus(StringBuilder stringBuilder, string key, HealthStatus status)
-        {
-            if (stringBuilder.Length > 0)
-            {
-                stringBuilder.Append(", ");
-            }
-
-            stringBuilder.Append(key);
-            stringBuilder.Append(": ");
-            stringBuilder.Append(status.ToString("G"));
-        }
-
         StringBuilder sb = new();
 
         HashSet<HealthStatus> result = new();
 
-        foreach (KeyValuePair<string, SubscriptionMonitor> sub in this._monitors.Subscriptions)
+        if (context.Registration.Name == Name || context.Registration.Name == SubscriptionMonitor.Prefix)
         {
-            HealthStatus status = new SubscriptionHealthCheck(this._subOptions, this._monitors, sub.Key)
-                .CheckHealthAsync(context, cancellationToken).GetAwaiter().GetResult().Status;
-            result.Add(status);
+            foreach (KeyValuePair<string, SubscriptionMonitor> sub in this._monitors.Subscriptions)
+            {
+                HealthStatus status = new SubscriptionHealthCheck(this._subOptions, this._monitors, sub.Key)
+                    .CheckHealthAsync(context, cancellationToken).GetAwaiter().GetResult().Status;
+                result.Add(status);
 
-            AppendStatus(sb, sub.Key, status);
+                AppendStatus(sb, sub.Key, status);
+            }
         }
 
-        foreach (KeyValuePair<string, PublicationMonitor> pub in this._monitors.Publications)
+        if (context.Registration.Name == Name || context.Registration.Name == PublicationMonitor.Prefix)
         {
-            HealthStatus status = new PublicationHealthCheck(this._pubOptions, this._monitors, pub.Key)
-                .CheckHealthAsync(context, cancellationToken).GetAwaiter().GetResult().Status;
-            result.Add(status);
+            foreach (KeyValuePair<string, PublicationMonitor> pub in this._monitors.Publications)
+            {
+                HealthStatus status = new PublicationHealthCheck(this._pubOptions, this._monitors, pub.Key)
+                    .CheckHealthAsync(context, cancellationToken).GetAwaiter().GetResult().Status;
+                result.Add(status);
 
-            AppendStatus(sb, pub.Key, status);
+                AppendStatus(sb, pub.Key, status);
+            }
         }
 
+        return CreateResult(result, sb);
+    }
+
+    private static Task<HealthCheckResult> CreateResult(HashSet<HealthStatus> result, StringBuilder sb)
+    {
         return Task.FromResult(new HealthCheckResult(result.Count == 0
             ? HealthStatus.Healthy
             : result.Count == 1
                 ? result.Single()
                 : HealthStatus.Degraded, sb.ToString()));
+    }
+
+    private static void AppendStatus(StringBuilder stringBuilder, string key, HealthStatus status)
+    {
+        if (stringBuilder.Length > 0)
+        {
+            stringBuilder.Append(", ");
+        }
+
+        stringBuilder.Append(key);
+        stringBuilder.Append(": ");
+        stringBuilder.Append(status.ToString("G"));
     }
 }
