@@ -3,6 +3,7 @@
 	<PropertyGroup>
 		<TargetFrameworks>net8.0;net6.0;netstandard2.0;net462</TargetFrameworks>
 		<Description>Framework for building pub/sub batch processing applications</Description>
+		<PackageReleaseNotes>Implementation for EntityFramework6 added in Epam.Kafka.PubSub.EntityFramework6 package. Separate summary health checks for subscriptions and publications added. Polly updated to 8.4.0.</PackageReleaseNotes>
 	</PropertyGroup>
 
 	<ItemGroup>

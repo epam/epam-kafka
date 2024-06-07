@@ -7,6 +7,7 @@
 			* Abstraction to create various kafka related objects with fluent configuration in `IServiceCollection`.
 			* Options pattern implementation for consumer, producer, client, and schema registry configs.
 		</Description>
+		<PackageReleaseNotes>Confluent.Kafka and Confluent.SchemaRegistry updated to 2.4.0. Minor fixes for log messages.</PackageReleaseNotes>
 	</PropertyGroup>
 
 	<ItemGroup>

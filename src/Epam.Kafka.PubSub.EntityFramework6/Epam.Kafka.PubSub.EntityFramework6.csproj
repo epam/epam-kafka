@@ -3,6 +3,7 @@
 	<PropertyGroup>
 		<TargetFrameworks>net462;netstandard2.1</TargetFrameworks>
 		<Description>EntityFramework 6 (https://learn.microsoft.com/en-us/ef/ef6/) implementation for key abstractions defined in [Epam.Kafka.PubSub](https://www.nuget.org/packages/Epam.Kafka.PubSub)</Description>
+		<PackageReleaseNotes></PackageReleaseNotes>
 	</PropertyGroup>
 
 	<PropertyGroup>

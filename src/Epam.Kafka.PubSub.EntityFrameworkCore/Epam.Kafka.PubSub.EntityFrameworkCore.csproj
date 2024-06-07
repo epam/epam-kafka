@@ -3,6 +3,7 @@
   <PropertyGroup>
 	  <TargetFrameworks>net8.0;net6.0;netstandard2.0</TargetFrameworks>
 	  <Description>EntityFrameworkCore implementation for key abstractions defined in [Epam.Kafka.PubSub](https://www.nuget.org/packages/Epam.Kafka.PubSub)</Description>
+	  <PackageReleaseNotes></PackageReleaseNotes>
   </PropertyGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
