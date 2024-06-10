@@ -8,7 +8,7 @@ namespace Epam.Kafka.Options.Configuration;
 
 internal class ConsumerOptionsConfigure : OptionsFromConfiguration<KafkaConsumerOptions>
 {
-    public ConsumerOptionsConfigure(IConfiguration configuration) : base(configuration)
+    public ConsumerOptionsConfigure(IConfiguration configuration, KafkaBuilder kafkaBuilder) : base(configuration, kafkaBuilder)
     {
     }
 
