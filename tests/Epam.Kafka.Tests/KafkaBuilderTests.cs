@@ -15,5 +15,6 @@ public class KafkaBuilderTests
         Assert.Throws<ArgumentNullException>(() => kafkaBuilder.WithClusterConfig(null!));
         Assert.Throws<ArgumentNullException>(() => kafkaBuilder.WithProducerConfig(null!));
         Assert.Throws<ArgumentNullException>(() => kafkaBuilder.WithConsumerConfig(null!));
+        Assert.Throws<ArgumentNullException>(() => kafkaBuilder.WithDefaults(null!));
     }
 }
