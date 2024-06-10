@@ -7,7 +7,12 @@ namespace Epam.Kafka;
 
 public partial class KafkaBuilder
 {
-    internal Dictionary<string, string> Placeholders { get; } = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, string> _configPlaceholders = new(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>
+    /// <inheritdoc cref="WithConfigPlaceholders"/><inheritdoc cref="WithConfigPlaceholders" path="/param[@name='placeholders']"/>. For modification use <see cref="WithConfigPlaceholders"/>
+    /// </summary>
+    internal IReadOnlyDictionary<string, string> ConfigPlaceholders => this._configPlaceholders;
 
     /// <summary>
     /// Configure placeholders that can be used in 'Kafka:Consumers', 'Kafka:Producers', and 'Kafka:Clusters' configuration sections.
@@ -28,7 +33,7 @@ public partial class KafkaBuilder
                 "Config placeholders can be used only for builder created with 'useConfiguration = true' parameter.");
         }
 
-        if (this.Placeholders.Count > 0)
+        if (this.ConfigPlaceholders.Count > 0)
         {
             throw new InvalidOperationException("Config placeholders already set.");
         }
@@ -39,23 +44,20 @@ public partial class KafkaBuilder
         {
             if (pair.Key == null || !regex.IsMatch(pair.Key))
             {
-                this.Placeholders.Clear();
                 throw new ArgumentException($"Placeholder key '{pair.Key}' not match {regex}.", nameof(placeholders));
             }
 
             if (pair.Value == null || regex.IsMatch(pair.Value))
             {
-                this.Placeholders.Clear();
                 throw new ArgumentException($"Placeholder value '{pair.Value}' is null or match {regex}.", nameof(placeholders));
             }
 
             try
             {
-                this.Placeholders.Add(pair.Key, pair.Value);
+                this._configPlaceholders.Add(pair.Key, pair.Value);
             }
             catch (ArgumentException e)
             {
-                this.Placeholders.Clear();
                 throw new ArgumentException($"Duplicate CASE INSENSITIVE key '{pair.Key},.", nameof(placeholders), e);
             }
         }

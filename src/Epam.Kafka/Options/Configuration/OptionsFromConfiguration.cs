@@ -57,9 +57,9 @@ internal abstract class OptionsFromConfiguration<TOptions> : IConfigureNamedOpti
             {
                 string value = x.Value;
 
-                if (this._kafkaBuilder.Placeholders.Count > 0)
+                if (this._kafkaBuilder.ConfigPlaceholders.Count > 0)
                 {
-                    foreach (var kvp in this._kafkaBuilder.Placeholders)
+                    foreach (var kvp in this._kafkaBuilder.ConfigPlaceholders)
                     {
                         value = value.Replace(kvp.Key, kvp.Value, StringComparison.OrdinalIgnoreCase);
                     }    

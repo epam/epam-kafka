@@ -6,6 +6,9 @@ using Epam.Kafka.Tests.Common;
 
 using Shouldly;
 
+using System.Linq;
+using System.Xml.Linq;
+
 using Xunit;
 using Xunit.Abstractions;
 
@@ -102,6 +105,24 @@ public class KafkaFactoryTests : TestWithServices
         ProducerConfig config2 = this.KafkaFactory.CreateProducerConfig(name);
         Assert.Equal(expectedGroup, config2.TransactionalId);
         Assert.Single(config2);
+    }
+
+    [Fact]
+    public void CreateConfigsWithPlaceholders()
+    {
+        KafkaBuilder kafkaBuilder = MockCluster.AddMockCluster(this).WithDefaults(x =>
+            {
+                x.Producer = "placeholder";
+                x.Consumer = "placeholder";
+            }).WithConfigPlaceholders(new Dictionary<string, string> { { "<k123>", "qwe" } });
+
+        ProducerConfig p = this.KafkaFactory.CreateProducerConfig();
+        Assert.Equal("qwe qwe <k321>", p.TransactionalId);
+        Assert.Single(p);
+
+        ConsumerConfig c = this.KafkaFactory.CreateConsumerConfig();
+        Assert.Equal("qwe qwe <k321>", c.GroupId);
+        Assert.Single(c);
     }
 
     [Theory]
