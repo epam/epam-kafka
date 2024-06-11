@@ -23,6 +23,11 @@ namespace Epam.Kafka
         public static Confluent.Kafka.IAdminClient CreateDependentAdminClient(this Confluent.Kafka.IClient client) { }
         public static Confluent.Kafka.IProducer<TKey, TValue> CreateDependentProducer<TKey, TValue>(this Confluent.Kafka.IClient client, System.Action<Confluent.Kafka.DependentProducerBuilder<TKey, TValue>>? configure = null) { }
     }
+    public static class KafkaConfigExtensions
+    {
+        public static int GetCancellationDelayMaxMs(this Confluent.Kafka.ConsumerConfig config) { }
+        public static void SetCancellationDelayMaxMs(this Confluent.Kafka.ConsumerConfig config, int value) { }
+    }
     public static class LogExtensions
     {
         public static void KafkaLogHandler(this Microsoft.Extensions.Logging.ILogger logger, Confluent.Kafka.LogMessage msg) { }
