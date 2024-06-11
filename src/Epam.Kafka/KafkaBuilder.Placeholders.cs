@@ -45,13 +45,13 @@ public partial class KafkaBuilder
             if (pair.Key == null || !regex.IsMatch(pair.Key))
             {
                 this._configPlaceholders.Clear();
-                throw new ArgumentException($"Placeholder key '{pair.Key}' not match {regex}.", nameof(placeholders));
+                throw new ArgumentException($"Placeholder key '{pair.Key}' not match '{regex}'.", nameof(placeholders));
             }
 
             if (pair.Value == null || regex.IsMatch(pair.Value))
             {
                 this._configPlaceholders.Clear();
-                throw new ArgumentException($"Placeholder value '{pair.Value}' is null or match {regex}.", nameof(placeholders));
+                throw new ArgumentException($"Placeholder value '{pair.Value}' is null or match '{regex}'.", nameof(placeholders));
             }
 
             try
@@ -61,7 +61,7 @@ public partial class KafkaBuilder
             catch (ArgumentException e)
             {
                 this._configPlaceholders.Clear();
-                throw new ArgumentException($"Duplicate CASE INSENSITIVE key '{pair.Key},.", nameof(placeholders), e);
+                throw new ArgumentException($"Duplicate CASE INSENSITIVE key '{pair.Key}'.", nameof(placeholders), e);
             }
         }
 
