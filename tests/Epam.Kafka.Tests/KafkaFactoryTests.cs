@@ -55,9 +55,9 @@ public class KafkaFactoryTests : TestWithServices
     [Theory]
     [InlineData("c4", "group.id is null or whitespace.")]
     [InlineData("c5", "group.id is null or whitespace.")]
-    [InlineData(null, "Unable to create entity with null or whitespace logical name.")]
-    [InlineData("", "Unable to create entity with null or whitespace logical name.")]
-    [InlineData(" ", "Unable to create entity with null or whitespace logical name.")]
+    [InlineData(null, "Unable to create consumer with null or whitespace logical name.")]
+    [InlineData("", "Unable to create consumer with null or whitespace logical name.")]
+    [InlineData(" ", "Unable to create consumer with null or whitespace logical name.")]
     public void CreateConsumerConfigError(string? name, string expectedError)
     {
         KafkaBuilder kafkaBuilder = MockCluster.AddMockCluster(this);
@@ -126,9 +126,9 @@ public class KafkaFactoryTests : TestWithServices
     }
 
     [Theory]
-    [InlineData(null, "Unable to create entity with null or whitespace logical name.")]
-    [InlineData("", "Unable to create entity with null or whitespace logical name.")]
-    [InlineData(" ", "Unable to create entity with null or whitespace logical name.")]
+    [InlineData(null, "Unable to create producer with null or whitespace logical name.")]
+    [InlineData("", "Unable to create producer with null or whitespace logical name.")]
+    [InlineData(" ", "Unable to create producer with null or whitespace logical name.")]
     public void CreateProducerConfigError(string? name, string expectedError)
     {
         KafkaBuilder kafkaBuilder = MockCluster.AddMockCluster(this);
@@ -189,7 +189,7 @@ public class KafkaFactoryTests : TestWithServices
     }
 
     [Theory]
-    [InlineData("", "Unable to create entity with null or whitespace logical name.")]
+    [InlineData("", "Unable to create cluster with null or whitespace logical name.")]
     [InlineData("not existing", "bootstrap.servers is null or whitespace.")]
     [InlineData("notValid", "bootstrap.servers is null or whitespace.")]
     public void CreateConsumerError(string cluster, string expectedMessage)

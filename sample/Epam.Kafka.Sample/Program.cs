@@ -65,14 +65,29 @@ internal static class Program
                 .WithValueDeserializer(_ => Utf8JsonSerializer.Instance)
                 .WithHealthChecks()
                 .WaitFor(SeedTopic)
-                .WithOptions(x => x.ConfigOverrideClientId = $"{domainName}@{machineName}:SubSample");
+
+                // optionally set subscription specific client id to consumer
+                .WithConfigExtension(c =>
+                {
+                    c.ClientId = $"{domainName}@{machineName}:SubSample";
+                });
 
             // Sample of publication that read data from database using EF Core and write to kafka.
             kafkaBuilder.AddPublication<string, KafkaEntity, PublicationHandlerSample>("Sample")
                 .WithValueSerializer(_ => Utf8JsonSerializer.Instance)
                 .WithHealthChecks()
                 .WaitFor(SeedDatabase)
-                .WithOptions(x => x.ConfigOverrideClientId = $"{domainName}@{machineName}:PubSample");
+
+                // optionally set publication specific client id and transaction id to producer. 
+                .WithConfigExtension(c =>
+                {
+                    c.ClientId = $"{domainName}@{machineName}:PubSample";
+
+                    if (!string.IsNullOrEmpty(c.TransactionalId))
+                    {
+                        c.TransactionalId = $"{c.TransactionalId}.sample";
+                    }
+                });
         }).Build().Run();
     }
 

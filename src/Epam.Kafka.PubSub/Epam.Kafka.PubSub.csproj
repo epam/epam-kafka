@@ -4,7 +4,8 @@
 		<TargetFrameworks>net8.0;net6.0;netstandard2.0;net462</TargetFrameworks>
 		<Description>Framework for building pub/sub batch processing applications</Description>
 		<PackageReleaseNotes>
-			- New property 'ConfigOverrideClientId' added to 'PubSubOptions' to override producer/consumer 'client.id' config value independently for every publication or subscription.
+			- New method 'WithConfigExtension' added to 'PublicationBuilder' to be able to set publication specific values to producer config.
+			- New method 'WithConfigExtension' added to 'SubscriptionBuilder' to be able to set subscription specific values to consumer config.
 			- [Breaking Change] Consumer created by subscription background service don't have hardcoded 'client.id' config value anymore. Previously it was $"{AppDomain.CurrentDomain.FriendlyName}@{Environment.MachineName}:{this.Monitor.Name}".
 		</PackageReleaseNotes>
 	</PropertyGroup>

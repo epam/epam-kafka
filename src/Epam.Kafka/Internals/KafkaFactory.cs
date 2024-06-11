@@ -64,7 +64,7 @@ internal sealed class KafkaFactory : IKafkaFactory, IDisposable
 
         configName ??= this._topicOptions.CurrentValue.Consumer;
 
-        ValidateLogicalName(configName);
+        ValidateLogicalName(configName, "consumer");
 
         try
         {
@@ -75,7 +75,7 @@ internal sealed class KafkaFactory : IKafkaFactory, IDisposable
         catch (OptionsValidationException e)
         {
             throw new InvalidOperationException(
-                $"Consumer config '{configName}' in corrupted state. See inner exception for details.", e);
+                $"Consumer config '{configName}' in corrupted state: {e.Message}", e);
         }
     }
 
@@ -85,7 +85,7 @@ internal sealed class KafkaFactory : IKafkaFactory, IDisposable
 
         configName ??= this._topicOptions.CurrentValue.Producer;
 
-        ValidateLogicalName(configName);
+        ValidateLogicalName(configName, "producer");
 
         try
         {
@@ -96,7 +96,7 @@ internal sealed class KafkaFactory : IKafkaFactory, IDisposable
         catch (Exception e)
         {
             throw new InvalidOperationException(
-                $"Producer config '{configName}' in corrupted state. See inner exception for details.", e);
+                $"Producer config '{configName}' in corrupted state: {e.Message}", e);
         }
     }
 
@@ -251,11 +251,11 @@ internal sealed class KafkaFactory : IKafkaFactory, IDisposable
         return result;
     }
 
-    private static void ValidateLogicalName(string? configName)
+    private static void ValidateLogicalName(string? configName, string entityType)
     {
         if (string.IsNullOrWhiteSpace(configName))
         {
-            throw new InvalidOperationException("Unable to create entity with null or whitespace logical name.");
+            throw new InvalidOperationException($"Unable to create {entityType} with null or whitespace logical name.");
         }
     }
 
@@ -288,7 +288,7 @@ internal sealed class KafkaFactory : IKafkaFactory, IDisposable
     {
         cluster ??= this._topicOptions.CurrentValue.Cluster;
 
-        ValidateLogicalName(cluster);
+        ValidateLogicalName(cluster, "cluster");
 
         try
         {

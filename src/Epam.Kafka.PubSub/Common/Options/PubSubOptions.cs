@@ -151,13 +151,4 @@ public abstract class PubSubOptions
     ///     (default) then value of <see cref="HandlerTimeout" /> will be used.
     /// </summary>
     public TimeSpan? HealthChecksMaxQueued { get; set; }
-
-    /// <summary>
-    /// Override 'client.id' config key for producer or consumer. Support all placeholders registered using <see cref="KafkaBuilder.WithConfigPlaceholders"/> and additionally:
-    /// <list type="string">&lt;pubSubFullName&gt;</list>
-    /// <list type="string">&lt;pubSubName&gt;</list>
-    /// <list type="string">&lt;pubSubFullNameToLower&gt;</list>
-    /// <list type="string">&lt;pubSubNameToLower&gt;</list>
-    /// </summary>
-    public string? ConfigOverrideClientId { get; set; }
 }

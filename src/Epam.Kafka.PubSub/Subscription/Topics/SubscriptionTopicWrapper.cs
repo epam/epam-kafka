@@ -1,7 +1,7 @@
 ﻿// Copyright © 2024 EPAM Systems
 
 using Confluent.Kafka;
-using Epam.Kafka.PubSub.Common.Options;
+
 using Epam.Kafka.PubSub.Subscription.Options;
 using Epam.Kafka.PubSub.Subscription.Pipeline;
 using Epam.Kafka.PubSub.Utils;
@@ -39,7 +39,9 @@ internal sealed class SubscriptionTopicWrapper<TKey, TValue> : IDisposable
 
         ConsumerConfig config = kafkaFactory.CreateConsumerConfig(options.Consumer);
 
-        this.ConfigureConsumerConfig(config);
+        this.Options.ExtendConfig?.Invoke(config);
+
+        ConfigureConsumerConfig(config);
 
         this._autoOffsetReset = config.AutoOffsetReset;
         this._consumeTimeoutMs = config.GetCancellationDelayMaxMs();
@@ -320,14 +322,12 @@ internal sealed class SubscriptionTopicWrapper<TKey, TValue> : IDisposable
         }
     }
 
-    private void ConfigureConsumerConfig(ConsumerConfig config)
+    private static void ConfigureConsumerConfig(ConsumerConfig config)
     {
         if (config == null)
         {
             throw new ArgumentNullException(nameof(config));
         }
-
-        config.UpdateClientIdIfNeeded(this.Options, this.Monitor);
 
         config.EnableAutoCommit = false;
         config.EnableAutoOffsetStore = false;

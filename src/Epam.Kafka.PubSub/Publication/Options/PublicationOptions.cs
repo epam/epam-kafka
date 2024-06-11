@@ -15,7 +15,7 @@ namespace Epam.Kafka.PubSub.Publication.Options;
 public sealed class PublicationOptions : PubSubOptions, IOptions<PublicationOptions>
 {
     internal readonly ProducerPartitioner Partitioner = new();
-
+    internal Action<ProducerConfig>? ExtendConfig;
     internal Func<Lazy<ISchemaRegistryClient>, object>? KeySerializer;
     internal Func<Lazy<ISchemaRegistryClient>, object>? ValueSerializer;
 

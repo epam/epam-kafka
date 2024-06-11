@@ -10,6 +10,12 @@ namespace Epam.Kafka.PubSub.Subscription.Options;
 
 internal class SubscriptionOptionsValidate : IValidateOptions<SubscriptionOptions>
 {
+    //private readonly IKafkaFactory _kafkaFactory;
+
+    //public SubscriptionOptionsValidate(IKafkaFactory kafkaFactory)
+    //{
+    //    this._kafkaFactory = kafkaFactory ?? throw new ArgumentNullException(nameof(kafkaFactory));
+    //}
     public ValidateOptionsResult Validate(string? name, SubscriptionOptions options)
     {
         if (options == null)
@@ -24,9 +30,21 @@ internal class SubscriptionOptionsValidate : IValidateOptions<SubscriptionOption
 
         result ??= ValidateSerializers(options);
 
+        //if (result == null)
+        //{
+        //    try
+        //    {
+        //        this._kafkaFactory.CreateConsumerConfig(options.Consumer);
+        //    }
+        //    catch (InvalidOperationException e)
+        //    {
+        //        result = e.Message;
+        //    }
+        //}
+
         if (result != null)
         {
-            return ValidateOptionsResult.Fail(result);
+            return ValidateOptionsResult.Fail($"Subscription '{name}' configuration not valid: {result}");
         }
 
         return ValidateOptionsResult.Success;
