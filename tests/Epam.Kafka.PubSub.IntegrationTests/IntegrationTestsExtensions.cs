@@ -25,6 +25,7 @@ public static class IntegrationTestsExtensions
                 x.ConsumerConfig.GroupId = observer.Name;
                 x.ConsumerConfig.SessionTimeoutMs = 10_000;
                 x.ConsumerConfig.AutoOffsetReset = autoOffsetReset;
+                x.ConsumerConfig.SetCancellationDelayMaxMs(2000);
             });
 
         return kafkaBuilder
