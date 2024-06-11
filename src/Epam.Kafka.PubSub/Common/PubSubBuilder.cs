@@ -87,4 +87,35 @@ public abstract class PubSubBuilder<TBuilder, TOptions>
         this._options.Configure(configure);
         return (TBuilder)this;
     }
+
+    /// <inheritdoc cref="WithOptions"/>
+    /// <typeparam name="TDep"><inheritdoc cref="OptionsBuilder{TOptions}.Configure{TDep}"/> </typeparam>
+    public TBuilder WithOptions<TDep>(Action<TOptions, TDep> configure) where TDep : class
+    {
+        if (configure == null)
+        {
+            throw new ArgumentNullException(nameof(configure));
+        }
+
+        this._options.Configure(configure);
+
+        return (TBuilder)this;
+    }
+
+    /// <inheritdoc cref="WithOptions"/>
+    /// <typeparam name="TDep1"><inheritdoc cref="OptionsBuilder{TOptions}.Configure{TDep1,TDep2}" path="/typeparam[@name='TDep1']"/> </typeparam>
+    /// <typeparam name="TDep2"><inheritdoc cref="OptionsBuilder{TOptions}.Configure{TDep1,TDep2}" path="/typeparam[@name='TDep2']"/> </typeparam>
+    public TBuilder WithOptions<TDep1, TDep2>(Action<TOptions, TDep1, TDep2> configure)
+        where TDep1 : class
+        where TDep2 : class
+    {
+        if (configure == null)
+        {
+            throw new ArgumentNullException(nameof(configure));
+        }
+
+        this._options.Configure(configure);
+
+        return (TBuilder)this;
+    }
 }
