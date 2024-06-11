@@ -13,13 +13,18 @@ public class KafkaBuilderTests
     [Fact]
     public void ArgumentExceptions()
     {
-        KafkaBuilder kafkaBuilder = new KafkaBuilder(new ServiceCollection(), false);
+        KafkaBuilder kafkaBuilder = new KafkaBuilder(new ServiceCollection(), true);
 
         Assert.Throws<ArgumentNullException>(() => kafkaBuilder.WithClusterConfig(null!));
         Assert.Throws<ArgumentNullException>(() => kafkaBuilder.WithProducerConfig(null!));
         Assert.Throws<ArgumentNullException>(() => kafkaBuilder.WithConsumerConfig(null!));
         Assert.Throws<ArgumentNullException>(() => kafkaBuilder.WithDefaults(null!));
         Assert.Throws<ArgumentNullException>(() => kafkaBuilder.WithConfigPlaceholders(null!));
+
+        Assert.Throws<InvalidOperationException>(() => kafkaBuilder
+            .WithConfigPlaceholders(new []{new KeyValuePair<string, string>("<qwe1>","qwe1")})
+            .WithConfigPlaceholders(new[] { new KeyValuePair<string, string>("<qwe2>", "qwe2") }))
+            .Message.ShouldContain("already set");
     }
 
     [Theory]
@@ -38,5 +43,7 @@ public class KafkaBuilderTests
              new("<d>", "v") ,
              new(key, value! )
         })).Message.ShouldContain(msg);
+
+        Assert.Empty(kafkaBuilder.ConfigPlaceholders);
     }
 }

@@ -17,21 +17,5 @@ internal class ConsumerOptionsConfigure : OptionsFromConfiguration<KafkaConsumer
     protected override void ConfigureInternal(KafkaConsumerOptions options, Dictionary<string, string> items)
     {
         options.ConsumerConfig = new ConsumerConfig(items);
-
-        if (options.ConsumerConfig.GroupId != null)
-        {
-            // support placeholders in config
-            options.ConsumerConfig.GroupId = options.ConsumerConfig.GroupId
-                .Replace("<MachineName>", Environment.MachineName
-#if NET6_0_OR_GREATER
-                    , StringComparison.OrdinalIgnoreCase
-#endif
-                )
-                .Replace("<UserName>", Environment.UserName
-#if NET6_0_OR_GREATER
-                    , StringComparison.OrdinalIgnoreCase
-#endif
-                );
-        }
     }
 }
