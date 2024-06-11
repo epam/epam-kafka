@@ -1,7 +1,7 @@
 ﻿// Copyright © 2024 EPAM Systems
 
 using Confluent.Kafka;
-
+using Epam.Kafka.PubSub.Common.Options;
 using Epam.Kafka.PubSub.Subscription.Options;
 using Epam.Kafka.PubSub.Subscription.Pipeline;
 using Epam.Kafka.PubSub.Utils;
@@ -327,7 +327,7 @@ internal sealed class SubscriptionTopicWrapper<TKey, TValue> : IDisposable
             throw new ArgumentNullException(nameof(config));
         }
 
-        config.ClientId = $"{AppDomain.CurrentDomain.FriendlyName}@{Environment.MachineName}:{this.Monitor.Name}";
+        config.UpdateClientIdIfNeeded(this.Options, this.Monitor);
 
         config.EnableAutoCommit = false;
         config.EnableAutoOffsetStore = false;

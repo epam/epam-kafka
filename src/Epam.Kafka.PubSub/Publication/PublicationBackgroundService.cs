@@ -17,6 +17,7 @@ using Microsoft.Extensions.Logging;
 using Polly;
 
 using System.Diagnostics;
+using Epam.Kafka.PubSub.Common.Options;
 
 namespace Epam.Kafka.PubSub.Publication;
 
@@ -71,6 +72,8 @@ internal class PublicationBackgroundService<TKey, TValue, THandler> : PubSubBack
         }
 
         ProducerConfig config = this.KafkaFactory.CreateProducerConfig(this.Options.Producer);
+
+        config.UpdateClientIdIfNeeded(this.Options, this.Monitor);
 
         bool implicitPreprocessor = ks != null || vs != null || config.TransactionalId != null;
 

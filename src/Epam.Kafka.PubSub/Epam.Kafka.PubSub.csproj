@@ -3,8 +3,15 @@
 	<PropertyGroup>
 		<TargetFrameworks>net8.0;net6.0;netstandard2.0;net462</TargetFrameworks>
 		<Description>Framework for building pub/sub batch processing applications</Description>
-		<PackageReleaseNotes></PackageReleaseNotes>
+		<PackageReleaseNotes>
+			- New property 'ConfigOverrideClientId' added to 'PubSubOptions' to override producer/consumer 'client.id' config value independently for every publication or subscription.
+			- [Breaking Change] Consumer created by subscription background service don't have hardcoded 'client.id' config value anymore. Previously it was $"{AppDomain.CurrentDomain.FriendlyName}@{Environment.MachineName}:{this.Monitor.Name}".
+		</PackageReleaseNotes>
 	</PropertyGroup>
+
+	<ItemGroup>
+	  <Compile Include="..\Epam.Kafka\Internals\CompatibilityExtensions.cs" Link="Compatibility\CompatibilityExtensions.cs" />
+	</ItemGroup>
 
 	<ItemGroup>
 	  <ProjectReference Include="..\Epam.Kafka\Epam.Kafka.csproj" />
@@ -25,5 +32,9 @@
 		<PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="8.0.0" />
 		<PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="8.0.0" />
 		<PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks" Version="8.0.0" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="Compatibility\" />
 	</ItemGroup>
 </Project>

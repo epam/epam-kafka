@@ -8,6 +8,7 @@ namespace Epam.Kafka.PubSub.Common.Options
         public System.TimeSpan BatchRetryMaxTimeout { get; set; }
         public int BatchSize { get; set; }
         public string? Cluster { get; set; }
+        public string? ConfigOverrideClientId { get; set; }
         public bool Enabled { get; set; }
         public int? HandlerConcurrencyGroup { get; set; }
         public System.TimeSpan HandlerTimeout { get; set; }

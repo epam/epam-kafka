@@ -34,10 +34,13 @@ internal static class Program
             services.AddOpenTelemetry().WithMetrics(mb =>
                 mb.AddMeter(PipelineMonitor.StatusMeterName, PipelineMonitor.HealthMeterName).AddConsoleExporter());
 
+            string domainName = AppDomain.CurrentDomain.FriendlyName;
+            string machineName = Environment.MachineName;
+
             KafkaBuilder kafkaBuilder = services.AddKafka().WithConfigPlaceholders(new Dictionary<string, string>
             {
-                { "<DomainName>", AppDomain.CurrentDomain.FriendlyName },
-                { "<MachineName>", Environment.MachineName }
+                { "<DomainName>", domainName },
+                { "<MachineName>", machineName }
             });
 
             kafkaBuilder.WithPubSubSummaryHealthCheck();
@@ -61,13 +64,15 @@ internal static class Program
                 .WithSubscribeAndExternalOffsets()
                 .WithValueDeserializer(_ => Utf8JsonSerializer.Instance)
                 .WithHealthChecks()
-                .WaitFor(SeedTopic);
+                .WaitFor(SeedTopic)
+                .WithOptions(x => x.ConfigOverrideClientId = $"{domainName}@{machineName}:SubSample");
 
             // Sample of publication that read data from database using EF Core and write to kafka.
             kafkaBuilder.AddPublication<string, KafkaEntity, PublicationHandlerSample>("Sample")
                 .WithValueSerializer(_ => Utf8JsonSerializer.Instance)
                 .WithHealthChecks()
-                .WaitFor(SeedDatabase);
+                .WaitFor(SeedDatabase)
+                .WithOptions(x => x.ConfigOverrideClientId = $"{domainName}@{machineName}:PubSample");
         }).Build().Run();
     }
 
