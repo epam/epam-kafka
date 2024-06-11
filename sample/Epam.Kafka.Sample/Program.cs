@@ -34,7 +34,7 @@ internal static class Program
             services.AddOpenTelemetry().WithMetrics(mb =>
                 mb.AddMeter(PipelineMonitor.StatusMeterName, PipelineMonitor.HealthMeterName).AddConsoleExporter());
 
-            KafkaBuilder kafkaBuilder = services.AddKafka();
+            KafkaBuilder kafkaBuilder = services.AddKafka().WithConfigPlaceholders(new Dictionary<string, string>{{ "<MachineName>", Environment.MachineName } });
 
             kafkaBuilder.WithPubSubSummaryHealthCheck();
 

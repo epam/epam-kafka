@@ -16,7 +16,7 @@ internal class ClusterOptionsConfigure : OptionsFromConfiguration<KafkaClusterOp
     private const string SchemaRegistryPrefix = "schema.registry";
     private const string SaslKerberosPrefix = "sasl.kerberos";
 
-    public ClusterOptionsConfigure(IConfiguration configuration) : base(configuration)
+    public ClusterOptionsConfigure(IConfiguration configuration, KafkaBuilder kafkaBuilder) : base(configuration, kafkaBuilder)
     {
     }
 
