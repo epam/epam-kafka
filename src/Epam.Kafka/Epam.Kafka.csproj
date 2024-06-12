@@ -8,7 +8,7 @@
 			* Options pattern implementation for consumer, producer, client, and schema registry configs.
 		</Description>
 		<PackageReleaseNotes>
-			Placeholders for 'Kafka:Consumers', 'Kafka:Producers', and 'Kafka:Clusters' configuration sections.
+			API to support custom placeholders for 'Kafka:Consumers', 'Kafka:Producers', and 'Kafka:Clusters' configuration sections when kafka builder added with 'useConfiguration = true' parameter.
 		</PackageReleaseNotes>
 	</PropertyGroup>
 

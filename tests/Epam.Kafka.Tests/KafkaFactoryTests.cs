@@ -114,14 +114,14 @@ public class KafkaFactoryTests : TestWithServices
             {
                 x.Producer = "placeholder";
                 x.Consumer = "placeholder";
-            }).WithConfigPlaceholders(new Dictionary<string, string> { { "<k123>", "qwe" } });
+            }).WithConfigPlaceholders("<k123>", "qwe");
 
         ProducerConfig p = this.KafkaFactory.CreateProducerConfig();
-        Assert.Equal("qwe qwe <MachineName>", p.TransactionalId);
+        Assert.Equal("qwe qwe <MachineName2>", p.TransactionalId);
         Assert.Single(p);
 
         ConsumerConfig c = this.KafkaFactory.CreateConsumerConfig();
-        Assert.Equal("qwe qwe <machineName>", c.GroupId);
+        Assert.Equal("qwe qwe <machineName2>", c.GroupId);
         Assert.Single(c);
     }
 

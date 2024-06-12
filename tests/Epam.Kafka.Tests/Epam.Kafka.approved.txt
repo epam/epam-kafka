@@ -13,7 +13,7 @@ namespace Epam.Kafka
     {
         public Microsoft.Extensions.DependencyInjection.IServiceCollection Services { get; }
         public Microsoft.Extensions.Options.OptionsBuilder<Epam.Kafka.Options.KafkaClusterOptions> WithClusterConfig(string name) { }
-        public Epam.Kafka.KafkaBuilder WithConfigPlaceholders(System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string, string>> placeholders) { }
+        public Epam.Kafka.KafkaBuilder WithConfigPlaceholders(string key, string value) { }
         public Microsoft.Extensions.Options.OptionsBuilder<Epam.Kafka.Options.KafkaConsumerOptions> WithConsumerConfig(string name) { }
         public Epam.Kafka.KafkaBuilder WithDefaults(System.Action<Epam.Kafka.Options.KafkaFactoryOptions> configure) { }
         public Microsoft.Extensions.Options.OptionsBuilder<Epam.Kafka.Options.KafkaProducerOptions> WithProducerConfig(string name) { }

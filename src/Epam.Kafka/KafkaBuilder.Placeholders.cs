@@ -1,6 +1,7 @@
 ﻿// Copyright © 2024 EPAM Systems
 
 using Epam.Kafka.Internals;
+
 using System.Text.RegularExpressions;
 
 namespace Epam.Kafka;
@@ -10,58 +11,52 @@ public partial class KafkaBuilder
     private readonly Dictionary<string, string> _configPlaceholders = new(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>
-    /// <inheritdoc cref="WithConfigPlaceholders"/><inheritdoc cref="WithConfigPlaceholders" path="/param[@name='placeholders']"/>. For modification use <see cref="WithConfigPlaceholders"/>
+    /// <inheritdoc cref = "WithConfigPlaceholders" />. For modification use <see cref="WithConfigPlaceholders"/>.
     /// </summary>
+    /// <remarks><inheritdoc cref = "WithConfigPlaceholders" /></remarks>
     internal IReadOnlyDictionary<string, string> ConfigPlaceholders => this._configPlaceholders;
 
     /// <summary>
-    /// Configure placeholders that can be used in 'Kafka:Consumers', 'Kafka:Producers', and 'Kafka:Clusters' configuration sections.
+    /// Configure CASE INSENSITIVE placeholders that can be used in 'Kafka:Consumers', 'Kafka:Producers', and 'Kafka:Clusters' configuration sections.
     /// </summary>
-    /// <param name="placeholders">Mapping between CASE INSENSITIVE key and value. Key must match '^&lt;[\d\w]{1,}&gt;$' regex, value must not match it.</param>
     /// <returns>The <see cref="KafkaBuilder" /></returns>
-    /// <remarks>Placeholders work only for values that were read from corresponding <see cref="Microsoft.Extensions.Configuration.IConfigurationSection"/> when kafka builder added with 'useConfiguration = true' parameter.</remarks>
+    /// <remarks>Placeholders work only for values that were read from corresponding <see cref="Microsoft.Extensions.Configuration.IConfigurationSection"/> when kafka builder added with 'useConfiguration = true' parameter.
+    /// Default placeholders that added automatically:
+    /// <list type="string">.WithConfigPlaceholders("&lt;DomainName&gt;", AppDomain.CurrentDomain.FriendlyName)</list>
+    /// <list type="string">.WithConfigPlaceholders("&lt;MachineName&gt;", Environment.MachineName)</list>
+    /// </remarks>
     /// <exception cref="InvalidOperationException">In case of kafka builder added with useConfiguration = false parameter.</exception>
-    /// <exception cref="ArgumentException"></exception>
-    /// <exception cref="ArgumentNullException"></exception>
-    public KafkaBuilder WithConfigPlaceholders(IEnumerable<KeyValuePair<string, string>> placeholders)
+    /// <param name="key">Key represent CASE INSENSITIVE text token to replace, and must match '^&lt;[\d\w]{1,}&gt;$' regex.</param>
+    /// <param name="value">Value represent replacement value, and must NOT match '^&lt;[\d\w]{1,}&gt;$' regex.</param>
+    public KafkaBuilder WithConfigPlaceholders(string key, string value)
     {
-        if (placeholders == null) throw new ArgumentNullException(nameof(placeholders));
-
         if (!this._useConfiguration)
         {
             throw new InvalidOperationException(
                 "Config placeholders can be used only for builder created with 'useConfiguration = true' parameter.");
         }
 
-        if (this.ConfigPlaceholders.Count > 0)
-        {
-            throw new InvalidOperationException("Config placeholders already set.");
-        }
-
         Regex regex = RegexHelper.ConfigPlaceholderRegex;
 
-        foreach (KeyValuePair<string, string> pair in placeholders)
+        if (key == null || !regex.IsMatch(key))
         {
-            if (pair.Key == null || !regex.IsMatch(pair.Key))
-            {
-                this._configPlaceholders.Clear();
-                throw new ArgumentException($"Placeholder key '{pair.Key}' not match '{regex}'.", nameof(placeholders));
-            }
+            throw new ArgumentException($"Placeholder key '{key}' not match '{regex}'.", nameof(key));
+        }
 
-            if (pair.Value == null || regex.IsMatch(pair.Value))
-            {
-                this._configPlaceholders.Clear();
-                throw new ArgumentException($"Placeholder value '{pair.Value}' is null or match '{regex}'.", nameof(placeholders));
-            }
+        if (value == null || regex.IsMatch(value))
+        {
+            throw new ArgumentException($"Placeholder value '{value}' is null or match '{regex}'.", nameof(value));
+        }
 
-            try
+        try
+        {
+            this._configPlaceholders.Add(key, value);
+        }
+        catch (ArgumentException e)
+        {
+            if (!string.Equals(value, this._configPlaceholders[key], StringComparison.Ordinal))
             {
-                this._configPlaceholders.Add(pair.Key, pair.Value);
-            }
-            catch (ArgumentException e)
-            {
-                this._configPlaceholders.Clear();
-                throw new ArgumentException($"Duplicate CASE INSENSITIVE key '{pair.Key}'.", nameof(placeholders), e);
+                throw new ArgumentException($"Duplicate CASE INSENSITIVE key '{key}' with value that not equal to existing.", nameof(key), e);
             }
         }
 

@@ -37,12 +37,8 @@ internal static class Program
             string domainName = AppDomain.CurrentDomain.FriendlyName;
             string machineName = Environment.MachineName;
 
-            KafkaBuilder kafkaBuilder = services.AddKafka().WithConfigPlaceholders(new Dictionary<string, string>
-            {
-                { "<DomainName>", domainName },
-                { "<MachineName>", machineName }
-            });
-
+            KafkaBuilder kafkaBuilder = services.AddKafka();
+            
             kafkaBuilder.WithPubSubSummaryHealthCheck();
 
             kafkaBuilder.WithClusterConfig("Sandbox").Configure(options =>
