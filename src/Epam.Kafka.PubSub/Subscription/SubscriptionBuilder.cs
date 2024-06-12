@@ -63,7 +63,7 @@ public sealed class
     /// <param name="configure"></param>
     /// <returns></returns>
     /// <exception cref="ArgumentNullException"></exception>
-    public SubscriptionBuilder<TKey, TValue, THandler> WithConfigExtension(
+    public SubscriptionBuilder<TKey, TValue, THandler> WithConsumerConfigModification(
         Action<ConsumerConfig> configure)
     {
         if (configure == null)

@@ -67,7 +67,7 @@ internal static class Program
                 .WaitFor(SeedTopic)
 
                 // optionally set subscription specific client id to consumer
-                .WithConfigExtension(c =>
+                .WithConsumerConfigModification(c =>
                 {
                     c.ClientId = $"{domainName}@{machineName}:SubSample";
                 });
@@ -79,7 +79,7 @@ internal static class Program
                 .WaitFor(SeedDatabase)
 
                 // optionally set publication specific client id and transaction id to producer. 
-                .WithConfigExtension(c =>
+                .WithProducerConfigModification(c =>
                 {
                     c.ClientId = $"{domainName}@{machineName}:PubSample";
 

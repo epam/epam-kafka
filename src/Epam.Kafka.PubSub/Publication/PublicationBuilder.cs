@@ -72,7 +72,7 @@ public sealed class
     /// <param name="configure"></param>
     /// <returns></returns>
     /// <exception cref="ArgumentNullException"></exception>
-    public PublicationBuilder<TKey, TValue, THandler> WithConfigExtension(
+    public PublicationBuilder<TKey, TValue, THandler> WithProducerConfigModification(
         Action<ProducerConfig> configure)
     {
         if (configure == null)

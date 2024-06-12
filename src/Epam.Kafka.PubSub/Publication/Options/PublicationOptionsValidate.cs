@@ -9,13 +9,6 @@ namespace Epam.Kafka.PubSub.Publication.Options;
 
 internal class PublicationOptionsValidate : IValidateOptions<PublicationOptions>
 {
-    private readonly IKafkaFactory _kafkaFactory;
-
-    public PublicationOptionsValidate(IKafkaFactory kafkaFactory)
-    {
-        this._kafkaFactory = kafkaFactory ?? throw new ArgumentNullException(nameof(kafkaFactory));
-    }
-
     public ValidateOptionsResult Validate(string? name, PublicationOptions options)
     {
         if (options == null)
@@ -28,18 +21,6 @@ internal class PublicationOptionsValidate : IValidateOptions<PublicationOptions>
         result ??= options.ValidateString(x => x.DefaultTopic, regex: RegexHelper.TopicNameRegex);
 
         result ??= ValidateSerializers(options);
-
-        if (result == null)
-        {
-            try
-            {
-                this._kafkaFactory.CreateProducerConfig(options.Producer);
-            }
-            catch (InvalidOperationException e)
-            {
-                result = e.Message;
-            }
-        }
 
         if (result != null)
         {
