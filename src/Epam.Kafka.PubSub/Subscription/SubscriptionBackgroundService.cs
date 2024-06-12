@@ -170,7 +170,7 @@ internal sealed class SubscriptionBackgroundService<TKey, TValue, THandler> : Pu
     {
         THandler handler = ResolveRequiredService<THandler>(sp);
 
-        ISyncPolicy handlerPolicy = sp.GetRequiredService<PubSubContext>().GetHandlerPolicy(this.Options);
+        ISyncPolicy handlerPolicy = this.Monitor.Context.GetHandlerPolicy(this.Options);
 
         if (this.Options.HandlerConcurrencyGroup.HasValue)
         {

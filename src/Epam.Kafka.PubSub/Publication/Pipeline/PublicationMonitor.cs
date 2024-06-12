@@ -1,5 +1,9 @@
 ﻿// Copyright © 2024 EPAM Systems
 
+using System.Collections.Concurrent;
+using Confluent.Kafka;
+
+using Epam.Kafka.PubSub.Common;
 using Epam.Kafka.PubSub.Common.Pipeline;
 
 namespace Epam.Kafka.PubSub.Publication.Pipeline;
@@ -14,7 +18,7 @@ public class PublicationMonitor : PubSubMonitor<PublicationBatchResult>
     /// </summary>
     public const string Prefix = "Epam.Kafka.Publication";
 
-    internal PublicationMonitor(string name) : base(BuildFullName(name))
+    internal PublicationMonitor(PubSubContext context, string name) : base(context, BuildFullName(name))
     {
     }
 
@@ -30,5 +34,23 @@ public class PublicationMonitor : PubSubMonitor<PublicationBatchResult>
         {
             this.PipelineRetryIteration = 0;
         }
+    }
+
+    internal bool TryRegisterTransactionId(ProducerConfig config, out string? existingName)
+    {
+        if (config == null) throw new ArgumentNullException(nameof(config));
+
+        existingName = null;
+        ConcurrentDictionary<string, PublicationMonitor> ids = this.Context.TransactionIds;
+        string id = config.TransactionalId!;
+
+        bool result = ids.TryAdd(id, this) || ids.TryUpdate(id, this, this);
+
+        if (!result)
+        {
+            existingName = ids[id]?.Name;
+        }
+
+        return result;
     }
 }

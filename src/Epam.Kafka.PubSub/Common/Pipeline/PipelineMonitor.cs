@@ -42,11 +42,17 @@ public abstract class PipelineMonitor
     /// </summary>
     public const string StatusResultGaugeName = "epam_kafka_pubsub_status_result";
 
-    internal PipelineMonitor(string name)
+    internal PipelineMonitor(PubSubContext context, string name)
     {
+        this.Context = context ?? throw new ArgumentNullException(nameof(context));
         this.FullName = name ?? throw new ArgumentNullException(nameof(name));
         this.Name = this.FullName.Split('.').Last();
     }
+
+    /// <summary>
+    /// The <see cref="PubSubContext"/>
+    /// </summary>
+    internal PubSubContext Context { get; }
 
     internal string FullName { get; }
 

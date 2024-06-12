@@ -30,9 +30,11 @@ public sealed class PubSubContext
     public const int MaxPublicationsCount = 100;
 
     private readonly ConcurrentDictionary<int, ISyncPolicy> _bulkheads = new();
-    private readonly Dictionary<string, PublicationMonitor> _publications = new(StringComparer.OrdinalIgnoreCase);
 
+    private readonly Dictionary<string, PublicationMonitor> _publications = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, SubscriptionMonitor> _subscriptions = new(StringComparer.OrdinalIgnoreCase);
+
+    internal ConcurrentDictionary<string, PublicationMonitor> TransactionIds { get; } = new();
 
     internal PubSubContext()
     {
@@ -48,7 +50,7 @@ public sealed class PubSubContext
     /// </summary>
     public IReadOnlyDictionary<string, PublicationMonitor> Publications => this._publications;
 
-    internal void AddSubscription(string name)
+    internal SubscriptionMonitor AddSubscription(string name)
     {
         if (this._subscriptions.ContainsKey(name))
         {
@@ -63,7 +65,7 @@ public sealed class PubSubContext
 
         if (this._subscriptions.Count < MaxSubscriptionsCount)
         {
-            this._subscriptions.Add(name, new SubscriptionMonitor(name));
+            this._subscriptions.Add(name, new SubscriptionMonitor(this, name));
         }
         else
         {
@@ -74,9 +76,11 @@ public sealed class PubSubContext
         {
             throw new InvalidOperationException();
         }
+
+        return this._subscriptions[name];
     }
 
-    internal void AddPublication(string name)
+    internal PublicationMonitor AddPublication(string name)
     {
         if (this._publications.ContainsKey(name))
         {
@@ -91,7 +95,7 @@ public sealed class PubSubContext
 
         if (this._publications.Count < MaxPublicationsCount)
         {
-            this._publications.Add(name, new PublicationMonitor(name));
+            this._publications.Add(name, new PublicationMonitor(this, name));
         }
         else
         {
@@ -102,6 +106,8 @@ public sealed class PubSubContext
         {
             throw new InvalidOperationException();
         }
+
+        return this._publications[name];
     }
 
     internal ISyncPolicy GetHandlerPolicy(PubSubOptions options)

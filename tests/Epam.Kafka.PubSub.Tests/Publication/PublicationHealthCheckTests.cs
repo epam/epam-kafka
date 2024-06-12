@@ -1,5 +1,6 @@
 ﻿// Copyright © 2024 EPAM Systems
 
+using Epam.Kafka.PubSub.Common;
 using Epam.Kafka.PubSub.Common.Pipeline;
 using Epam.Kafka.PubSub.Publication.HealthChecks;
 using Epam.Kafka.PubSub.Publication.Options;
@@ -39,7 +40,7 @@ public class PublicationHealthCheckTests
     [InlineData(0, PipelineStatus.Running, BatchStatus.Finished, PublicationBatchResult.ProcessedPartial, 0, HealthStatus.Degraded)]
     public async Task CheckHealth(int pipelineRetry, PipelineStatus p, BatchStatus b, PublicationBatchResult r, int seconds, HealthStatus expectedStatus)
     {
-        PublicationMonitor monitor = new("any");
+        PublicationMonitor monitor = new PubSubContext().AddPublication("any");
 
         monitor.Pipeline.Update(p);
         monitor.Batch.Update(b);
