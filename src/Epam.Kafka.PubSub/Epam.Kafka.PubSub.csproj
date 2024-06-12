@@ -4,9 +4,10 @@
 		<TargetFrameworks>net8.0;net6.0;netstandard2.0;net462</TargetFrameworks>
 		<Description>Framework for building pub/sub batch processing applications</Description>
 		<PackageReleaseNotes>
-			- New method 'WithProducerConfigModification' added to 'PublicationBuilder' to be able to set publication specific values to producer config.
 			- New method 'WithConsumerConfigModification' added to 'SubscriptionBuilder' to be able to set subscription specific values to consumer config.
-			- [Breaking Change] Consumer created by subscription background service don't set 'client.id' config value automatically. Previously it was $"{AppDomain.CurrentDomain.FriendlyName}@{Environment.MachineName}:{this.Monitor.Name}".
+			- [Breaking Change] Subscription background service don't set 'client.id' config value automatically. Previously it was `$"{AppDomain.CurrentDomain.FriendlyName}@{Environment.MachineName}:{this.Monitor.Name}"`.
+			- New method 'WithProducerConfigModification' added to 'PublicationBuilder' to be able to set publication specific values to producer config.
+			- [Breaking Change] Publication background service don't append it's name to 'transactional.id' config value automatically. Previously it was `config.TransactionalId += $"-{this.Monitor.Name}"`. Added validation to prevent different publication background services use same 'transactional.id' config value.
 		</PackageReleaseNotes>
 	</PropertyGroup>
 
