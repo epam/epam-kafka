@@ -25,6 +25,8 @@ namespace Epam.Kafka
     }
     public static class KafkaConfigExtensions
     {
+        public static TConfig Clone<TConfig>(this TConfig config, System.Collections.Generic.IReadOnlyDictionary<string, string>? placeholders = null)
+            where TConfig : Confluent.Kafka.Config, new () { }
         public static int GetCancellationDelayMaxMs(this Confluent.Kafka.ConsumerConfig config) { }
         public static void SetCancellationDelayMaxMs(this Confluent.Kafka.ConsumerConfig config, int value) { }
     }

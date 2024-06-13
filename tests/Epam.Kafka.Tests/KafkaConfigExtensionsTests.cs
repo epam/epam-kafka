@@ -1,7 +1,7 @@
 ﻿// Copyright © 2024 EPAM Systems
 
 using Confluent.Kafka;
-
+using Shouldly;
 using Xunit;
 
 namespace Epam.Kafka.Tests;
@@ -37,5 +37,24 @@ public class KafkaConfigExtensionsTests
 
         cfg.Set("dotnet.cancellation.delay.max.ms", "-1");
         Assert.Throws<ArgumentOutOfRangeException>(() => cfg.GetCancellationDelayMaxMs());
+    }
+
+    [Theory]
+    [InlineData("qwe","qwe")]
+    [InlineData("<qwe>","123")]
+    [InlineData("a<qwe>b<QWE>c","a123b123c")]
+    public void Clone(string clientId, string expected)
+    {
+        ConsumerConfig cfg = new ConsumerConfig { ClientId = clientId };
+
+        ConsumerConfig result = cfg.Clone(new Dictionary<string, string>()
+        {
+            { "<qwe>", "123" }
+        });
+
+        result.ShouldNotBeNull();
+        result.ShouldNotBeSameAs(cfg);
+
+        result.ClientId.ShouldBe(expected);
     }
 }

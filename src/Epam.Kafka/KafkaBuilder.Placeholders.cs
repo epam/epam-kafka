@@ -1,9 +1,5 @@
 ﻿// Copyright © 2024 EPAM Systems
 
-using Epam.Kafka.Internals;
-
-using System.Text.RegularExpressions;
-
 namespace Epam.Kafka;
 
 public partial class KafkaBuilder
@@ -36,17 +32,14 @@ public partial class KafkaBuilder
                 "Config placeholders can be used only for builder created with 'useConfiguration = true' parameter.");
         }
 
-        Regex regex = RegexHelper.ConfigPlaceholderRegex;
+        const string name = "<name>";
 
-        if (key == null || !regex.IsMatch(key))
+        if (string.Equals(name, key, StringComparison.OrdinalIgnoreCase))
         {
-            throw new ArgumentException($"Placeholder key '{key}' not match '{regex}'.", nameof(key));
+            throw new ArgumentException($"Placeholder key {name} reserved and can't be used.", nameof(key));
         }
 
-        if (value == null || regex.IsMatch(value))
-        {
-            throw new ArgumentException($"Placeholder value '{value}' is null or match '{regex}'.", nameof(value));
-        }
+        KafkaConfigExtensions.ValidatePlaceholder(key, value);
 
         try
         {
@@ -56,7 +49,7 @@ public partial class KafkaBuilder
         {
             if (!string.Equals(value, this._configPlaceholders[key], StringComparison.Ordinal))
             {
-                throw new ArgumentException($"Duplicate CASE INSENSITIVE key '{key}' with value that not equal to existing.", nameof(key), e);
+                throw new ArgumentException($"Duplicate CASE INSENSITIVE key '{key}' with value that case sensitive not equal to existing.", nameof(key), e);
             }
         }
 
