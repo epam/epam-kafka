@@ -39,6 +39,25 @@ public class KafkaConfigExtensionsTests
         Assert.Throws<ArgumentOutOfRangeException>(() => cfg.GetCancellationDelayMaxMs());
     }
 
+    [Fact]
+    public void LoggerCategory()
+    {
+        ConsumerConfig cfg = new ConsumerConfig();
+        string defValue = cfg.GetDotnetLoggerCategory();
+
+        Assert.Equal("Epam.Kafka.DefaultLogHandler", defValue);
+
+        cfg.SetDotnetLoggerCategory("qwe");
+        Assert.Equal("qwe", cfg.GetDotnetLoggerCategory());
+
+        Assert.Throws<ArgumentNullException>(() => KafkaConfigExtensions.GetDotnetLoggerCategory(null!));
+        Assert.Throws<ArgumentNullException>(() => KafkaConfigExtensions.SetDotnetLoggerCategory(null!, "qwe"));
+        Assert.Throws<ArgumentNullException>(() => KafkaConfigExtensions.SetDotnetLoggerCategory(cfg, null!));
+
+        cfg.Set("dotnet.logger.category", "text");
+        Assert.Equal("text", cfg.GetDotnetLoggerCategory());
+    }
+
     [Theory]
     [InlineData("qwe","qwe")]
     [InlineData("<qwe>","123")]

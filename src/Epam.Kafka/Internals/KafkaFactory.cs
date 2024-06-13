@@ -107,9 +107,9 @@ internal sealed class KafkaFactory : IKafkaFactory, IDisposable
 
         KafkaClusterOptions clusterOptions = this.GetAndValidateClusterOptions(cluster);
 
-        Dictionary<string, string> resultConfig = MergeResultConfig(clusterOptions, config);
+        config = new ConsumerConfig(MergeResultConfig(clusterOptions, config));
 
-        var builder = new ConsumerBuilder<TKey, TValue>(resultConfig);
+        var builder = new ConsumerBuilder<TKey, TValue>(config);
 
         configure?.Invoke(builder);
 
@@ -126,7 +126,7 @@ internal sealed class KafkaFactory : IKafkaFactory, IDisposable
 
         if (this._loggerFactory != null)
         {
-            ILogger logger = this._loggerFactory.CreateLogger("Epam.Kafka.DefaultLogHandler");
+            ILogger logger = this._loggerFactory.CreateLogger(config.GetDotnetLoggerCategory());
 
             try
             {
@@ -141,13 +141,13 @@ internal sealed class KafkaFactory : IKafkaFactory, IDisposable
         {
             IConsumer<TKey, TValue> consumer = builder.Build();
 
-            this._logger?.ConsumerCreateOk(PrepareConfigForLogs(resultConfig), typeof(TKey), typeof(TValue));
+            this._logger?.ConsumerCreateOk(PrepareConfigForLogs(config), typeof(TKey), typeof(TValue));
 
             return consumer;
         }
         catch (Exception exc)
         {
-            this._logger?.ConsumerCreateError(exc, PrepareConfigForLogs(resultConfig), typeof(TKey), typeof(TValue));
+            this._logger?.ConsumerCreateError(exc, PrepareConfigForLogs(config), typeof(TKey), typeof(TValue));
 
             throw;
         }
@@ -160,9 +160,9 @@ internal sealed class KafkaFactory : IKafkaFactory, IDisposable
 
         KafkaClusterOptions clusterOptions = this.GetAndValidateClusterOptions(cluster);
 
-        Dictionary<string, string> resultConfig = MergeResultConfig(clusterOptions, config);
+        config = new ProducerConfig(MergeResultConfig(clusterOptions, config));
 
-        ProducerBuilder<TKey, TValue> builder = new(resultConfig);
+        ProducerBuilder<TKey, TValue> builder = new(config);
 
         configure?.Invoke(builder);
 
@@ -179,7 +179,7 @@ internal sealed class KafkaFactory : IKafkaFactory, IDisposable
 
         if (this._loggerFactory != null)
         {
-            ILogger logger = this._loggerFactory.CreateLogger("Epam.Kafka.DefaultLogHandler");
+            ILogger logger = this._loggerFactory.CreateLogger(config.GetDotnetLoggerCategory());
 
             try
             {
@@ -194,13 +194,13 @@ internal sealed class KafkaFactory : IKafkaFactory, IDisposable
         {
             IProducer<TKey, TValue> producer = builder.Build();
 
-            this._logger?.ProducerCreateOk(PrepareConfigForLogs(resultConfig), typeof(TKey), typeof(TValue));
+            this._logger?.ProducerCreateOk(PrepareConfigForLogs(config), typeof(TKey), typeof(TValue));
 
             return producer;
         }
         catch (Exception exc)
         {
-            this._logger?.ProducerCreateError(exc, PrepareConfigForLogs(resultConfig), typeof(TKey), typeof(TValue));
+            this._logger?.ProducerCreateError(exc, PrepareConfigForLogs(config), typeof(TKey), typeof(TValue));
 
             throw;
         }
@@ -259,10 +259,9 @@ internal sealed class KafkaFactory : IKafkaFactory, IDisposable
         }
     }
 
-    private static IEnumerable<KeyValuePair<string, string>> PrepareConfigForLogs(
-        Dictionary<string, string> resultConfig)
+    private static IEnumerable<KeyValuePair<string, string>> PrepareConfigForLogs(Config config)
     {
-        return resultConfig.Select(x => Contains(x, "password") || Contains(x, "secret")
+        return config.Select(x => Contains(x, "password") || Contains(x, "secret")
             ? new KeyValuePair<string, string>(x.Key, "*******")
             : x);
 

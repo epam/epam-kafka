@@ -23,6 +23,46 @@ public static class KafkaConfigExtensions
     private const int DotnetCancellationDelayMaxMsMin = 1;
     private const int DotnetCancellationDelayMaxMsMax = 10000;
 
+    private const string DotnetLoggerCategoryKey = "dotnet.logger.category";
+    private const string DotnetLoggerCategoryDefault = "Epam.Kafka.DefaultLogHandler";
+
+    /// <summary>
+    /// Read and return 'dotnet.logger.category' value if it exists, default value 'Epam.Kafka.DefaultLogHandler' otherwise.
+    /// </summary>
+    /// <param name="config">The config</param>
+    /// <returns></returns>
+    /// <exception cref="ArgumentNullException"></exception>
+    public static string GetDotnetLoggerCategory(this Config config)
+    {
+        if (config == null) throw new ArgumentNullException(nameof(config));
+
+        string result = DotnetLoggerCategoryDefault;
+
+        string? s = config.Where(prop => prop.Key == DotnetLoggerCategoryKey).Select(a => a.Value).FirstOrDefault();
+
+        if (!string.IsNullOrWhiteSpace(s))
+        {
+            result = s;
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// Set 'dotnet.logger.category' value to config.
+    /// </summary>
+    /// <param name="config">The config to update</param>
+    /// <param name="value">The value</param>
+    /// <returns></returns>
+    /// <exception cref="ArgumentNullException"></exception>
+    public static void SetDotnetLoggerCategory(this ConsumerConfig config, string value)
+    {
+        if (config == null) throw new ArgumentNullException(nameof(config));
+        if (value == null) throw new ArgumentNullException(nameof(value));
+
+        config.Set(DotnetLoggerCategoryKey, value);
+    }
+
     /// <summary>
     /// Read and return 'dotnet.cancellation.delay.max.ms' value if it exists, default value 100 otherwise.
     /// </summary>

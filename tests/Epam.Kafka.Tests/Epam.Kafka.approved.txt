@@ -28,7 +28,9 @@ namespace Epam.Kafka
         public static TConfig Clone<TConfig>(this TConfig config, System.Collections.Generic.IReadOnlyDictionary<string, string>? placeholders = null)
             where TConfig : Confluent.Kafka.Config, new () { }
         public static int GetCancellationDelayMaxMs(this Confluent.Kafka.ConsumerConfig config) { }
+        public static string GetDotnetLoggerCategory(this Confluent.Kafka.Config config) { }
         public static void SetCancellationDelayMaxMs(this Confluent.Kafka.ConsumerConfig config, int value) { }
+        public static void SetDotnetLoggerCategory(this Confluent.Kafka.ConsumerConfig config, string value) { }
     }
     public static class LogExtensions
     {
