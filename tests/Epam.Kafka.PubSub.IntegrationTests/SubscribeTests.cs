@@ -9,7 +9,7 @@ namespace Epam.Kafka.PubSub.IntegrationTests;
 // to be the place to apply [CollectionDefinition] and all the
 // ICollectionFixture<> interfaces.
 
-[CollectionDefinition(Name, DisableParallelization = true)]
+[CollectionDefinition(Name, DisableParallelization = false)]
 public class SubscribeTests : ICollectionFixture<MockCluster>
 {
     public const string Name = "Subscribe";
