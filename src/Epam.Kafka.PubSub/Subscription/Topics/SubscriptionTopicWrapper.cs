@@ -39,7 +39,7 @@ internal sealed class SubscriptionTopicWrapper<TKey, TValue> : IDisposable
 
         ConsumerConfig config = kafkaFactory.CreateConsumerConfig(options.Consumer);
 
-        this.Options.ExtendConfig?.Invoke(config);
+        config = config.Clone(this.Monitor.NamePlaceholder);
 
         ConfigureConsumerConfig(config);
 

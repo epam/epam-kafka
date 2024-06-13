@@ -47,6 +47,7 @@ public abstract class PipelineMonitor
         this.Context = context ?? throw new ArgumentNullException(nameof(context));
         this.FullName = name ?? throw new ArgumentNullException(nameof(name));
         this.Name = this.FullName.Split('.').Last();
+        this.NamePlaceholder = new Dictionary<string, string> { { "<name>", this.Name } };
     }
 
     /// <summary>
@@ -70,4 +71,6 @@ public abstract class PipelineMonitor
     ///     Number of sequential pipeline errors without at least one successful batch.
     /// </summary>
     public int PipelineRetryIteration { get; internal set; }
+
+    internal IReadOnlyDictionary<string, string> NamePlaceholder { get; }
 }

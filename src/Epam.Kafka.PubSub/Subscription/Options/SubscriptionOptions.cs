@@ -17,7 +17,6 @@ namespace Epam.Kafka.PubSub.Subscription.Options;
 public sealed class SubscriptionOptions : PubSubOptions, IOptions<SubscriptionOptions>
 {
     internal Func<Lazy<ISchemaRegistryClient>, object>? KeyDeserializer;
-    internal Action<ConsumerConfig>? ExtendConfig;
 
     internal Type StateType = typeof(InternalKafkaState);
     internal Func<Lazy<ISchemaRegistryClient>, object>? ValueDeserializer;

@@ -72,7 +72,7 @@ internal class PublicationBackgroundService<TKey, TValue, THandler> : PubSubBack
 
         ProducerConfig config = this.KafkaFactory.CreateProducerConfig(this.Options.Producer);
 
-        this.Options.ExtendConfig?.Invoke(config);
+        config = config.Clone(this.Monitor.NamePlaceholder);
 
         bool implicitPreprocessor = ks != null || vs != null || config.TransactionalId != null;
 

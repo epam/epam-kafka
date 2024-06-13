@@ -67,25 +67,6 @@ public sealed class
     }
 
     /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="configure"></param>
-    /// <returns></returns>
-    /// <exception cref="ArgumentNullException"></exception>
-    public PublicationBuilder<TKey, TValue, THandler> WithProducerConfigModification(
-        Action<ProducerConfig> configure)
-    {
-        if (configure == null)
-        {
-            throw new ArgumentNullException(nameof(configure));
-        }
-
-        this.WithOptions(x => x.ExtendConfig = configure);
-
-        return this;
-    }
-
-    /// <summary>
     ///     Configure <see cref="ProducerPartitioner" />.
     /// </summary>
     /// <param name="configure">The configuration action.</param>

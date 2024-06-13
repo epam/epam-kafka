@@ -56,26 +56,7 @@ public sealed class
 
         return this;
     }
-
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="configure"></param>
-    /// <returns></returns>
-    /// <exception cref="ArgumentNullException"></exception>
-    public SubscriptionBuilder<TKey, TValue, THandler> WithConsumerConfigModification(
-        Action<ConsumerConfig> configure)
-    {
-        if (configure == null)
-        {
-            throw new ArgumentNullException(nameof(configure));
-        }
-
-        this.WithOptions(x => x.ExtendConfig = configure);
-
-        return this;
-    }
-
+    
     /// <summary>
     ///     Set factory for creation of value deserializer for consumer.
     /// </summary>
