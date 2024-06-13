@@ -17,6 +17,11 @@ internal class SubscriptionOptionsValidate : IValidateOptions<SubscriptionOption
             throw new ArgumentNullException(nameof(options));
         }
 
+        if (options.Enabled == false)
+        {
+            return ValidateOptionsResult.Success;
+        }
+
         string? result = PubSubOptionsValidate.GetFirstFailure(options);
 
         result ??= options.ValidateRange(x => x.BatchPausedTimeout, TimeSpan.Zero, TimeSpan.FromMinutes(10));

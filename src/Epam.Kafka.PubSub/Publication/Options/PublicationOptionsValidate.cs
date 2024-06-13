@@ -16,6 +16,11 @@ internal class PublicationOptionsValidate : IValidateOptions<PublicationOptions>
             throw new ArgumentNullException(nameof(options));
         }
 
+        if (options.Enabled == false)
+        {
+            return ValidateOptionsResult.Success;
+        }
+
         string? result = PubSubOptionsValidate.GetFirstFailure(options);
 
         result ??= options.ValidateString(x => x.DefaultTopic, regex: RegexHelper.TopicNameRegex);

@@ -25,7 +25,7 @@ internal static class Program
     {
         IHostBuilder hostBuilder = Host.CreateDefaultBuilder(args);
 
-        hostBuilder.ConfigureServices(services =>
+        hostBuilder.ConfigureServices((context,services) =>
         {
             // view health check results in console for demo purposes only.
             services.AddSingleton<IHealthCheckPublisher, ConsoleHealthCheckPublisher>();
@@ -34,10 +34,8 @@ internal static class Program
             services.AddOpenTelemetry().WithMetrics(mb =>
                 mb.AddMeter(PipelineMonitor.StatusMeterName, PipelineMonitor.HealthMeterName).AddConsoleExporter());
 
-            string domainName = AppDomain.CurrentDomain.FriendlyName;
-            string machineName = Environment.MachineName;
-
-            KafkaBuilder kafkaBuilder = services.AddKafka();
+            KafkaBuilder kafkaBuilder = services.AddKafka()
+                .WithConfigPlaceholders("<EnvironmentName>", context.HostingEnvironment.EnvironmentName);
             
             kafkaBuilder.WithPubSubSummaryHealthCheck();
 
@@ -60,30 +58,13 @@ internal static class Program
                 .WithSubscribeAndExternalOffsets()
                 .WithValueDeserializer(_ => Utf8JsonSerializer.Instance)
                 .WithHealthChecks()
-                .WaitFor(SeedTopic)
-
-                // optionally set subscription specific client id to consumer
-                .WithConsumerConfigModification(c =>
-                {
-                    c.ClientId = $"{domainName}@{machineName}:SubSample";
-                });
+                .WaitFor(SeedTopic);
 
             // Sample of publication that read data from database using EF Core and write to kafka.
             kafkaBuilder.AddPublication<string, KafkaEntity, PublicationHandlerSample>("Sample")
                 .WithValueSerializer(_ => Utf8JsonSerializer.Instance)
                 .WithHealthChecks()
-                .WaitFor(SeedDatabase)
-
-                // optionally set publication specific client id and transaction id to producer. 
-                .WithProducerConfigModification(c =>
-                {
-                    c.ClientId = $"{domainName}@{machineName}:PubSample";
-
-                    if (!string.IsNullOrEmpty(c.TransactionalId))
-                    {
-                        c.TransactionalId = $"{c.TransactionalId}.sample";
-                    }
-                });
+                .WaitFor(SeedDatabase);
         }).Build().Run();
     }
 
