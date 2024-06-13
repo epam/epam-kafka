@@ -21,7 +21,7 @@ public abstract class PubSubBuilder<TBuilder, TOptions>
     {
         this.Builder = builder ?? throw new ArgumentNullException(nameof(builder));
         this.Key = name ?? throw new ArgumentNullException(nameof(name));
-
+        
         this._options = builder.Services.AddOptions<TOptions>(this.Key)
             .Configure(x =>
             {
@@ -89,25 +89,8 @@ public abstract class PubSubBuilder<TBuilder, TOptions>
     }
 
     /// <inheritdoc cref="WithOptions"/>
-    /// <typeparam name="TDep"><inheritdoc cref="OptionsBuilder{TOptions}.Configure{TDep}"/> </typeparam>
+    /// <typeparam name="TDep"><inheritdoc cref="OptionsBuilder{TOptions}.Configure{TDep}" path="/typeparam[@name='TDep']"/> </typeparam>
     public TBuilder WithOptions<TDep>(Action<TOptions, TDep> configure) where TDep : class
-    {
-        if (configure == null)
-        {
-            throw new ArgumentNullException(nameof(configure));
-        }
-
-        this._options.Configure(configure);
-
-        return (TBuilder)this;
-    }
-
-    /// <inheritdoc cref="WithOptions"/>
-    /// <typeparam name="TDep1"><inheritdoc cref="OptionsBuilder{TOptions}.Configure{TDep1,TDep2}" path="/typeparam[@name='TDep1']"/> </typeparam>
-    /// <typeparam name="TDep2"><inheritdoc cref="OptionsBuilder{TOptions}.Configure{TDep1,TDep2}" path="/typeparam[@name='TDep2']"/> </typeparam>
-    public TBuilder WithOptions<TDep1, TDep2>(Action<TOptions, TDep1, TDep2> configure)
-        where TDep1 : class
-        where TDep2 : class
     {
         if (configure == null)
         {

@@ -10,6 +10,7 @@
 		<PackageReleaseNotes>
 			API to support custom placeholders for 'Kafka:Consumers', 'Kafka:Producers', and 'Kafka:Clusters' configuration sections when kafka builder added with 'useConfiguration = true' parameter.
 			New extension methods to get and set 'dotnet.cancellation.delay.max.ms' value for ConsumerConfig.
+			New extension method to clone Kafka Config and optionally resolve placeholders.
 		</PackageReleaseNotes>
 	</PropertyGroup>
 
