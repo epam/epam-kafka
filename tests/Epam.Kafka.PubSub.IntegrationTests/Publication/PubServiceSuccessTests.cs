@@ -9,6 +9,7 @@ using Xunit.Abstractions;
 
 namespace Epam.Kafka.PubSub.IntegrationTests.Publication;
 
+[Collection(SubscribeTests.Name)]
 public class PubServiceSuccessTests : TestWithServices, IClassFixture<MockCluster>
 {
     private readonly MockCluster _mockCluster;
