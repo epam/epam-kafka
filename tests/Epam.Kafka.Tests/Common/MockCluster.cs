@@ -115,10 +115,10 @@ public sealed class MockCluster
             { "Kafka:Clusters:b2:schema.registry.url", "http://localhost:9092" },
             { "Kafka:Consumers:c1:group.id", "g1" },
             { "Kafka:Consumers:c2:group.id", "g2" },
-            { "Kafka:Consumers:placeholder:group.id", "<k123> <K123> <machineName>" },
+            { "Kafka:Consumers:placeholder:group.id", "<k123> <K123> <machineName2>" },
             { "Kafka:Producers:p1:transactional.id", "t1" },
             { "Kafka:Producers:p2:transactional.id", "t2" },
-            { "Kafka:Producers:placeholder:transactional.id", "<k123> <K123> <MachineName>" },
+            { "Kafka:Producers:placeholder:transactional.id", "<k123> <K123> <MachineName2>" },
         };
     }
 }

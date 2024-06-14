@@ -76,6 +76,8 @@ namespace Epam.Kafka.PubSub.Common
         public string Key { get; }
         public TBuilder WaitFor(System.Func<System.IServiceProvider, System.Threading.Tasks.Task> waitFor) { }
         public TBuilder WithOptions(System.Action<TOptions> configure) { }
+        public TBuilder WithOptions<TDep>(System.Action<TOptions, TDep> configure)
+            where TDep :  class { }
     }
     public sealed class PubSubContext
     {

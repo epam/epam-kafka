@@ -13,7 +13,7 @@ namespace Epam.Kafka
     {
         public Microsoft.Extensions.DependencyInjection.IServiceCollection Services { get; }
         public Microsoft.Extensions.Options.OptionsBuilder<Epam.Kafka.Options.KafkaClusterOptions> WithClusterConfig(string name) { }
-        public Epam.Kafka.KafkaBuilder WithConfigPlaceholders(System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string, string>> placeholders) { }
+        public Epam.Kafka.KafkaBuilder WithConfigPlaceholders(string key, string value) { }
         public Microsoft.Extensions.Options.OptionsBuilder<Epam.Kafka.Options.KafkaConsumerOptions> WithConsumerConfig(string name) { }
         public Epam.Kafka.KafkaBuilder WithDefaults(System.Action<Epam.Kafka.Options.KafkaFactoryOptions> configure) { }
         public Microsoft.Extensions.Options.OptionsBuilder<Epam.Kafka.Options.KafkaProducerOptions> WithProducerConfig(string name) { }
@@ -22,6 +22,16 @@ namespace Epam.Kafka
     {
         public static Confluent.Kafka.IAdminClient CreateDependentAdminClient(this Confluent.Kafka.IClient client) { }
         public static Confluent.Kafka.IProducer<TKey, TValue> CreateDependentProducer<TKey, TValue>(this Confluent.Kafka.IClient client, System.Action<Confluent.Kafka.DependentProducerBuilder<TKey, TValue>>? configure = null) { }
+    }
+    public static class KafkaConfigExtensions
+    {
+        public const string DotnetLoggerCategoryKey = "dotnet.logger.category";
+        public static TConfig Clone<TConfig>(this TConfig config, System.Collections.Generic.IReadOnlyDictionary<string, string>? placeholders = null)
+            where TConfig : Confluent.Kafka.Config, new () { }
+        public static int GetCancellationDelayMaxMs(this Confluent.Kafka.ConsumerConfig config) { }
+        public static string GetDotnetLoggerCategory(this Confluent.Kafka.Config config) { }
+        public static void SetCancellationDelayMaxMs(this Confluent.Kafka.ConsumerConfig config, int value) { }
+        public static void SetDotnetLoggerCategory(this Confluent.Kafka.Config config, string value) { }
     }
     public static class LogExtensions
     {

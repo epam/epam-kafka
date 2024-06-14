@@ -9,7 +9,7 @@ public abstract class PubSubMonitor<TBatchResult> : PipelineMonitor
 {
 
     /// <inheritdoc />
-    internal PubSubMonitor(string name) : base(name)
+    internal PubSubMonitor(PubSubContext context, string name) : base(context, name)
     {
     }
 

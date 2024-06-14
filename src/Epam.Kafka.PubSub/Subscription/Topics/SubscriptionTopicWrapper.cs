@@ -12,13 +12,13 @@ namespace Epam.Kafka.PubSub.Subscription.Topics;
 
 internal sealed class SubscriptionTopicWrapper<TKey, TValue> : IDisposable
 {
-    private const int ConsumeTimeoutMs = 2000;
-
     private readonly List<ConsumeResult<TKey, TValue>> _buffer;
 
     private Exception? _exception;
 
-    private readonly ConsumerConfig _config;
+    private readonly AutoOffsetReset? _autoOffsetReset;
+
+    private readonly int _consumeTimeoutMs;
 
     public SubscriptionTopicWrapper(IKafkaFactory kafkaFactory,
         SubscriptionMonitor monitor,
@@ -39,9 +39,13 @@ internal sealed class SubscriptionTopicWrapper<TKey, TValue> : IDisposable
 
         ConsumerConfig config = kafkaFactory.CreateConsumerConfig(options.Consumer);
 
+        config = config.Clone(this.Monitor.NamePlaceholder);
+
         this.ConfigureConsumerConfig(config);
 
-        this._config = config;
+        this._autoOffsetReset = config.AutoOffsetReset;
+        this._consumeTimeoutMs = config.GetCancellationDelayMaxMs();
+        this.ConsumerGroup = config.GroupId;
 
         this.Consumer = kafkaFactory.CreateConsumer<TKey, TValue>(config, options.Cluster, b =>
         {
@@ -66,7 +70,7 @@ internal sealed class SubscriptionTopicWrapper<TKey, TValue> : IDisposable
     public IDictionary<TopicPartition, Offset> Offsets { get; } = new Dictionary<TopicPartition, Offset>();
 
     public IConsumer<TKey, TValue> Consumer { get; }
-    public string? ConsumerGroup { get; private set; }
+    public string ConsumerGroup { get; }
 
     public Func<IReadOnlyCollection<TopicPartition>, IReadOnlyCollection<TopicPartitionOffset>>? ExternalState { get; set; }
 
@@ -122,7 +126,7 @@ internal sealed class SubscriptionTopicWrapper<TKey, TValue> : IDisposable
 
                 var q = this.Consumer.QueryWatermarkOffsets(topicPartition, TimeSpan.FromSeconds(5));
 
-                switch (this._config.AutoOffsetReset)
+                switch (this._autoOffsetReset)
                 {
                     case AutoOffsetReset.Earliest:
                         var low = new TopicPartitionOffset(topicPartition, q.Low);
@@ -325,19 +329,19 @@ internal sealed class SubscriptionTopicWrapper<TKey, TValue> : IDisposable
             throw new ArgumentNullException(nameof(config));
         }
 
-        this.ConsumerGroup = config.GroupId;
-
-        config.ClientId = $"{AppDomain.CurrentDomain.FriendlyName}@{Environment.MachineName}:{this.Monitor.Name}";
-
         config.EnableAutoCommit = false;
         config.EnableAutoOffsetStore = false;
+
         config.AutoOffsetReset ??= AutoOffsetReset.Earliest;
         config.IsolationLevel ??= IsolationLevel.ReadCommitted;
-
         config.PartitionAssignmentStrategy ??= PartitionAssignmentStrategy.CooperativeSticky;
-
+        if (config.All(x => x.Key != KafkaConfigExtensions.DotnetLoggerCategoryKey))
+        {
+            config.SetDotnetLoggerCategory(this.Monitor.FullName);
+        }
         // to avoid leaving group in case of long-running processing
         config.MaxPollIntervalMs ??= (int)TimeSpan.FromMinutes(60).TotalMilliseconds;
+
     }
 
     public void CommitOffsets(ActivityWrapper activitySpan, IReadOnlyCollection<TopicPartitionOffset> offsets)
@@ -357,7 +361,7 @@ internal sealed class SubscriptionTopicWrapper<TKey, TValue> : IDisposable
         {
             while (!cancellationToken.IsCancellationRequested && this._buffer.Count < batchSize)
             {
-                ConsumeResult<TKey, TValue>? consumeResult = this.Consumer.Consume(ConsumeTimeoutMs);
+                ConsumeResult<TKey, TValue>? consumeResult = this.Consumer.Consume(this._consumeTimeoutMs);
 
                 if (consumeResult == null || consumeResult.IsPartitionEOF)
                 {

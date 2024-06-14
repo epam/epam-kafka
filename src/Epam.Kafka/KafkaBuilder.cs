@@ -32,6 +32,9 @@ public partial class KafkaBuilder
             this.Services.AddSingleton<IConfigureOptions<KafkaConsumerOptions>, ConsumerOptionsConfigure>();
             this.Services.AddSingleton<IConfigureOptions<KafkaProducerOptions>, ProducerOptionsConfigure>();
             this.Services.AddSingleton<IConfigureOptions<KafkaClusterOptions>, ClusterOptionsConfigure>();
+
+            this.WithConfigPlaceholders("<DomainName>", AppDomain.CurrentDomain.FriendlyName)
+                .WithConfigPlaceholders("<MachineName>", Environment.MachineName);
         }
 
         this.Services.AddSingleton<IValidateOptions<KafkaConsumerOptions>, ConsumerValidation>();

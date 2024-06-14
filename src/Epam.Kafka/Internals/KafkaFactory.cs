@@ -12,12 +12,12 @@ namespace Epam.Kafka.Internals;
 
 internal sealed class KafkaFactory : IKafkaFactory, IDisposable
 {
-    private const string LoggerCategoryName = "Epam.Kafka.Factory";
+    private const string DefaultLogHandler = ".DefaultLogHandler";
+    private const string Factory = ".Factory";
 
     private readonly Dictionary<KafkaClusterOptions, AdminClient> _clients = new();
     private readonly IOptionsMonitor<KafkaClusterOptions> _clusterOptions;
     private readonly IOptionsMonitor<KafkaConsumerOptions> _consumerOptions;
-    private readonly ILogger? _logger;
     private readonly ILoggerFactory? _loggerFactory;
     private readonly IOptionsMonitor<KafkaProducerOptions> _producerOptions;
     private readonly Dictionary<KafkaClusterOptions, CachedSchemaRegistryClient> _registries = new();
@@ -37,7 +37,6 @@ internal sealed class KafkaFactory : IKafkaFactory, IDisposable
         this._consumerOptions = consumerOptions ?? throw new ArgumentNullException(nameof(consumerOptions));
         this._producerOptions = producerOptions ?? throw new ArgumentNullException(nameof(producerOptions));
         this._loggerFactory = loggerFactory;
-        this._logger = loggerFactory?.CreateLogger(LoggerCategoryName);
     }
 
     public void Dispose()
@@ -64,7 +63,7 @@ internal sealed class KafkaFactory : IKafkaFactory, IDisposable
 
         configName ??= this._topicOptions.CurrentValue.Consumer;
 
-        ValidateLogicalName(configName);
+        ValidateLogicalName(configName, "consumer");
 
         try
         {
@@ -75,7 +74,7 @@ internal sealed class KafkaFactory : IKafkaFactory, IDisposable
         catch (OptionsValidationException e)
         {
             throw new InvalidOperationException(
-                $"Consumer config '{configName}' in corrupted state. See inner exception for details.", e);
+                $"Consumer config '{configName}' in corrupted state: {e.Message}", e);
         }
     }
 
@@ -85,7 +84,7 @@ internal sealed class KafkaFactory : IKafkaFactory, IDisposable
 
         configName ??= this._topicOptions.CurrentValue.Producer;
 
-        ValidateLogicalName(configName);
+        ValidateLogicalName(configName, "producer");
 
         try
         {
@@ -96,7 +95,7 @@ internal sealed class KafkaFactory : IKafkaFactory, IDisposable
         catch (Exception e)
         {
             throw new InvalidOperationException(
-                $"Producer config '{configName}' in corrupted state. See inner exception for details.", e);
+                $"Producer config '{configName}' in corrupted state: {e.Message}", e);
         }
     }
 
@@ -109,7 +108,14 @@ internal sealed class KafkaFactory : IKafkaFactory, IDisposable
 
         Dictionary<string, string> resultConfig = MergeResultConfig(clusterOptions, config);
 
-        var builder = new ConsumerBuilder<TKey, TValue>(resultConfig);
+        config = new ConsumerConfig(resultConfig);
+
+        // Init logger category from config and remove key because it is not standard key and cause errors.
+        string logHandler = config.GetDotnetLoggerCategory() + DefaultLogHandler;
+        ILogger? fl = this._loggerFactory?.CreateLogger(config.GetDotnetLoggerCategory() + Factory);
+        resultConfig.Remove(KafkaConfigExtensions.DotnetLoggerCategoryKey);
+
+        var builder = new ConsumerBuilder<TKey, TValue>(config);
 
         configure?.Invoke(builder);
 
@@ -126,7 +132,7 @@ internal sealed class KafkaFactory : IKafkaFactory, IDisposable
 
         if (this._loggerFactory != null)
         {
-            ILogger logger = this._loggerFactory.CreateLogger("Epam.Kafka.DefaultLogHandler");
+            ILogger logger = this._loggerFactory.CreateLogger(logHandler);
 
             try
             {
@@ -141,13 +147,13 @@ internal sealed class KafkaFactory : IKafkaFactory, IDisposable
         {
             IConsumer<TKey, TValue> consumer = builder.Build();
 
-            this._logger?.ConsumerCreateOk(PrepareConfigForLogs(resultConfig), typeof(TKey), typeof(TValue));
+            fl?.ConsumerCreateOk(PrepareConfigForLogs(config), typeof(TKey), typeof(TValue));
 
             return consumer;
         }
         catch (Exception exc)
         {
-            this._logger?.ConsumerCreateError(exc, PrepareConfigForLogs(resultConfig), typeof(TKey), typeof(TValue));
+            fl?.ConsumerCreateError(exc, PrepareConfigForLogs(config), typeof(TKey), typeof(TValue));
 
             throw;
         }
@@ -162,7 +168,13 @@ internal sealed class KafkaFactory : IKafkaFactory, IDisposable
 
         Dictionary<string, string> resultConfig = MergeResultConfig(clusterOptions, config);
 
-        ProducerBuilder<TKey, TValue> builder = new(resultConfig);
+        string logHandler = config.GetDotnetLoggerCategory() + DefaultLogHandler;
+        ILogger? fl = this._loggerFactory?.CreateLogger(config.GetDotnetLoggerCategory() + Factory);
+        resultConfig.Remove(KafkaConfigExtensions.DotnetLoggerCategoryKey);
+
+        config = new ProducerConfig(resultConfig);
+
+        ProducerBuilder<TKey, TValue> builder = new(config);
 
         configure?.Invoke(builder);
 
@@ -179,7 +191,7 @@ internal sealed class KafkaFactory : IKafkaFactory, IDisposable
 
         if (this._loggerFactory != null)
         {
-            ILogger logger = this._loggerFactory.CreateLogger("Epam.Kafka.DefaultLogHandler");
+            ILogger logger = this._loggerFactory.CreateLogger(logHandler);
 
             try
             {
@@ -194,13 +206,13 @@ internal sealed class KafkaFactory : IKafkaFactory, IDisposable
         {
             IProducer<TKey, TValue> producer = builder.Build();
 
-            this._logger?.ProducerCreateOk(PrepareConfigForLogs(resultConfig), typeof(TKey), typeof(TValue));
+            fl?.ProducerCreateOk(PrepareConfigForLogs(config), typeof(TKey), typeof(TValue));
 
             return producer;
         }
         catch (Exception exc)
         {
-            this._logger?.ProducerCreateError(exc, PrepareConfigForLogs(resultConfig), typeof(TKey), typeof(TValue));
+            fl?.ProducerCreateError(exc, PrepareConfigForLogs(config), typeof(TKey), typeof(TValue));
 
             throw;
         }
@@ -251,18 +263,17 @@ internal sealed class KafkaFactory : IKafkaFactory, IDisposable
         return result;
     }
 
-    private static void ValidateLogicalName(string? configName)
+    private static void ValidateLogicalName(string? configName, string entityType)
     {
         if (string.IsNullOrWhiteSpace(configName))
         {
-            throw new InvalidOperationException("Unable to create entity with null or whitespace logical name.");
+            throw new InvalidOperationException($"Unable to create {entityType} with null or whitespace logical name.");
         }
     }
 
-    private static IEnumerable<KeyValuePair<string, string>> PrepareConfigForLogs(
-        Dictionary<string, string> resultConfig)
+    private static IEnumerable<KeyValuePair<string, string>> PrepareConfigForLogs(Config config)
     {
-        return resultConfig.Select(x => Contains(x, "password") || Contains(x, "secret")
+        return config.Select(x => Contains(x, "password") || Contains(x, "secret")
             ? new KeyValuePair<string, string>(x.Key, "*******")
             : x);
 
@@ -288,7 +299,7 @@ internal sealed class KafkaFactory : IKafkaFactory, IDisposable
     {
         cluster ??= this._topicOptions.CurrentValue.Cluster;
 
-        ValidateLogicalName(cluster);
+        ValidateLogicalName(cluster, "cluster");
 
         try
         {

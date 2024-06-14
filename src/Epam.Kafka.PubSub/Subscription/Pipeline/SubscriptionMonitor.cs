@@ -1,5 +1,6 @@
 ﻿// Copyright © 2024 EPAM Systems
 
+using Epam.Kafka.PubSub.Common;
 using Epam.Kafka.PubSub.Common.Pipeline;
 
 namespace Epam.Kafka.PubSub.Subscription.Pipeline;
@@ -14,7 +15,7 @@ public class SubscriptionMonitor : PubSubMonitor<SubscriptionBatchResult>
     /// </summary>
     public const string Prefix = "Epam.Kafka.Subscription";
 
-    internal SubscriptionMonitor(string name) : base(BuildFullName(name))
+    internal SubscriptionMonitor(PubSubContext context, string name) : base(context, BuildFullName(name))
     {
     }
 

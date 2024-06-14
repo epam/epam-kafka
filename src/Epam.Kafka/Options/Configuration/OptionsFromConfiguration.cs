@@ -51,22 +51,9 @@ internal abstract class OptionsFromConfiguration<TOptions> : IConfigureNamedOpti
     {
         var result = new Dictionary<string, string>();
 
-        foreach (IConfigurationSection? x in section.GetChildren())
+        foreach (IConfigurationSection x in section.GetChildren().Where(x=> x.Value != null))
         {
-            if (x.Value != null)
-            {
-                string value = x.Value;
-
-                if (this._kafkaBuilder.ConfigPlaceholders.Count > 0)
-                {
-                    foreach (var kvp in this._kafkaBuilder.ConfigPlaceholders)
-                    {
-                        value = value.Replace(kvp.Key, kvp.Value, StringComparison.OrdinalIgnoreCase);
-                    }    
-                }
-
-                result.Add(x.Key, value);
-            }
+            result.Add(x.Key, KafkaConfigExtensions.ReplacePlaceholdersIfNeeded(x.Value!, this._kafkaBuilder.ConfigPlaceholders));
         }
 
         return result;

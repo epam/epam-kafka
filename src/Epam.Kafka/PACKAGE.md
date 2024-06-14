@@ -80,17 +80,17 @@ By default `IKafkaFactory` configured from `IConfiguration` registered in `IServ
       }
     },
     "Producers": {
-      "Default": {},
+      "Default": {
+        "client.id": "<DomainName>@<MachineName>"
+      },
       "Transactional": {
+        "client.id": "<DomainName>@<MachineName>"
         "transactional.id": "producer.epam-kafka-sample"
       }
     },
     "Consumers": {
       "Default": {
         "group.id": "consumer.epam-kafka-sample"
-      },
-      "Republish": {
-        "group.id": "consumer.epam-kafka-sample.republish"
       }
     }    
   }

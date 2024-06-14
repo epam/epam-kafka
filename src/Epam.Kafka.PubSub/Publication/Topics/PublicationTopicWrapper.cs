@@ -46,9 +46,13 @@ internal class PublicationTopicWrapper<TKey, TValue> : IPublicationTopicWrapper<
                 config.SocketTimeoutMs = config.TransactionTimeoutMs - 1000;
             }
 
-            if (!config.TransactionalId!.EndsWith(this.Monitor.Name, StringComparison.OrdinalIgnoreCase))
+            if (!monitor.TryRegisterTransactionId(config, out var existing))
             {
-                config.TransactionalId += $"-{this.Monitor.Name}";
+                InvalidOperationException exception = new InvalidOperationException(
+                    $"Unable to use '{config.TransactionalId}' transactional.id in '{monitor.Name}' publication because it already used by '{existing}'.");
+                exception.DoNotRetryBatch();
+
+                throw exception;
             }
         }
         else
@@ -57,8 +61,7 @@ internal class PublicationTopicWrapper<TKey, TValue> : IPublicationTopicWrapper<
             this.MinRemaining = TimeSpan.FromMilliseconds(config.MessageTimeoutMs.Value * 2);
         }
 
-        config.EnableDeliveryReports = true;
-        config.DeliveryReportFields ??= "timestamp,status";
+        ConfigureReports(config);
 
         this.Producer = kafkaFactory.CreateProducer<TKey, TValue>(config, this.Options.Cluster, b =>
         {
@@ -76,6 +79,37 @@ internal class PublicationTopicWrapper<TKey, TValue> : IPublicationTopicWrapper<
         });
     }
 
+    private static void ConfigureReports(ProducerConfig config)
+    {
+        const string timestamp = "timestamp";
+        const string status = "status";
+
+        config.EnableDeliveryReports = true;
+
+        if (string.IsNullOrWhiteSpace(config.DeliveryReportFields))
+        {
+            config.DeliveryReportFields = $"{timestamp},{status}";
+        }
+        else if (!string.Equals("all", config.DeliveryReportFields, StringComparison.OrdinalIgnoreCase))
+        {
+            var items = config.DeliveryReportFields.Split(',').ToList();
+
+            if (!items.Any(x => string.Equals(timestamp, x, StringComparison.OrdinalIgnoreCase)))
+            {
+                items.Add(timestamp);
+            }
+
+            if (!items.Any(x => string.Equals(status, x, StringComparison.OrdinalIgnoreCase)))
+            {
+                items.Add(status);
+            }
+
+            config.DeliveryReportFields = string.Join(",", items);
+        }
+
+        config.DeliveryReportFields = config.DeliveryReportFields.ToLowerInvariant();
+    }
+
     private PublicationMonitor Monitor { get; }
     private ILogger Logger { get; }
     private TimeSpan MinRemaining { get; }
@@ -90,8 +124,19 @@ internal class PublicationTopicWrapper<TKey, TValue> : IPublicationTopicWrapper<
         {
             using (apm.CreateSpan("commit_transaction"))
             {
-                this.Producer.CommitTransaction();
-                this._transactionActive = false;
+                try
+                {
+                    this.Producer.CommitTransaction();
+                }
+                catch (Exception e)
+                {
+                    e.DoNotRetryBatch();
+                    throw;
+                }
+                finally
+                {
+                    this._transactionActive = false;
+                }
             }
         }
     }
@@ -104,8 +149,19 @@ internal class PublicationTopicWrapper<TKey, TValue> : IPublicationTopicWrapper<
 
             using (apm.CreateSpan("abort_transaction"))
             {
-                this.Producer.AbortTransaction();
-                this._transactionActive = false;
+                try
+                {
+                    this.Producer.AbortTransaction();
+                }
+                catch (Exception e)
+                {
+                    e.DoNotRetryBatch();
+                    throw;
+                }
+                finally
+                {
+                    this._transactionActive = false;
+                }
             }
         }
     }

@@ -72,6 +72,12 @@ internal class PublicationBackgroundService<TKey, TValue, THandler> : PubSubBack
 
         ProducerConfig config = this.KafkaFactory.CreateProducerConfig(this.Options.Producer);
 
+        config = config.Clone(this.Monitor.NamePlaceholder);
+        if (config.All(x => x.Key != KafkaConfigExtensions.DotnetLoggerCategoryKey))
+        {
+            config.SetDotnetLoggerCategory(this.Monitor.FullName);
+        }
+
         bool implicitPreprocessor = ks != null || vs != null || config.TransactionalId != null;
 
         if (this.Options.SerializationPreprocessor ?? implicitPreprocessor)
@@ -205,7 +211,7 @@ internal class PublicationBackgroundService<TKey, TValue, THandler> : PubSubBack
     {
         THandler state = ResolveRequiredService<THandler>(sp);
 
-        ISyncPolicy handlerPolicy = sp.GetRequiredService<PubSubContext>().GetHandlerPolicy(this.Options);
+        ISyncPolicy handlerPolicy = this.Monitor.Context.GetHandlerPolicy(this.Options);
 
         if (this.Options.HandlerConcurrencyGroup.HasValue)
         {
@@ -217,9 +223,19 @@ internal class PublicationBackgroundService<TKey, TValue, THandler> : PubSubBack
             handlerPolicy.Execute(ct => this.ExecuteBatchInternal(state, topic, activitySpan, ct),
                 cancellationToken);
         }
-        catch
+        catch (Exception e1)
         {
-            topic.AbortTransactionIfNeeded(activitySpan);
+            try
+            {
+                topic.AbortTransactionIfNeeded(activitySpan);
+            }
+            catch (Exception e2)
+            {
+                AggregateException exception = new AggregateException(e1, e2);
+                exception.DoNotRetryBatch();
+
+                throw exception;
+            }
 
             throw;
         }
