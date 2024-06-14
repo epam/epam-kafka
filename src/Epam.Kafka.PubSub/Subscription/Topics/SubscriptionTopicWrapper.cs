@@ -41,7 +41,7 @@ internal sealed class SubscriptionTopicWrapper<TKey, TValue> : IDisposable
 
         config = config.Clone(this.Monitor.NamePlaceholder);
 
-        ConfigureConsumerConfig(config);
+        this.ConfigureConsumerConfig(config);
 
         this._autoOffsetReset = config.AutoOffsetReset;
         this._consumeTimeoutMs = config.GetCancellationDelayMaxMs();
@@ -322,7 +322,7 @@ internal sealed class SubscriptionTopicWrapper<TKey, TValue> : IDisposable
         }
     }
 
-    private static void ConfigureConsumerConfig(ConsumerConfig config)
+    private void ConfigureConsumerConfig(ConsumerConfig config)
     {
         if (config == null)
         {
@@ -331,13 +331,17 @@ internal sealed class SubscriptionTopicWrapper<TKey, TValue> : IDisposable
 
         config.EnableAutoCommit = false;
         config.EnableAutoOffsetStore = false;
+
         config.AutoOffsetReset ??= AutoOffsetReset.Earliest;
         config.IsolationLevel ??= IsolationLevel.ReadCommitted;
-
         config.PartitionAssignmentStrategy ??= PartitionAssignmentStrategy.CooperativeSticky;
-
+        if (config.All(x => x.Key != KafkaConfigExtensions.DotnetLoggerCategoryKey))
+        {
+            config.SetDotnetLoggerCategory(this.Monitor.FullName);
+        }
         // to avoid leaving group in case of long-running processing
         config.MaxPollIntervalMs ??= (int)TimeSpan.FromMinutes(60).TotalMilliseconds;
+
     }
 
     public void CommitOffsets(ActivityWrapper activitySpan, IReadOnlyCollection<TopicPartitionOffset> offsets)

@@ -73,6 +73,10 @@ internal class PublicationBackgroundService<TKey, TValue, THandler> : PubSubBack
         ProducerConfig config = this.KafkaFactory.CreateProducerConfig(this.Options.Producer);
 
         config = config.Clone(this.Monitor.NamePlaceholder);
+        if (config.All(x => x.Key != KafkaConfigExtensions.DotnetLoggerCategoryKey))
+        {
+            config.SetDotnetLoggerCategory(this.Monitor.FullName);
+        }
 
         bool implicitPreprocessor = ks != null || vs != null || config.TransactionalId != null;
 

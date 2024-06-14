@@ -12,12 +12,12 @@ namespace Epam.Kafka.Internals;
 
 internal sealed class KafkaFactory : IKafkaFactory, IDisposable
 {
-    private const string LoggerCategoryName = "Epam.Kafka.Factory";
+    private const string DefaultLogHandler = ".DefaultLogHandler";
+    private const string Factory = ".Factory";
 
     private readonly Dictionary<KafkaClusterOptions, AdminClient> _clients = new();
     private readonly IOptionsMonitor<KafkaClusterOptions> _clusterOptions;
     private readonly IOptionsMonitor<KafkaConsumerOptions> _consumerOptions;
-    private readonly ILogger? _logger;
     private readonly ILoggerFactory? _loggerFactory;
     private readonly IOptionsMonitor<KafkaProducerOptions> _producerOptions;
     private readonly Dictionary<KafkaClusterOptions, CachedSchemaRegistryClient> _registries = new();
@@ -37,7 +37,6 @@ internal sealed class KafkaFactory : IKafkaFactory, IDisposable
         this._consumerOptions = consumerOptions ?? throw new ArgumentNullException(nameof(consumerOptions));
         this._producerOptions = producerOptions ?? throw new ArgumentNullException(nameof(producerOptions));
         this._loggerFactory = loggerFactory;
-        this._logger = loggerFactory?.CreateLogger(LoggerCategoryName);
     }
 
     public void Dispose()
@@ -107,7 +106,14 @@ internal sealed class KafkaFactory : IKafkaFactory, IDisposable
 
         KafkaClusterOptions clusterOptions = this.GetAndValidateClusterOptions(cluster);
 
-        config = new ConsumerConfig(MergeResultConfig(clusterOptions, config));
+        Dictionary<string, string> resultConfig = MergeResultConfig(clusterOptions, config);
+
+        config = new ConsumerConfig(resultConfig);
+
+        // Init logger category from config and remove key because it is not standard key and cause errors.
+        string logHandler = config.GetDotnetLoggerCategory() + DefaultLogHandler;
+        ILogger? fl = this._loggerFactory?.CreateLogger(config.GetDotnetLoggerCategory() + Factory);
+        resultConfig.Remove(KafkaConfigExtensions.DotnetLoggerCategoryKey);
 
         var builder = new ConsumerBuilder<TKey, TValue>(config);
 
@@ -126,7 +132,7 @@ internal sealed class KafkaFactory : IKafkaFactory, IDisposable
 
         if (this._loggerFactory != null)
         {
-            ILogger logger = this._loggerFactory.CreateLogger(config.GetDotnetLoggerCategory());
+            ILogger logger = this._loggerFactory.CreateLogger(logHandler);
 
             try
             {
@@ -141,13 +147,13 @@ internal sealed class KafkaFactory : IKafkaFactory, IDisposable
         {
             IConsumer<TKey, TValue> consumer = builder.Build();
 
-            this._logger?.ConsumerCreateOk(PrepareConfigForLogs(config), typeof(TKey), typeof(TValue));
+            fl?.ConsumerCreateOk(PrepareConfigForLogs(config), typeof(TKey), typeof(TValue));
 
             return consumer;
         }
         catch (Exception exc)
         {
-            this._logger?.ConsumerCreateError(exc, PrepareConfigForLogs(config), typeof(TKey), typeof(TValue));
+            fl?.ConsumerCreateError(exc, PrepareConfigForLogs(config), typeof(TKey), typeof(TValue));
 
             throw;
         }
@@ -160,7 +166,13 @@ internal sealed class KafkaFactory : IKafkaFactory, IDisposable
 
         KafkaClusterOptions clusterOptions = this.GetAndValidateClusterOptions(cluster);
 
-        config = new ProducerConfig(MergeResultConfig(clusterOptions, config));
+        Dictionary<string, string> resultConfig = MergeResultConfig(clusterOptions, config);
+
+        string logHandler = config.GetDotnetLoggerCategory() + DefaultLogHandler;
+        ILogger? fl = this._loggerFactory?.CreateLogger(config.GetDotnetLoggerCategory() + Factory);
+        resultConfig.Remove(KafkaConfigExtensions.DotnetLoggerCategoryKey);
+
+        config = new ProducerConfig(resultConfig);
 
         ProducerBuilder<TKey, TValue> builder = new(config);
 
@@ -179,7 +191,7 @@ internal sealed class KafkaFactory : IKafkaFactory, IDisposable
 
         if (this._loggerFactory != null)
         {
-            ILogger logger = this._loggerFactory.CreateLogger(config.GetDotnetLoggerCategory());
+            ILogger logger = this._loggerFactory.CreateLogger(logHandler);
 
             try
             {
@@ -194,13 +206,13 @@ internal sealed class KafkaFactory : IKafkaFactory, IDisposable
         {
             IProducer<TKey, TValue> producer = builder.Build();
 
-            this._logger?.ProducerCreateOk(PrepareConfigForLogs(config), typeof(TKey), typeof(TValue));
+            fl?.ProducerCreateOk(PrepareConfigForLogs(config), typeof(TKey), typeof(TValue));
 
             return producer;
         }
         catch (Exception exc)
         {
-            this._logger?.ProducerCreateError(exc, PrepareConfigForLogs(config), typeof(TKey), typeof(TValue));
+            fl?.ProducerCreateError(exc, PrepareConfigForLogs(config), typeof(TKey), typeof(TValue));
 
             throw;
         }
