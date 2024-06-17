@@ -6,19 +6,19 @@ using Confluent.SchemaRegistry;
 using Epam.Kafka.Options;
 
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 
 namespace Epam.Kafka.Internals;
 
 internal sealed class KafkaFactory : IKafkaFactory, IDisposable
 {
-    private const string DefaultLogHandler = ".DefaultLogHandler";
-    private const string Factory = ".Factory";
+    private const string LoggerCategoryName = "Epam.Kafka.Factory";
 
     private readonly Dictionary<KafkaClusterOptions, AdminClient> _clients = new();
     private readonly IOptionsMonitor<KafkaClusterOptions> _clusterOptions;
     private readonly IOptionsMonitor<KafkaConsumerOptions> _consumerOptions;
-    private readonly ILoggerFactory? _loggerFactory;
+    private readonly ILoggerFactory _loggerFactory;
     private readonly IOptionsMonitor<KafkaProducerOptions> _producerOptions;
     private readonly Dictionary<KafkaClusterOptions, CachedSchemaRegistryClient> _registries = new();
     private readonly object _syncObj = new();
@@ -36,7 +36,7 @@ internal sealed class KafkaFactory : IKafkaFactory, IDisposable
         this._clusterOptions = clusterOptions ?? throw new ArgumentNullException(nameof(clusterOptions));
         this._consumerOptions = consumerOptions ?? throw new ArgumentNullException(nameof(consumerOptions));
         this._producerOptions = producerOptions ?? throw new ArgumentNullException(nameof(producerOptions));
-        this._loggerFactory = loggerFactory;
+        this._loggerFactory = loggerFactory ?? NullLoggerFactory.Instance;
     }
 
     public void Dispose()
@@ -111,8 +111,7 @@ internal sealed class KafkaFactory : IKafkaFactory, IDisposable
         config = new ConsumerConfig(resultConfig);
 
         // Init logger category from config and remove key because it is not standard key and cause errors.
-        string logHandler = config.GetDotnetLoggerCategory() + DefaultLogHandler;
-        ILogger? fl = this._loggerFactory?.CreateLogger(config.GetDotnetLoggerCategory() + Factory);
+        string logHandler = config.GetDotnetLoggerCategory();
         resultConfig.Remove(KafkaConfigExtensions.DotnetLoggerCategoryKey);
 
         var builder = new ConsumerBuilder<TKey, TValue>(config);
@@ -130,30 +129,27 @@ internal sealed class KafkaFactory : IKafkaFactory, IDisposable
             } // handler already set
         }
 
-        if (this._loggerFactory != null)
+        try
         {
-            ILogger logger = this._loggerFactory.CreateLogger(logHandler);
-
-            try
-            {
-                builder.SetLogHandler((_, m) => logger.KafkaLogHandler(m));
-            }
-            catch (InvalidOperationException)
-            {
-            } // handler already set
+            builder.SetLogHandler((_, m) => this._loggerFactory.CreateLogger(logHandler).KafkaLogHandler(m));
         }
+        catch (InvalidOperationException)
+        {
+        } // handler already set
+
+        ILogger fl =  this._loggerFactory.CreateLogger(LoggerCategoryName);
 
         try
         {
             IConsumer<TKey, TValue> consumer = builder.Build();
 
-            fl?.ConsumerCreateOk(PrepareConfigForLogs(config), typeof(TKey), typeof(TValue));
+            fl.ConsumerCreateOk(PrepareConfigForLogs(config), typeof(TKey), typeof(TValue));
 
             return consumer;
         }
         catch (Exception exc)
         {
-            fl?.ConsumerCreateError(exc, PrepareConfigForLogs(config), typeof(TKey), typeof(TValue));
+            fl.ConsumerCreateError(exc, PrepareConfigForLogs(config), typeof(TKey), typeof(TValue));
 
             throw;
         }
@@ -168,11 +164,11 @@ internal sealed class KafkaFactory : IKafkaFactory, IDisposable
 
         Dictionary<string, string> resultConfig = MergeResultConfig(clusterOptions, config);
 
-        string logHandler = config.GetDotnetLoggerCategory() + DefaultLogHandler;
-        ILogger? fl = this._loggerFactory?.CreateLogger(config.GetDotnetLoggerCategory() + Factory);
-        resultConfig.Remove(KafkaConfigExtensions.DotnetLoggerCategoryKey);
-
         config = new ProducerConfig(resultConfig);
+
+        // Init logger category from config and remove key because it is not standard key and cause errors.
+        string logHandler = config.GetDotnetLoggerCategory();
+        resultConfig.Remove(KafkaConfigExtensions.DotnetLoggerCategoryKey);
 
         ProducerBuilder<TKey, TValue> builder = new(config);
 
@@ -188,31 +184,27 @@ internal sealed class KafkaFactory : IKafkaFactory, IDisposable
             {
             } // handler already set
         }
-
-        if (this._loggerFactory != null)
+        try
         {
-            ILogger logger = this._loggerFactory.CreateLogger(logHandler);
-
-            try
-            {
-                builder.SetLogHandler((_, m) => logger.KafkaLogHandler(m));
-            }
-            catch (InvalidOperationException)
-            {
-            } // handler already set
+            builder.SetLogHandler((_, m) => this._loggerFactory.CreateLogger(logHandler).KafkaLogHandler(m));
         }
+        catch (InvalidOperationException)
+        {
+        } // handler already set
+
+        ILogger fl = this._loggerFactory.CreateLogger(LoggerCategoryName);
 
         try
         {
             IProducer<TKey, TValue> producer = builder.Build();
 
-            fl?.ProducerCreateOk(PrepareConfigForLogs(config), typeof(TKey), typeof(TValue));
+            fl.ProducerCreateOk(PrepareConfigForLogs(config), typeof(TKey), typeof(TValue));
 
             return producer;
         }
         catch (Exception exc)
         {
-            fl?.ProducerCreateError(exc, PrepareConfigForLogs(config), typeof(TKey), typeof(TValue));
+            fl.ProducerCreateError(exc, PrepareConfigForLogs(config), typeof(TKey), typeof(TValue));
 
             throw;
         }
@@ -279,11 +271,7 @@ internal sealed class KafkaFactory : IKafkaFactory, IDisposable
 
         static bool Contains(KeyValuePair<string, string> x, string value)
         {
-            return x.Key.Contains(value
-#if NET6_0_OR_GREATER
-                , StringComparison.Ordinal
-#endif
-            );
+            return x.Key.IndexOf(value, StringComparison.OrdinalIgnoreCase) > -1;
         }
     }
 

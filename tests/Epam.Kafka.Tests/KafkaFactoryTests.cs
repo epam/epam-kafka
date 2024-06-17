@@ -3,11 +3,8 @@
 using Confluent.Kafka;
 
 using Epam.Kafka.Tests.Common;
-
+using Microsoft.Extensions.Logging;
 using Shouldly;
-
-using System.Linq;
-using System.Xml.Linq;
 
 using Xunit;
 using Xunit.Abstractions;
@@ -110,7 +107,8 @@ public class KafkaFactoryTests : TestWithServices
     [Fact]
     public void CreateConfigsWithPlaceholders()
     {
-        KafkaBuilder kafkaBuilder = MockCluster.AddMockCluster(this).WithDefaults(x =>
+        MockCluster.AddMockCluster(this)
+            .WithDefaults(x =>
             {
                 x.Producer = "placeholder";
                 x.Consumer = "placeholder";
@@ -220,5 +218,40 @@ public class KafkaFactoryTests : TestWithServices
 
         IAdminClient dc = c1.CreateDependentAdminClient();
         Assert.NotNull(dc);
+    }
+
+    [Fact]
+    public void ConfigSecretsInLogError()
+    {
+        CollectionLoggerProvider logger = new CollectionLoggerProvider();
+        this.LoggingBuilder.AddProvider(logger);
+
+        MockCluster.AddMockCluster(this);
+
+        var config = new ProducerConfig();
+        config.Set("Sasl.OAuthBearer.Client.Secret", "anyValue");
+
+        Assert.Throws<InvalidOperationException>(() => this.KafkaFactory.CreateProducer<string, string>(config));
+
+        logger.Entries.ShouldHaveSingleItem().Value.ShouldHaveSingleItem().ShouldContain("[Sasl.OAuthBearer.Client.Secret, *******]");
+    }
+
+    [Fact]
+    public void ConfigSecretsInLog()
+    {
+        CollectionLoggerProvider logger = new CollectionLoggerProvider();
+        this.LoggingBuilder.AddProvider(logger);
+
+        MockCluster.AddMockCluster(this);
+
+        var config = new ProducerConfig();
+        config.SetDotnetLoggerCategory("Qwe");
+        config.SaslOauthbearerClientSecret = "anyValue";
+        config.Debug = "all";
+
+        IProducer<string, string> producer = this.KafkaFactory.CreateProducer<string, string>(config);
+
+        logger.Entries["Epam.Kafka.Factory"].ShouldHaveSingleItem().ShouldContain("[sasl.oauthBearer.client.secret, *******]");
+        logger.Entries["Qwe"].ShouldNotBeEmpty();
     }
 }
