@@ -11,7 +11,9 @@ namespace Epam.Kafka.PubSub.IntegrationTests;
 public static class IntegrationTestsExtensions
 {
     public static SubscriptionBuilder<string, TestEntityKafka, TestSubscriptionHandler> CreateDefaultSubscription(
-        this TestObserver observer, MockCluster mockCluster, AutoOffsetReset autoOffsetReset = AutoOffsetReset.Earliest)
+        this TestObserver observer, MockCluster mockCluster, 
+        AutoOffsetReset autoOffsetReset = AutoOffsetReset.Earliest, 
+        PartitionAssignmentStrategy assignmentStrategy = PartitionAssignmentStrategy.CooperativeSticky)
     {
         if (observer == null) throw new ArgumentNullException(nameof(observer));
         if (mockCluster == null) throw new ArgumentNullException(nameof(mockCluster));
@@ -26,6 +28,7 @@ public static class IntegrationTestsExtensions
                 x.ConsumerConfig.SessionTimeoutMs = 10_000;
                 x.ConsumerConfig.AutoOffsetReset = autoOffsetReset;
                 x.ConsumerConfig.SetCancellationDelayMaxMs(2000);
+                x.ConsumerConfig.PartitionAssignmentStrategy = assignmentStrategy;
             });
 
         return kafkaBuilder

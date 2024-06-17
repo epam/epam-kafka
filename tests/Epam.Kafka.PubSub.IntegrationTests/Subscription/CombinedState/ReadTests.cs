@@ -20,8 +20,11 @@ public class ReadTests : TestWithServices, IClassFixture<MockCluster>
         this._mockCluster = mockCluster ?? throw new ArgumentNullException(nameof(mockCluster));
     }
 
-    [Fact]
-    public async Task OneBatchTwoPartitions()
+    [Theory]
+    [InlineData(PartitionAssignmentStrategy.CooperativeSticky)]
+    [InlineData(PartitionAssignmentStrategy.Range)]
+    [InlineData(PartitionAssignmentStrategy.RoundRobin)]
+    public async Task OneBatchTwoPartitions(PartitionAssignmentStrategy assignmentStrategy)
     {
         TopicPartition tp1 = new(this.AnyTopicName, 1);
         TopicPartition tp2 = new(this.AnyTopicName, 2);
@@ -35,7 +38,8 @@ public class ReadTests : TestWithServices, IClassFixture<MockCluster>
         this.Services.AddScoped(_ => handler);
         this.Services.AddScoped(_ => offsets);
 
-        observer.CreateDefaultSubscription(this._mockCluster).WithValueDeserializer(_ => deserializer)
+        observer.CreateDefaultSubscription(this._mockCluster,assignmentStrategy: assignmentStrategy)
+            .WithValueDeserializer(_ => deserializer)
             .WithSubscribeAndExternalOffsets<TestOffsetsStorage>();
 
         Dictionary<TestEntityKafka, TopicPartitionOffset> m1 = await MockCluster.SeedKafka(this, 5, tp1);
