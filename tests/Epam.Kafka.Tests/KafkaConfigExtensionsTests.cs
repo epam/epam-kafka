@@ -45,7 +45,7 @@ public class KafkaConfigExtensionsTests
         ConsumerConfig cfg = new ConsumerConfig();
         string defValue = cfg.GetDotnetLoggerCategory();
 
-        Assert.Equal("Epam.Kafka", defValue);
+        Assert.Equal("Epam.Kafka.DefaultLogHandler", defValue);
 
         cfg.SetDotnetLoggerCategory("qwe");
         Assert.Equal("qwe", cfg.GetDotnetLoggerCategory());

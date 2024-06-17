@@ -34,7 +34,7 @@ public static class KafkaConfigExtensions
     /// Default <see cref="IKafkaFactory"/> implementation use it only for logger configuration and don't pass it to producer or consumer builder to avoid errors.
     /// </remarks> 
     public const string DotnetLoggerCategoryKey = "dotnet.logger.category";
-    private const string DotnetLoggerCategoryDefault = "Epam.Kafka";
+    private const string DotnetLoggerCategoryDefault = "Epam.Kafka.DefaultLogHandler";
 
     /// <summary>
     /// Read and return 'dotnet.logger.category' value if it exists, default value 'Epam.Kafka.DefaultLogHandler' otherwise.
