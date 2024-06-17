@@ -36,7 +36,7 @@ internal abstract class PubSubBackgroundService<TOptions, TBatchResult, TMonitor
         this.KafkaFactory = kafkaFactory ?? throw new ArgumentNullException(nameof(kafkaFactory));
         this.Options = options ?? throw new ArgumentNullException(nameof(options));
 
-        this.Logger = loggerFactory?.CreateLogger(monitor.FullName + ".Service") ?? NullLogger.Instance;
+        this.Logger = loggerFactory?.CreateLogger(monitor.FullName) ?? NullLogger.Instance;
         this.Monitor = monitor ?? throw new ArgumentNullException(nameof(monitor));
         this._diagnosticListener = new DiagnosticListener(this.Monitor.FullName);
     }
