@@ -13,12 +13,15 @@ namespace Epam.Kafka;
 /// <summary>
 ///     A builder for configuring named client, consumer, producer instances returned by <see cref="IKafkaFactory" />.
 /// </summary>
-public class KafkaBuilder
+public partial class KafkaBuilder
 {
+    private readonly bool _useConfiguration;
     private readonly OptionsBuilder<KafkaFactoryOptions> _factoryOptions;
+
 
     internal KafkaBuilder(IServiceCollection services, bool useConfiguration)
     {
+        this._useConfiguration = useConfiguration;
         this.Services = services ?? throw new ArgumentNullException(nameof(services));
 
         this._factoryOptions = services.AddOptions<KafkaFactoryOptions>();
@@ -29,6 +32,9 @@ public class KafkaBuilder
             this.Services.AddSingleton<IConfigureOptions<KafkaConsumerOptions>, ConsumerOptionsConfigure>();
             this.Services.AddSingleton<IConfigureOptions<KafkaProducerOptions>, ProducerOptionsConfigure>();
             this.Services.AddSingleton<IConfigureOptions<KafkaClusterOptions>, ClusterOptionsConfigure>();
+
+            this.WithConfigPlaceholders("<DomainName>", AppDomain.CurrentDomain.FriendlyName)
+                .WithConfigPlaceholders("<MachineName>", Environment.MachineName);
         }
 
         this.Services.AddSingleton<IValidateOptions<KafkaConsumerOptions>, ConsumerValidation>();

@@ -25,7 +25,7 @@
 		<NeutralLanguage>en</NeutralLanguage>
 
 		<VersionPrefix>0</VersionPrefix>
-		<Version>2.1.$(VersionPrefix)</Version>
+		<Version>2.2.$(VersionPrefix)</Version>
 	</PropertyGroup>
 
 	<ItemGroup>

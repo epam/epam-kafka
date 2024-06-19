@@ -10,6 +10,7 @@ using Xunit.Abstractions;
 
 namespace Epam.Kafka.PubSub.IntegrationTests.Subscription.ExternalState;
 
+[Collection(SubscribeTests.Name)]
 public class StateErrorTests : TestWithServices, IClassFixture<MockCluster>
 {
     private readonly MockCluster _mockCluster;

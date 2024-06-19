@@ -3,7 +3,11 @@
 	<PropertyGroup>
 		<TargetFrameworks>net8.0;net6.0;netstandard2.0;net462</TargetFrameworks>
 		<Description>Framework for building pub/sub batch processing applications</Description>
-		<PackageReleaseNotes>Implementation for EntityFramework6 added in Epam.Kafka.PubSub.EntityFramework6 package. Separate summary health checks for subscriptions and publications added. Polly updated to 8.4.0.</PackageReleaseNotes>
+		<PackageReleaseNotes>
+			- [Breaking Change] Subscription background service don't set 'client.id' config value automatically. Previously it was `$"{AppDomain.CurrentDomain.FriendlyName}@{Environment.MachineName}:{this.Monitor.Name}"`.
+			- [Breaking Change] Publication background service don't append it's name to 'transactional.id' config value automatically. Previously it was `config.TransactionalId += $"-{this.Monitor.Name}"`. Added validation to prevent different publication background services use same 'transactional.id' config value.
+			- Subscription and Publication background services can resolve special placeholder &lt;name&gt; (that reference name of subscription or publication) when it used in ConsumerConfig or ProducerConfig.
+		</PackageReleaseNotes>
 	</PropertyGroup>
 
 	<ItemGroup>

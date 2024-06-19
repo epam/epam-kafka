@@ -50,7 +50,7 @@ public static partial class LogExtensions
     [LoggerMessage(
         EventId = 300,
         EventName = "KafkaLogHandler",
-        Message = "KafkaLogHandler {Facility} {ClientName} {Msg}.")]
+        Message = "{Facility} {ClientName} {Msg}.")]
     static partial void KafkaLogHandler(this ILogger logger, LogLevel level, string clientName, string facility,
         string msg);
 

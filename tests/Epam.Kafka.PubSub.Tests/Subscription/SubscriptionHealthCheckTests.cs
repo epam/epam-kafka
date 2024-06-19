@@ -1,5 +1,6 @@
 ﻿// Copyright © 2024 EPAM Systems
 
+using Epam.Kafka.PubSub.Common;
 using Epam.Kafka.PubSub.Common.Pipeline;
 using Epam.Kafka.PubSub.Subscription.HealthChecks;
 using Epam.Kafka.PubSub.Subscription.Options;
@@ -41,7 +42,7 @@ public class SubscriptionHealthCheckTests
     public async Task CheckHealth(int pipelineRetry, PipelineStatus p, BatchStatus b, SubscriptionBatchResult r,
         int seconds, HealthStatus expectedStatus)
     {
-        SubscriptionMonitor monitor = new("any");
+        SubscriptionMonitor monitor = new PubSubContext().AddSubscription("any");
 
         monitor.Pipeline.Update(p);
         monitor.Batch.Update(b);

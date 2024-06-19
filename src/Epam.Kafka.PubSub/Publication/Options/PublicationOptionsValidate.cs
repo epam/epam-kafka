@@ -16,6 +16,11 @@ internal class PublicationOptionsValidate : IValidateOptions<PublicationOptions>
             throw new ArgumentNullException(nameof(options));
         }
 
+        if (options.Enabled == false)
+        {
+            return ValidateOptionsResult.Success;
+        }
+
         string? result = PubSubOptionsValidate.GetFirstFailure(options);
 
         result ??= options.ValidateString(x => x.DefaultTopic, regex: RegexHelper.TopicNameRegex);
@@ -24,7 +29,7 @@ internal class PublicationOptionsValidate : IValidateOptions<PublicationOptions>
 
         if (result != null)
         {
-            return ValidateOptionsResult.Fail(result);
+            return ValidateOptionsResult.Fail($"Publication '{name}' configuration not valid: {result}");
         }
 
         return ValidateOptionsResult.Success;

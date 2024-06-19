@@ -8,7 +8,7 @@ namespace Epam.Kafka.Options.Configuration;
 
 internal class ProducerOptionsConfigure : OptionsFromConfiguration<KafkaProducerOptions>
 {
-    public ProducerOptionsConfigure(IConfiguration configuration) : base(configuration)
+    public ProducerOptionsConfigure(IConfiguration configuration, KafkaBuilder kafkaBuilder) : base(configuration, kafkaBuilder)
     {
     }
 

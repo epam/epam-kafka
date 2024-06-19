@@ -21,7 +21,7 @@ public abstract class PubSubBuilder<TBuilder, TOptions>
     {
         this.Builder = builder ?? throw new ArgumentNullException(nameof(builder));
         this.Key = name ?? throw new ArgumentNullException(nameof(name));
-
+        
         this._options = builder.Services.AddOptions<TOptions>(this.Key)
             .Configure(x =>
             {
@@ -85,6 +85,20 @@ public abstract class PubSubBuilder<TBuilder, TOptions>
         }
 
         this._options.Configure(configure);
+        return (TBuilder)this;
+    }
+
+    /// <inheritdoc cref="WithOptions"/>
+    /// <typeparam name="TDep"><inheritdoc cref="OptionsBuilder{TOptions}.Configure{TDep}" path="/typeparam[@name='TDep']"/> </typeparam>
+    public TBuilder WithOptions<TDep>(Action<TOptions, TDep> configure) where TDep : class
+    {
+        if (configure == null)
+        {
+            throw new ArgumentNullException(nameof(configure));
+        }
+
+        this._options.Configure(configure);
+
         return (TBuilder)this;
     }
 }

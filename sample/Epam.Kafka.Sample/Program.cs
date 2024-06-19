@@ -25,7 +25,7 @@ internal static class Program
     {
         IHostBuilder hostBuilder = Host.CreateDefaultBuilder(args);
 
-        hostBuilder.ConfigureServices(services =>
+        hostBuilder.ConfigureServices((context,services) =>
         {
             // view health check results in console for demo purposes only.
             services.AddSingleton<IHealthCheckPublisher, ConsoleHealthCheckPublisher>();
@@ -34,8 +34,9 @@ internal static class Program
             services.AddOpenTelemetry().WithMetrics(mb =>
                 mb.AddMeter(PipelineMonitor.StatusMeterName, PipelineMonitor.HealthMeterName).AddConsoleExporter());
 
-            KafkaBuilder kafkaBuilder = services.AddKafka();
-
+            KafkaBuilder kafkaBuilder = services.AddKafka()
+                .WithConfigPlaceholders("<EnvironmentName>", context.HostingEnvironment.EnvironmentName);
+            
             kafkaBuilder.WithPubSubSummaryHealthCheck();
 
             kafkaBuilder.WithClusterConfig("Sandbox").Configure(options =>

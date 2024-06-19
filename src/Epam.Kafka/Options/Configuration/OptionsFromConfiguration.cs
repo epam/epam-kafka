@@ -1,5 +1,9 @@
 ﻿// Copyright © 2024 EPAM Systems
 
+#if !NET6_0_OR_GREATER
+using Epam.Kafka.Internals;
+#endif
+
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 
@@ -9,10 +13,12 @@ internal abstract class OptionsFromConfiguration<TOptions> : IConfigureNamedOpti
     where TOptions : class
 {
     private readonly IConfiguration _configuration;
+    private readonly KafkaBuilder _kafkaBuilder;
 
-    protected OptionsFromConfiguration(IConfiguration configuration)
+    protected OptionsFromConfiguration(IConfiguration configuration, KafkaBuilder kafkaBuilder)
     {
         this._configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+        this._kafkaBuilder = kafkaBuilder ?? throw new ArgumentNullException(nameof(kafkaBuilder));
     }
 
     protected abstract string ParentSectionName { get; }
@@ -33,7 +39,7 @@ internal abstract class OptionsFromConfiguration<TOptions> : IConfigureNamedOpti
 
         if (section.Exists())
         {
-            Dictionary<string, string> items = BindDictionary(section);
+            Dictionary<string, string> items = this.BindDictionary(section);
 
             this.ConfigureInternal(options, items);
         }
@@ -41,16 +47,13 @@ internal abstract class OptionsFromConfiguration<TOptions> : IConfigureNamedOpti
 
     protected abstract void ConfigureInternal(TOptions options, Dictionary<string, string> items);
 
-    private static Dictionary<string, string> BindDictionary(IConfigurationSection section)
+    private Dictionary<string, string> BindDictionary(IConfigurationSection section)
     {
         var result = new Dictionary<string, string>();
 
-        foreach (IConfigurationSection? x in section.GetChildren())
+        foreach (IConfigurationSection x in section.GetChildren().Where(x=> x.Value != null))
         {
-            if (x.Value != null)
-            {
-                result.Add(x.Key, x.Value);
-            }
+            result.Add(x.Key, KafkaConfigExtensions.ReplacePlaceholdersIfNeeded(x.Value!, this._kafkaBuilder.ConfigPlaceholders));
         }
 
         return result;

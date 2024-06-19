@@ -3,7 +3,7 @@
 using Confluent.Kafka;
 
 using Epam.Kafka.Tests.Common;
-
+using Microsoft.Extensions.Logging;
 using Shouldly;
 
 using Xunit;
@@ -52,9 +52,9 @@ public class KafkaFactoryTests : TestWithServices
     [Theory]
     [InlineData("c4", "group.id is null or whitespace.")]
     [InlineData("c5", "group.id is null or whitespace.")]
-    [InlineData(null, "Unable to create entity with null or whitespace logical name.")]
-    [InlineData("", "Unable to create entity with null or whitespace logical name.")]
-    [InlineData(" ", "Unable to create entity with null or whitespace logical name.")]
+    [InlineData(null, "Unable to create consumer with null or whitespace logical name.")]
+    [InlineData("", "Unable to create consumer with null or whitespace logical name.")]
+    [InlineData(" ", "Unable to create consumer with null or whitespace logical name.")]
     public void CreateConsumerConfigError(string? name, string expectedError)
     {
         KafkaBuilder kafkaBuilder = MockCluster.AddMockCluster(this);
@@ -104,10 +104,29 @@ public class KafkaFactoryTests : TestWithServices
         Assert.Single(config2);
     }
 
+    [Fact]
+    public void CreateConfigsWithPlaceholders()
+    {
+        MockCluster.AddMockCluster(this)
+            .WithDefaults(x =>
+            {
+                x.Producer = "placeholder";
+                x.Consumer = "placeholder";
+            }).WithConfigPlaceholders("<k123>", "qwe");
+
+        ProducerConfig p = this.KafkaFactory.CreateProducerConfig();
+        Assert.Equal("qwe qwe <MachineName2>", p.TransactionalId);
+        Assert.Single(p);
+
+        ConsumerConfig c = this.KafkaFactory.CreateConsumerConfig();
+        Assert.Equal("qwe qwe <machineName2>", c.GroupId);
+        Assert.Single(c);
+    }
+
     [Theory]
-    [InlineData(null, "Unable to create entity with null or whitespace logical name.")]
-    [InlineData("", "Unable to create entity with null or whitespace logical name.")]
-    [InlineData(" ", "Unable to create entity with null or whitespace logical name.")]
+    [InlineData(null, "Unable to create producer with null or whitespace logical name.")]
+    [InlineData("", "Unable to create producer with null or whitespace logical name.")]
+    [InlineData(" ", "Unable to create producer with null or whitespace logical name.")]
     public void CreateProducerConfigError(string? name, string expectedError)
     {
         KafkaBuilder kafkaBuilder = MockCluster.AddMockCluster(this);
@@ -168,7 +187,7 @@ public class KafkaFactoryTests : TestWithServices
     }
 
     [Theory]
-    [InlineData("", "Unable to create entity with null or whitespace logical name.")]
+    [InlineData("", "Unable to create cluster with null or whitespace logical name.")]
     [InlineData("not existing", "bootstrap.servers is null or whitespace.")]
     [InlineData("notValid", "bootstrap.servers is null or whitespace.")]
     public void CreateConsumerError(string cluster, string expectedMessage)
@@ -199,5 +218,40 @@ public class KafkaFactoryTests : TestWithServices
 
         IAdminClient dc = c1.CreateDependentAdminClient();
         Assert.NotNull(dc);
+    }
+
+    [Fact]
+    public void ConfigSecretsInLogError()
+    {
+        CollectionLoggerProvider logger = new CollectionLoggerProvider();
+        this.LoggingBuilder.AddProvider(logger);
+
+        MockCluster.AddMockCluster(this);
+
+        var config = new ProducerConfig();
+        config.Set("Sasl.OAuthBearer.Client.Secret", "anyValue");
+
+        Assert.Throws<InvalidOperationException>(() => this.KafkaFactory.CreateProducer<string, string>(config));
+
+        logger.Entries.ShouldHaveSingleItem().Value.ShouldHaveSingleItem().ShouldContain("[Sasl.OAuthBearer.Client.Secret, *******]");
+    }
+
+    [Fact]
+    public void ConfigSecretsInLog()
+    {
+        CollectionLoggerProvider logger = new CollectionLoggerProvider();
+        this.LoggingBuilder.AddProvider(logger);
+
+        MockCluster.AddMockCluster(this);
+
+        var config = new ProducerConfig();
+        config.SetDotnetLoggerCategory("Qwe");
+        config.SaslOauthbearerClientSecret = "anyValue";
+        config.Debug = "all";
+
+        IProducer<string, string> producer = this.KafkaFactory.CreateProducer<string, string>(config);
+
+        logger.Entries["Epam.Kafka.Factory"].ShouldHaveSingleItem().ShouldContain("[sasl.oauthBearer.client.secret, *******]");
+        logger.Entries["Qwe"].ShouldNotBeEmpty();
     }
 }

@@ -23,6 +23,15 @@ internal class ConsumerValidation : IValidateOptions<KafkaConsumerOptions>
             return ValidateOptionsResult.Fail("group.id is null or whitespace.");
         }
 
+        try
+        {
+            options.ConsumerConfig.GetCancellationDelayMaxMs();
+        }
+        catch (ArgumentException e)
+        {
+            return ValidateOptionsResult.Fail(e.Message);
+        }
+
         return ValidateOptionsResult.Success;
     }
 }

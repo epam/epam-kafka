@@ -1,1 +1,1 @@
-docker-compose -p kfk -f docker-compose.yml up -d
+docker-compose -p kfk -f docker-compose.yml up -d --remove-orphans --force-recreate

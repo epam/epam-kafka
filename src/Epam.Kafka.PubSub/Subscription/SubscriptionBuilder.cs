@@ -56,7 +56,7 @@ public sealed class
 
         return this;
     }
-
+    
     /// <summary>
     ///     Set factory for creation of value deserializer for consumer.
     /// </summary>
