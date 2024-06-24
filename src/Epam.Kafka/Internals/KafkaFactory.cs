@@ -25,6 +25,8 @@ internal sealed class KafkaFactory : IKafkaFactory, IDisposable
     private readonly IOptionsMonitor<KafkaFactoryOptions> _topicOptions;
     private bool _disposed;
 
+    internal HashSet<string> UsedClusters { get; } = new();
+
     public KafkaFactory(
         IOptionsMonitor<KafkaFactoryOptions> topicOptions,
         IOptionsMonitor<KafkaClusterOptions> clusterOptions,
@@ -288,6 +290,9 @@ internal sealed class KafkaFactory : IKafkaFactory, IDisposable
         cluster ??= this._topicOptions.CurrentValue.Cluster;
 
         ValidateLogicalName(cluster, "cluster");
+
+        // save cluster name for further health check
+        this.UsedClusters.Add(cluster!);
 
         try
         {
