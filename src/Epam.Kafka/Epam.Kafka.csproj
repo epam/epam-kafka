@@ -3,9 +3,9 @@
 	<PropertyGroup>
 		<TargetFrameworks>net8.0;net6.0;netstandard2.0;net462</TargetFrameworks>
 		<Description>
-			Simplify Confluent.Kafka usage by leveraging best patterns and practices:
-			* Abstraction to create various kafka related objects with fluent configuration in `IServiceCollection`.
-			* Options pattern implementation for consumer, producer, client, and schema registry configs.
+Simplify Confluent.Kafka usage by leveraging best patterns and practices:
+* Abstraction to create various kafka related objects with fluent configuration in `IServiceCollection`.
+* Options pattern implementation for consumer, producer, client, and schema registry configs.
 		</Description>
 	</PropertyGroup>
 
