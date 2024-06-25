@@ -226,7 +226,7 @@ internal sealed class KafkaFactory : IKafkaFactory, IDisposable
             {
                 var config = new ProducerConfig(clusterOptions.ClientConfig);
 
-                result = new AdminClient(this.CreateProducer<Null, Null>(config, cluster));
+                result = new AdminClient(this,config,cluster);
 
                 this._clients.Add(clusterOptions, result);
             }

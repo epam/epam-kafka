@@ -11,11 +11,12 @@ using Microsoft.Extensions.Options;
 
 namespace Epam.Kafka.HealthChecks;
 
-internal sealed class ClusterHealthCheck : IHealthCheck
+internal sealed class ClusterHealthCheck : IHealthCheck, IObserver<Error>
 {
     private readonly IKafkaFactory _kafkaFactory;
     private readonly IOptionsMonitor<ClusterHealthCheckOptions> _optionsMonitor;
     private readonly IOptionsMonitor<KafkaClusterOptions> _clusterOptionsMonitor;
+    private readonly List<Error> _errors = new();
 
     public const string NamePrefix = "Epam.Kafka.Clusters.";
 
@@ -41,11 +42,11 @@ internal sealed class ClusterHealthCheck : IHealthCheck
 
         if (options.IncludeUnused || this._kafkaFactory is not KafkaFactory kf || kf.UsedClusters.Contains(name))
         {
-            description = string.Empty;
+            description = "AdminClient: ";
 
             if (options.SkipAdminClient)
             {
-                description += "AdminClient: check skipped.";
+                description += "check skipped.";
             }
             else
             {
@@ -53,18 +54,28 @@ internal sealed class ClusterHealthCheck : IHealthCheck
 
                 try
                 {
-                    using IAdminClient client = this._kafkaFactory.GetOrCreateClient(name).CreateDependentAdminClient();
+                    using IClient client = this._kafkaFactory.GetOrCreateClient(name);
 
-                    var ac = await client
-                        .DescribeClusterAsync(new DescribeClusterOptions { RequestTimeout = context.Registration.Timeout })
+                    using var subscription = ((IObservable<Error>)client).Subscribe(this);
+                    
+                    using IAdminClient adminClient = client.CreateDependentAdminClient();
+
+                    await adminClient
+                        .DescribeClusterAsync(new DescribeClusterOptions
+                            { RequestTimeout = context.Registration.Timeout })
                         .ConfigureAwait(false);
 
-                    description += $"AdminClient: NodesCount: {ac.Nodes.Count}, ControllerHost: {ac.Controller.Host}.";
+                    description += "OK.";
                 }
                 catch (Exception e)
                 {
                     status = context.Registration.FailureStatus;
-                    description += $"AdminClient: {e.Message}.";
+                    description += $"{e.Message}.";
+
+                    if (this._errors.Count > 0)
+                    {
+                        description += " " + string.Join(", ", this._errors) + ".";
+                    }
                 }
             }
 
@@ -98,5 +109,19 @@ internal sealed class ClusterHealthCheck : IHealthCheck
         }
 
         return new HealthCheckResult(status, description);
+    }
+
+    public void OnNext(Error value)
+    {
+        this._errors.Add(value);
+    }
+
+    public void OnError(Exception error)
+    {
+    }
+
+    public void OnCompleted()
+    {
+        this._errors.Clear();
     }
 }

@@ -83,8 +83,8 @@ public class HealthCheckTests : TestWithServices
         this.Services.AddKafka(false)
             .WithClusterConfig("Sandbox").Configure(x =>
             {
-                x.ClientConfig.BootstrapServers = "any-not-existing-value-C9C75F4E-14A5-4A98-AABB-CFA1B56813F8:9092";
-                x.SchemaRegistryConfig.Url = "any-not-existing-value-C9C75F4E-14A5-4A98-AABB-CFA1B56813F8:8080";
+                x.ClientConfig.BootstrapServers = "any-not-existing-value-C9C75F4E:9092";
+                x.SchemaRegistryConfig.Url = "any-not-existing-value-C9C75F4E:8080";
             })
             .WithHealthCheck().Configure(x =>
             {
@@ -95,14 +95,14 @@ public class HealthCheckTests : TestWithServices
 
         HealthCheckResult result = await hc.CheckHealthAsync(new HealthCheckContext
         {
-            Registration = new HealthCheckRegistration("Epam.Kafka.Clusters.Sandbox", hc, HealthStatus.Unhealthy, null,
-                TimeSpan.FromSeconds(3))
+            Registration = new HealthCheckRegistration("Epam.Kafka.Clusters.Sandbox", hc, HealthStatus.Unhealthy, null, TimeSpan.FromSeconds(3))
         });
 
         Assert.NotNull(result);
 
         result.Status.ShouldBe(HealthStatus.Unhealthy);
         result.Description!.ShouldContain("AdminClient: Failed while waiting for controller: Local: Timed out.");
-        result.Description!.ShouldContain("SchemaRegistry: [http://any-not-existing-value-c9c75f4e-14a5-4a98-aabb-cfa1b56813f8:8080/] HttpRequestException: No such host is known. (any-not-existing-value-c9c75f4e-14a5-4a98-aabb-cfa1b56813f8:8080).");
+        result.Description!.ShouldContain("Failed to resolve 'any-not-existing-value-C9C75F4E:9092': No such host is known.");
+        result.Description!.ShouldContain("SchemaRegistry: [http://any-not-existing-value-c9c75f4e:8080/] HttpRequestException: No such host is known. (any-not-existing-value-c9c75f4e:8080).");
     }
 }
