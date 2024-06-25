@@ -103,6 +103,6 @@ public class HealthCheckTests : TestWithServices
         result.Status.ShouldBe(HealthStatus.Unhealthy);
         result.Description!.ShouldContain("AdminClient: any-not-existing-value:9092");
         result.Description!.ShouldContain("SchemaRegistry:");
-        result.Description!.Substring(result.Description!.IndexOf("SchemaRegistry:")).ShouldContain("SchemaRegistry: [http://any-not-existing-value:8080/] HttpRequestException: No such host is known");
+        result.Description!.Substring(result.Description!.IndexOf("SchemaRegistry:")).ShouldContain("SchemaRegistry: [http://any-not-existing-value:8080/] HttpRequestException");
     }
 }

@@ -1,6 +1,7 @@
 ﻿// Copyright © 2024 EPAM Systems
 
 using Epam.Kafka.Options;
+
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
@@ -31,7 +32,7 @@ public static class HealthCheckExtensions
     /// </remarks>
     /// <returns>The health checks options builder for further configuration.</returns>
     public static OptionsBuilder<ClusterHealthCheckOptions> WithHealthCheck(
-        this OptionsBuilder<KafkaClusterOptions> optionsBuilder, 
+        this OptionsBuilder<KafkaClusterOptions> optionsBuilder,
         IEnumerable<string>? tags = null,
         HealthStatus? failureStatus = null)
     {

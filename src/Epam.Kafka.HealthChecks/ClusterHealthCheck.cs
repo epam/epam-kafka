@@ -2,7 +2,7 @@
 
 using Confluent.Kafka;
 using Confluent.Kafka.Admin;
-
+using Confluent.SchemaRegistry;
 using Epam.Kafka.Internals;
 using Epam.Kafka.Options;
 
@@ -56,13 +56,13 @@ internal sealed class ClusterHealthCheck : IHealthCheck, IObserver<Error>
                 {
                     using IClient client = this._kafkaFactory.GetOrCreateClient(name);
 
-                    using var subscription = ((IObservable<Error>)client).Subscribe(this);
-                    
+                    using IDisposable subscription = ((IObservable<Error>)client).Subscribe(this);
+
                     using IAdminClient adminClient = client.CreateDependentAdminClient();
 
                     await adminClient
                         .DescribeClusterAsync(new DescribeClusterOptions
-                            { RequestTimeout = context.Registration.Timeout })
+                        { RequestTimeout = context.Registration.Timeout })
                         .ConfigureAwait(false);
 
                     description += "OK.";
@@ -92,7 +92,7 @@ internal sealed class ClusterHealthCheck : IHealthCheck, IObserver<Error>
                 {
                     if (this._clusterOptionsMonitor.Get(name).SchemaRegistryConfig.Any())
                     {
-                        var sr = this._kafkaFactory.GetOrCreateSchemaRegistryClient(name);
+                        ISchemaRegistryClient sr = this._kafkaFactory.GetOrCreateSchemaRegistryClient(name);
                         await sr.GetCompatibilityAsync().ConfigureAwait(false);
                         description += " SchemaRegistry: OK.";
                     }

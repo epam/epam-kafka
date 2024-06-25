@@ -226,11 +226,6 @@ internal sealed class KafkaFactory : IKafkaFactory, IDisposable
             {
                 var config = new ProducerConfig(clusterOptions.ClientConfig);
 
-                //if (!string.IsNullOrWhiteSpace(cluster))
-                //{
-                //    config.SetDotnetLoggerCategory($"Epam.Kafka.Clusters.{cluster}");
-                //}
-
                 result = new AdminClient(this, config, cluster);
 
                 this._clients.Add(clusterOptions, result);
