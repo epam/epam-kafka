@@ -59,7 +59,7 @@ internal class ClusterHealthCheck : IHealthCheck
                         .DescribeClusterAsync(new DescribeClusterOptions { RequestTimeout = context.Registration.Timeout })
                         .ConfigureAwait(false);
 
-                    description += $"AdminClient: ClusterId: {ac.ClusterId}, NodesCount: {ac.Nodes.Count}, ControllerHost: {ac.Controller.Host}.";
+                    description += $"AdminClient: NodesCount: {ac.Nodes.Count}, ControllerHost: {ac.Controller.Host}.";
                 }
                 catch (Exception e)
                 {
@@ -79,7 +79,7 @@ internal class ClusterHealthCheck : IHealthCheck
                     if (this._clusterOptionsMonitor.Get(name).SchemaRegistryConfig.Any())
                     {
                         var sr = this._kafkaFactory.GetOrCreateSchemaRegistryClient(name);
-                        await sr.GetCompatibilityAsync("health-check").ConfigureAwait(false);
+                        await sr.GetCompatibilityAsync().ConfigureAwait(false);
                         description += " SchemaRegistry: OK.";
                     }
                     else
