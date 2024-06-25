@@ -11,7 +11,7 @@ using Microsoft.Extensions.Options;
 
 namespace Epam.Kafka.HealthChecks;
 
-internal class ClusterHealthCheck : IHealthCheck
+internal sealed class ClusterHealthCheck : IHealthCheck
 {
     private readonly IKafkaFactory _kafkaFactory;
     private readonly IOptionsMonitor<ClusterHealthCheckOptions> _optionsMonitor;

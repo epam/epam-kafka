@@ -14,9 +14,9 @@ namespace Epam.Kafka.HealthChecks;
 public static class HealthCheckExtensions
 {
     /// <summary>
-    /// 
+    /// Extensions to configure kafka cluster health checks.
     /// </summary>
-    /// <param name="optionsBuilder">The <see cref="KafkaBuilder"/>.</param>
+    /// <param name="optionsBuilder">The <see cref="OptionsBuilder{KafkaClusterOptions}"/>.</param>
     /// <param name="tags">A list of tags that can be used to filter health checks.</param>
     /// <param name="failureStatus">
     ///     The <see cref="HealthStatus" /> that should be reported when the health check reports a failure. If the provided

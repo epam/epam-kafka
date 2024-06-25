@@ -5,7 +5,7 @@ using Microsoft.Extensions.Options;
 namespace Epam.Kafka.HealthChecks;
 
 /// <summary>
-/// 
+/// Options for kafka cluster health checks.
 /// </summary>
 public sealed class ClusterHealthCheckOptions : IOptions<ClusterHealthCheckOptions>
 {
@@ -20,7 +20,7 @@ public sealed class ClusterHealthCheckOptions : IOptions<ClusterHealthCheckOptio
     public bool SkipAdminClient { get; set; }
 
     /// <summary>
-    /// By default <code>false</code>. If <code>true</code> cluster will be checked even if was not used at least 1 time by default <see cref="IKafkaFactory"/> implementation.
+    /// Whether cluster will be checked even if was not used at least 1 time by default <see cref="IKafkaFactory"/> implementation. Default <code>false</code>.
     /// </summary>
     public bool IncludeUnused { get; set; }
 
