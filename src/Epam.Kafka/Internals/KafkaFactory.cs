@@ -139,7 +139,7 @@ internal sealed class KafkaFactory : IKafkaFactory, IDisposable
         {
         } // handler already set
 
-        ILogger fl =  this._loggerFactory.CreateLogger(LoggerCategoryName);
+        ILogger fl = this._loggerFactory.CreateLogger(LoggerCategoryName);
 
         try
         {
@@ -226,7 +226,12 @@ internal sealed class KafkaFactory : IKafkaFactory, IDisposable
             {
                 var config = new ProducerConfig(clusterOptions.ClientConfig);
 
-                result = new AdminClient(this,config,cluster);
+                //if (!string.IsNullOrWhiteSpace(cluster))
+                //{
+                //    config.SetDotnetLoggerCategory($"Epam.Kafka.Clusters.{cluster}");
+                //}
+
+                result = new AdminClient(this, config, cluster);
 
                 this._clients.Add(clusterOptions, result);
             }

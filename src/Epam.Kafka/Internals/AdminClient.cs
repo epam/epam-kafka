@@ -16,7 +16,7 @@ internal sealed class AdminClient : IObservable<Error>, IClient
         if (kafkaFactory == null) throw new ArgumentNullException(nameof(kafkaFactory));
         if (config == null) throw new ArgumentNullException(nameof(config));
 
-        this._client = kafkaFactory.CreateProducer<Null, Null>(config, cluster,builder => builder.SetErrorHandler(this.ErrorHandler));
+        this._client = kafkaFactory.CreateProducer<Null, Null>(config, cluster, builder => builder.SetErrorHandler(this.ErrorHandler));
     }
 
     private void ErrorHandler(IProducer<Null, Null> producer, Error error)
