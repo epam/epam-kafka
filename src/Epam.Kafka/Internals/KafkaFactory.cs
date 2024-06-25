@@ -25,6 +25,8 @@ internal sealed class KafkaFactory : IKafkaFactory, IDisposable
     private readonly IOptionsMonitor<KafkaFactoryOptions> _topicOptions;
     private bool _disposed;
 
+    internal HashSet<string> UsedClusters { get; } = new();
+
     public KafkaFactory(
         IOptionsMonitor<KafkaFactoryOptions> topicOptions,
         IOptionsMonitor<KafkaClusterOptions> clusterOptions,
@@ -137,7 +139,7 @@ internal sealed class KafkaFactory : IKafkaFactory, IDisposable
         {
         } // handler already set
 
-        ILogger fl =  this._loggerFactory.CreateLogger(LoggerCategoryName);
+        ILogger fl = this._loggerFactory.CreateLogger(LoggerCategoryName);
 
         try
         {
@@ -224,7 +226,7 @@ internal sealed class KafkaFactory : IKafkaFactory, IDisposable
             {
                 var config = new ProducerConfig(clusterOptions.ClientConfig);
 
-                result = new AdminClient(this.CreateProducer<Null, Null>(config, cluster));
+                result = new AdminClient(this, config, cluster);
 
                 this._clients.Add(clusterOptions, result);
             }
@@ -288,6 +290,9 @@ internal sealed class KafkaFactory : IKafkaFactory, IDisposable
         cluster ??= this._topicOptions.CurrentValue.Cluster;
 
         ValidateLogicalName(cluster, "cluster");
+
+        // save cluster name for further health check
+        this.UsedClusters.Add(cluster!);
 
         try
         {

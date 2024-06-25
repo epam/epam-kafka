@@ -28,6 +28,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\src\Epam.Kafka.HealthChecks\Epam.Kafka.HealthChecks.csproj" />
     <ProjectReference Include="..\..\src\Epam.Kafka.PubSub.EntityFrameworkCore\Epam.Kafka.PubSub.EntityFrameworkCore.csproj" />
     <ProjectReference Include="..\..\src\Epam.Kafka\Epam.Kafka.csproj" />
   </ItemGroup>

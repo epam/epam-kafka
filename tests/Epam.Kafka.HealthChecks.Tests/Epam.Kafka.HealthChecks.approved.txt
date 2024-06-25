@@ -1,0 +1,14 @@
+﻿namespace Epam.Kafka.HealthChecks
+{
+    public sealed class ClusterHealthCheckOptions : Microsoft.Extensions.Options.IOptions<Epam.Kafka.HealthChecks.ClusterHealthCheckOptions>
+    {
+        public ClusterHealthCheckOptions() { }
+        public bool IncludeUnused { get; set; }
+        public bool SkipAdminClient { get; set; }
+        public bool SkipSchemaRegistry { get; set; }
+    }
+    public static class HealthCheckExtensions
+    {
+        public static Microsoft.Extensions.Options.OptionsBuilder<Epam.Kafka.HealthChecks.ClusterHealthCheckOptions> WithHealthCheck(this Microsoft.Extensions.Options.OptionsBuilder<Epam.Kafka.Options.KafkaClusterOptions> optionsBuilder, System.Collections.Generic.IEnumerable<string>? tags = null, Microsoft.Extensions.Diagnostics.HealthChecks.HealthStatus? failureStatus = default) { }
+    }
+}

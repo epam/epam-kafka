@@ -1,7 +1,7 @@
 ﻿// Copyright © 2024 EPAM Systems
 
 using Confluent.Kafka;
-
+using Epam.Kafka.HealthChecks;
 using Epam.Kafka.PubSub;
 using Epam.Kafka.PubSub.Common.Pipeline;
 using Epam.Kafka.PubSub.EntityFrameworkCore;
@@ -36,7 +36,7 @@ internal static class Program
 
             KafkaBuilder kafkaBuilder = services.AddKafka()
                 .WithConfigPlaceholders("<EnvironmentName>", context.HostingEnvironment.EnvironmentName);
-            
+
             kafkaBuilder.WithPubSubSummaryHealthCheck();
 
             kafkaBuilder.WithClusterConfig("Sandbox").Configure(options =>
@@ -44,6 +44,9 @@ internal static class Program
                 // For demo purposes run Mock server instead of real one and create required topics.
                 // Also it is possible to run real kafka cluster in docker using provided 'docker-compose.yml' file.
                 options.ClientConfig.BootstrapServers = RunMockServer();
+            }).WithHealthCheck().Configure(options =>
+            {
+                options.SkipAdminClient = true;
             });
 
             services.AddDbContext<SampleDbContext>(x => x.UseInMemoryDatabase("sample"));
