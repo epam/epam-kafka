@@ -30,11 +30,17 @@ public static class HealthCheckExtensions
     ///     to register the health check.
     /// </remarks>
     /// <returns>The health checks options builder for further configuration.</returns>
-    public static OptionsBuilder<ClusterHealthCheckOptions> WithHealthCheck(this OptionsBuilder<KafkaClusterOptions> optionsBuilder, 
+    public static OptionsBuilder<ClusterHealthCheckOptions> WithHealthCheck(
+        this OptionsBuilder<KafkaClusterOptions> optionsBuilder, 
         IEnumerable<string>? tags = null,
         HealthStatus? failureStatus = null)
     {
         if (optionsBuilder == null) throw new ArgumentNullException(nameof(optionsBuilder));
+
+        if (string.IsNullOrWhiteSpace(optionsBuilder.Name))
+        {
+            throw new ArgumentException("Null or empty cluster name.", nameof(optionsBuilder));
+        }
 
         optionsBuilder.Services.TryAddTransient<ClusterHealthCheck>();
 
