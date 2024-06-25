@@ -83,8 +83,8 @@ public class HealthCheckTests : TestWithServices
         this.Services.AddKafka(false)
             .WithClusterConfig("Sandbox").Configure(x =>
             {
-                x.ClientConfig.BootstrapServers = "any-not-existing-value-C9C75F4E:9092";
-                x.SchemaRegistryConfig.Url = "any-not-existing-value-C9C75F4E:8080";
+                x.ClientConfig.BootstrapServers = "any-not-existing-value:9092";
+                x.SchemaRegistryConfig.Url = "any-not-existing-value:8080";
             })
             .WithHealthCheck().Configure(x =>
             {
@@ -101,8 +101,7 @@ public class HealthCheckTests : TestWithServices
         Assert.NotNull(result);
 
         result.Status.ShouldBe(HealthStatus.Unhealthy);
-        result.Description!.ShouldContain("AdminClient: Failed while waiting for controller: Local: Timed out.");
-        result.Description!.ShouldContain("Failed to resolve 'any-not-existing-value-C9C75F4E:9092': No such host is known.");
-        result.Description!.ShouldContain("SchemaRegistry: [http://any-not-existing-value-c9c75f4e:8080/] HttpRequestException: No such host is known. (any-not-existing-value-c9c75f4e:8080).");
+        result.Description!.ShouldContain("AdminClient: any-not-existing-value:9092");
+        result.Description!.ShouldContain("SchemaRegistry: [http://any-not-existing-value:8080/] HttpRequestException: No such host is known. (any-not-existing-value:8080).");
     }
 }

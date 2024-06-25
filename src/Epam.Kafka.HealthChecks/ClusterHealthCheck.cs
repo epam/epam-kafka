@@ -70,11 +70,14 @@ internal sealed class ClusterHealthCheck : IHealthCheck, IObserver<Error>
                 catch (Exception e)
                 {
                     status = context.Registration.FailureStatus;
-                    description += $"{e.Message}.";
 
                     if (this._errors.Count > 0)
                     {
-                        description += " " + string.Join(", ", this._errors) + ".";
+                        description += string.Join(", ", this._errors) + ".";
+                    }
+                    else
+                    {
+                        description += $"{e.Message}.";
                     }
                 }
             }
