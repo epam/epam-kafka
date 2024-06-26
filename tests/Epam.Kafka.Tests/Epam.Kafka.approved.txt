@@ -57,6 +57,17 @@ namespace Epam.Kafka
     {
         public static Epam.Kafka.KafkaBuilder AddKafka(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, bool useConfiguration = true) { }
     }
+    public class Statistics
+    {
+        public Statistics() { }
+        [System.Text.Json.Serialization.JsonPropertyName("client_id")]
+        public string ClientId { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("rxmsgs")]
+        public long ConsumedMessagesTotal { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("txmsgs")]
+        public long TransmittedMessagesTotal { get; set; }
+        public static Epam.Kafka.Statistics FromJson(string json) { }
+    }
 }
 namespace Epam.Kafka.Options
 {

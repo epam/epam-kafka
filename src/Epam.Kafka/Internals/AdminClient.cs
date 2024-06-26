@@ -4,24 +4,59 @@ using Confluent.Kafka;
 
 namespace Epam.Kafka.Internals;
 
-internal sealed class AdminClient : IObservable<Error>, IClient
+internal sealed class AdminClient : IObservable<Error>, IObservable<Statistics>, IClient
 {
 #pragma warning disable CA2213 // See comments for Dispose() method.
     private readonly IClient _client;
 #pragma warning restore CA2213
-    private readonly List<IObserver<Error>> _observers = new();
+    private readonly List<IObserver<Error>> _errorObservers = new();
+    private readonly List<IObserver<Statistics>> _statObservers = new();
 
     public AdminClient(IKafkaFactory kafkaFactory, ProducerConfig config, string? cluster)
     {
         if (kafkaFactory == null) throw new ArgumentNullException(nameof(kafkaFactory));
         if (config == null) throw new ArgumentNullException(nameof(config));
 
-        this._client = kafkaFactory.CreateProducer<Null, Null>(config, cluster, builder => builder.SetErrorHandler(this.ErrorHandler));
+        this._client = kafkaFactory.CreateProducer<Null, Null>(config, cluster, builder =>
+        {
+            builder.SetErrorHandler(this.ErrorHandler);
+            builder.SetStatisticsHandler(this.StatisticsHandler);
+        });
+    }
+
+    private void StatisticsHandler(IProducer<Null, Null> producer, string json)
+    {
+        // don't try to parse if no subscribers
+        if (this._statObservers.Count <= 0)
+        {
+            return;
+        }
+
+        Statistics value;
+
+        try
+        {
+            value = Statistics.FromJson(json);
+        }
+        catch (Exception e) when(e is ArgumentNullException or ArgumentException)
+        {
+            foreach (IObserver<Statistics> observer in this._statObservers)
+            {
+                observer.OnError(e);
+            }
+
+            return;
+        }
+
+        foreach (IObserver<Statistics> observer in this._statObservers)
+        {
+            observer.OnNext(value);
+        }
     }
 
     private void ErrorHandler(IProducer<Null, Null> producer, Error error)
     {
-        foreach (IObserver<Error> observer in this._observers)
+        foreach (IObserver<Error> observer in this._errorObservers)
         {
             observer.OnNext(error);
         }
@@ -56,34 +91,44 @@ internal sealed class AdminClient : IObservable<Error>, IClient
         }
         finally
         {
-            foreach (var item in this._observers.ToArray())
+            foreach (var item in this._errorObservers.ToArray())
             {
-                if (this._observers.Contains(item))
+                if (this._errorObservers.Contains(item))
                 {
                     item.OnCompleted();
                 }
             }
 
-            this._observers.Clear();
+            this._errorObservers.Clear();
         }
     }
 
     public IDisposable Subscribe(IObserver<Error> observer)
     {
-        if (!this._observers.Contains(observer))
+        if (!this._errorObservers.Contains(observer))
         {
-            this._observers.Add(observer);
+            this._errorObservers.Add(observer);
         }
 
-        return new Unsubscriber(this._observers, observer);
+        return new Unsubscriber<Error>(this._errorObservers, observer);
+    }
+    
+    public IDisposable Subscribe(IObserver<Statistics> observer)
+    {
+        if (!this._statObservers.Contains(observer))
+        {
+            this._statObservers.Add(observer);
+        }
+
+        return new Unsubscriber<Statistics>(this._statObservers, observer);
     }
 
-    private class Unsubscriber : IDisposable
+    private class Unsubscriber<T> : IDisposable
     {
-        private readonly List<IObserver<Error>> _observers;
-        private readonly IObserver<Error> _observer;
+        private readonly List<IObserver<T>> _observers;
+        private readonly IObserver<T> _observer;
 
-        public Unsubscriber(List<IObserver<Error>> observers, IObserver<Error> observer)
+        public Unsubscriber(List<IObserver<T>> observers, IObserver<T> observer)
         {
             this._observers = observers;
             this._observer = observer;
