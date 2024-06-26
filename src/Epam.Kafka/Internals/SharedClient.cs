@@ -6,16 +6,19 @@ namespace Epam.Kafka.Internals;
 
 internal sealed class SharedClient : ISharedClient
 {
+    public const string ProducerName = "Shared";
+
 #pragma warning disable CA2213 // See comments for Dispose() method.
     private readonly IClient _client;
 #pragma warning restore CA2213
     private readonly List<IObserver<Error>> _errorObservers = new();
     private readonly List<IObserver<Statistics>> _statObservers = new();
 
-    public SharedClient(IKafkaFactory kafkaFactory, ProducerConfig config, string? cluster)
+    public SharedClient(IKafkaFactory kafkaFactory, string? cluster)
     {
         if (kafkaFactory == null) throw new ArgumentNullException(nameof(kafkaFactory));
-        if (config == null) throw new ArgumentNullException(nameof(config));
+
+        var config = kafkaFactory.CreateProducerConfig(ProducerName);
 
         this._client = kafkaFactory.CreateProducer<Null, Null>(config, cluster, builder =>
         {
