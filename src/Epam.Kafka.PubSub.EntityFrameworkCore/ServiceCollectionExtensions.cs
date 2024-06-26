@@ -3,7 +3,9 @@
 #if EF6
 using Epam.Kafka.PubSub.EntityFramework6.Subscription;
 using Epam.Kafka.PubSub.EntityFramework6.Subscription.State;
+
 using System.Data.Entity;
+
 #else
 using Epam.Kafka.PubSub.EntityFrameworkCore.Subscription;
 using Epam.Kafka.PubSub.EntityFrameworkCore.Subscription.State;

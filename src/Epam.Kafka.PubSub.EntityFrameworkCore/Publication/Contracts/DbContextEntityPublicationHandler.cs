@@ -5,6 +5,7 @@ using Epam.Kafka.PubSub.Publication;
 #if EF6
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
+
 #else
 using Microsoft.EntityFrameworkCore;
 #endif

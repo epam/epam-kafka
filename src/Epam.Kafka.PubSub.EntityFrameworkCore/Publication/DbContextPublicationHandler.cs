@@ -5,7 +5,9 @@ using Epam.Kafka.PubSub.Publication;
 #if EF6
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
+
 using TEntry = System.Data.Entity.Infrastructure.DbEntityEntry;
+
 #else
 using Microsoft.EntityFrameworkCore;
 using TEntry = Microsoft.EntityFrameworkCore.ChangeTracking.EntityEntry;
@@ -103,7 +105,7 @@ public abstract class
                 throw;
             }
 
-            foreach (var entry in exception.Entries)
+            foreach (TEntry? entry in exception.Entries)
             {
                 entry.State = EntityState.Detached;
 

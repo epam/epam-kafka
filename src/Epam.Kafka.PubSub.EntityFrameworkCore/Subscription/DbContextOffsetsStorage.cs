@@ -1,10 +1,12 @@
 ﻿// Copyright © 2024 EPAM Systems
 
 using Confluent.Kafka;
+
 using Epam.Kafka.PubSub.Subscription;
 
 #if EF6
 using Epam.Kafka.PubSub.EntityFramework6.Subscription.State;
+
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
 #else
@@ -139,7 +141,7 @@ internal sealed class DbContextOffsetsStorage<TContext> : IExternalOffsetsStorag
 #else
                                  proposedValues.Properties
 #endif
-                                 )
+                                )
                         {
                             proposedValues[property] = databaseValues[property];
                         }
