@@ -43,8 +43,6 @@ public class HealthCheckTests : TestWithServices
                 TimeSpan.FromSeconds(20))
         });
 
-        Assert.NotNull(result);
-
         result.Status.ShouldBe(HealthStatus.Healthy);
         result.Description!.ShouldContain("Not used by application");
     }
@@ -71,8 +69,6 @@ public class HealthCheckTests : TestWithServices
                 TimeSpan.FromSeconds(20))
         });
 
-        Assert.NotNull(result);
-
         result.Status.ShouldBe(HealthStatus.Healthy);
         result.Description!.ShouldContain("AdminClient: check skipped. SchemaRegistry: not configured.");
     }
@@ -98,11 +94,9 @@ public class HealthCheckTests : TestWithServices
             Registration = new HealthCheckRegistration("Epam.Kafka.Clusters.Sandbox", hc, HealthStatus.Unhealthy, null, TimeSpan.FromSeconds(3))
         });
 
-        Assert.NotNull(result);
-
         result.Status.ShouldBe(HealthStatus.Unhealthy);
         result.Description!.ShouldContain("AdminClient: any-not-existing-value:9092");
         result.Description!.ShouldContain("SchemaRegistry:");
-        result.Description!.Substring(result.Description!.IndexOf("SchemaRegistry:")).ShouldContain("SchemaRegistry: [http://any-not-existing-value:8080/] HttpRequestException");
+        result.Description!.Substring(result.Description!.IndexOf("SchemaRegistry:",StringComparison.Ordinal)).ShouldContain("SchemaRegistry: [http://any-not-existing-value:8080/] HttpRequestException");
     }
 }
