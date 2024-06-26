@@ -1,6 +1,5 @@
 ﻿// Copyright © 2024 EPAM Systems
 
-
 using Epam.Kafka.PubSub.EntityFramework6.Subscription.State;
 
 using Epam.Kafka.Tests.Common;

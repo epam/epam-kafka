@@ -2,8 +2,8 @@
 
 using Confluent.Kafka;
 
-
 using Epam.Kafka.PubSub.Subscription;
+
 using Microsoft.Extensions.DependencyInjection;
 
 using Shouldly;

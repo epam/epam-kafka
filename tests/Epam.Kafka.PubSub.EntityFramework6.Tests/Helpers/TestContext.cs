@@ -1,9 +1,9 @@
 ﻿// Copyright © 2024 EPAM Systems
 
+using Epam.Kafka.PubSub.EntityFramework6.Subscription.State;
+
 using System.Data.Common;
 using System.Data.Entity;
-
-using Epam.Kafka.PubSub.EntityFramework6.Subscription.State;
 
 namespace Epam.Kafka.PubSub.EntityFramework6.Tests.Helpers;
 

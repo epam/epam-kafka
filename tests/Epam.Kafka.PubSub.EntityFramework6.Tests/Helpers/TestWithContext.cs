@@ -1,10 +1,12 @@
 ﻿// Copyright © 2024 EPAM Systems
 
 using Effort.Provider;
+
 using Epam.Kafka.Tests.Common;
 
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+
 using Xunit.Abstractions;
 
 namespace Epam.Kafka.PubSub.EntityFramework6.Tests.Helpers;
