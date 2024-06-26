@@ -11,6 +11,7 @@ using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
 #else
 using Epam.Kafka.PubSub.EntityFrameworkCore.Subscription.State;
+
 using Microsoft.EntityFrameworkCore;
 #endif
 

@@ -10,7 +10,9 @@ using TEntry = System.Data.Entity.Infrastructure.DbEntityEntry;
 
 #else
 using Microsoft.EntityFrameworkCore;
+
 using TEntry = Microsoft.EntityFrameworkCore.ChangeTracking.EntityEntry;
+
 #endif
 using Microsoft.Extensions.Logging;
 
@@ -131,7 +133,7 @@ public abstract class
 #if EF6
             return null; // Unable to get it for EF6
 #else
-        return entry.Metadata.FindPrimaryKey()?.Properties.Select(x => entry.CurrentValues[x]).ToArray().FirstOrDefault();
+            return entry.Metadata.FindPrimaryKey()?.Properties.Select(x => entry.CurrentValues[x]).ToArray().FirstOrDefault();
 #endif
         }
         // 

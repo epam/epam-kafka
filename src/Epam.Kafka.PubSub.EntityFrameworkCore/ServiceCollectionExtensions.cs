@@ -9,7 +9,9 @@ using System.Data.Entity;
 #else
 using Epam.Kafka.PubSub.EntityFrameworkCore.Subscription;
 using Epam.Kafka.PubSub.EntityFrameworkCore.Subscription.State;
+
 using Microsoft.EntityFrameworkCore;
+
 #endif
 using Epam.Kafka.PubSub.Subscription;
 
