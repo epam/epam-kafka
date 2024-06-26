@@ -21,7 +21,7 @@ public abstract class PubSubBuilder<TBuilder, TOptions>
     {
         this.Builder = builder ?? throw new ArgumentNullException(nameof(builder));
         this.Key = name ?? throw new ArgumentNullException(nameof(name));
-        
+
         this._options = builder.Services.AddOptions<TOptions>(this.Key)
             .Configure(x =>
             {

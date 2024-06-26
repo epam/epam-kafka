@@ -4,10 +4,11 @@ using Epam.Kafka.PubSub.Common;
 using Epam.Kafka.PubSub.Common.HealthChecks;
 using Epam.Kafka.PubSub.Publication;
 using Epam.Kafka.PubSub.Publication.Options;
+using Epam.Kafka.PubSub.Publication.Pipeline;
 using Epam.Kafka.PubSub.Subscription;
 using Epam.Kafka.PubSub.Subscription.Options;
 using Epam.Kafka.PubSub.Subscription.Pipeline;
-using Epam.Kafka.PubSub.Publication.Pipeline;
+
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Diagnostics.HealthChecks;

@@ -1,6 +1,7 @@
 ﻿// Copyright © 2024 EPAM Systems
 
 using Confluent.Kafka;
+
 using Epam.Kafka.PubSub.Subscription.Options;
 using Epam.Kafka.PubSub.Subscription.Topics;
 using Epam.Kafka.PubSub.Utils;
@@ -30,7 +31,7 @@ internal sealed class ExternalState<TOffsetsStorage> : BatchState
 
         var reset = new List<TopicPartitionOffset>();
         var assign = new List<TopicPartitionOffset>();
-        
+
         foreach (TopicPartitionOffset item in state)
         {
             // existing assignment, check if offset reset

@@ -102,7 +102,7 @@ internal sealed class SubscriptionTopicWrapper<TKey, TValue> : IDisposable
 
         if (state.Any(x => x.Offset == Offset.Unset))
         {
-            state = this.AutoResetOffsets(state, out var toCommit);
+            state = this.AutoResetOffsets(state, out List<TopicPartitionOffset>? toCommit);
 
             if (toCommit.Count > 0)
             {
@@ -118,13 +118,13 @@ internal sealed class SubscriptionTopicWrapper<TKey, TValue> : IDisposable
         toReset = new List<TopicPartitionOffset>(offsets.Count);
         List<TopicPartitionOffset> result = new(offsets.Count);
 
-        foreach (var tpo in offsets)
+        foreach (TopicPartitionOffset tpo in offsets)
         {
             if (tpo.Offset == Offset.Unset)
             {
                 TopicPartition topicPartition = tpo.TopicPartition;
 
-                var q = this.Consumer.QueryWatermarkOffsets(topicPartition, TimeSpan.FromSeconds(5));
+                WatermarkOffsets q = this.Consumer.QueryWatermarkOffsets(topicPartition, TimeSpan.FromSeconds(5));
 
                 switch (this._autoOffsetReset)
                 {
@@ -271,9 +271,9 @@ internal sealed class SubscriptionTopicWrapper<TKey, TValue> : IDisposable
 #pragma warning disable CA1031 // can't throw exceptions in handler callback because it triggers incorrect state in librdkafka and some times leads to app crash. 
                 try
                 {
-                    var state = this.ExternalState.Invoke(tp);
+                    IReadOnlyCollection<TopicPartitionOffset> state = this.ExternalState.Invoke(tp);
 
-                    foreach (var tpo in state)
+                    foreach (TopicPartitionOffset tpo in state)
                     {
                         this.Offsets[tpo.TopicPartition] = tpo.Offset;
                     }

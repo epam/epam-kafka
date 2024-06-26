@@ -1,6 +1,7 @@
 ﻿// Copyright © 2024 EPAM Systems
 
 using Confluent.Kafka;
+
 using Epam.Kafka.PubSub.Subscription.Topics;
 using Epam.Kafka.PubSub.Utils;
 
@@ -50,7 +51,7 @@ internal class CombinedState<TOffsetsStorage> : InternalKafkaState
             topic.OnReset(reset);
         }
     }
-    
+
     protected override IReadOnlyCollection<TopicPartitionOffset> CommitState<TKey, TValue>(
         SubscriptionTopicWrapper<TKey, TValue> topic,
         IReadOnlyCollection<TopicPartitionOffset> offsets,
