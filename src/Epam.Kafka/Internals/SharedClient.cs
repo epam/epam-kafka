@@ -4,7 +4,7 @@ using Confluent.Kafka;
 
 namespace Epam.Kafka.Internals;
 
-internal sealed class AdminClient : IObservable<Error>, IObservable<Statistics>, IClient
+internal sealed class SharedClient : ISharedClient
 {
 #pragma warning disable CA2213 // See comments for Dispose() method.
     private readonly IClient _client;
@@ -12,7 +12,7 @@ internal sealed class AdminClient : IObservable<Error>, IObservable<Statistics>,
     private readonly List<IObserver<Error>> _errorObservers = new();
     private readonly List<IObserver<Statistics>> _statObservers = new();
 
-    public AdminClient(IKafkaFactory kafkaFactory, ProducerConfig config, string? cluster)
+    public SharedClient(IKafkaFactory kafkaFactory, ProducerConfig config, string? cluster)
     {
         if (kafkaFactory == null) throw new ArgumentNullException(nameof(kafkaFactory));
         if (config == null) throw new ArgumentNullException(nameof(config));
