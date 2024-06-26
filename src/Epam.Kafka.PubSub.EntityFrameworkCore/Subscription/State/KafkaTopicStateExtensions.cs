@@ -31,8 +31,8 @@ public static class KafkaTopicStateExtensions
         {
             throw new ArgumentNullException(nameof(builder));
         }
-        
-        var e = builder.Entity<KafkaTopicState>();
+
+        ETBuilder e = builder.Entity<KafkaTopicState>();
 
         e.HasKey(x => new { x.Topic, x.Partition, x.ConsumerGroup });
 

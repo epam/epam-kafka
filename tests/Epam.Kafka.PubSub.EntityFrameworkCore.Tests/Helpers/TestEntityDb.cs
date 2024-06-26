@@ -12,7 +12,6 @@ namespace Epam.Kafka.PubSub.EntityFrameworkCore.Tests.Helpers;
 
 using System.ComponentModel.DataAnnotations;
 
-
 public class TestEntityDb : IKafkaPublicationEntity
 {
     public long Id { get; set; }

@@ -1,11 +1,14 @@
 ﻿// Copyright © 2024 EPAM Systems
 
 using Confluent.Kafka;
+
 using Epam.Kafka.Tests.Common;
+
 using Microsoft.Extensions.Logging;
 
 #if EF6
 using Epam.Kafka.PubSub.EntityFramework6.Subscription;
+
 using System.Data.Entity;
 
 namespace Epam.Kafka.PubSub.EntityFramework6.Tests.Helpers;

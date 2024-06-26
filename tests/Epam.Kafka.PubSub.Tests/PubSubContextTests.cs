@@ -27,7 +27,7 @@ public class PubSubContextTests
             HandlerTimeout = TimeSpan.FromMilliseconds(5 * delay)
         };
 
-        PubSubContext context = new ();
+        PubSubContext context = new();
         context.AddSubscription("any");
         ISyncPolicy policy = context.GetHandlerPolicy(options);
 

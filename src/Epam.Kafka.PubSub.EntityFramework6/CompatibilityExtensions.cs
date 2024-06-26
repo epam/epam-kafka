@@ -8,9 +8,15 @@ namespace Epam.Kafka.PubSub.EntityFramework6;
 
 internal static class CompatibilityExtensions
 {
-    public static IQueryable<T> AsTracking<T>(this IQueryable<T> queryable) => queryable;
+    public static IQueryable<T> AsTracking<T>(this IQueryable<T> queryable)
+    {
+        return queryable;
+    }
 
-    public static int SaveChanges(this DbContext context, bool acceptAllChangesOnSuccess) => context.SaveChanges();
+    public static int SaveChanges(this DbContext context, bool acceptAllChangesOnSuccess)
+    {
+        return context.SaveChanges();
+    }
 
     public static void Add(this DbContext context, object entity)
     {

@@ -3,7 +3,6 @@
 using Confluent.Kafka;
 
 using Epam.Kafka.PubSub.Publication;
-using Epam.Kafka.PubSub.Subscription;
 using Epam.Kafka.Tests.Common;
 
 using Microsoft.Extensions.DependencyInjection;

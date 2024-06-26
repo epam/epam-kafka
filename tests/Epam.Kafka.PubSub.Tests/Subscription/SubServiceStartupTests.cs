@@ -1,7 +1,5 @@
 ﻿// Copyright © 2024 EPAM Systems
 
-using Confluent.Kafka;
-
 using Epam.Kafka.PubSub.Subscription.Options;
 using Epam.Kafka.PubSub.Tests.Helpers;
 using Epam.Kafka.Tests.Common;
@@ -63,7 +61,7 @@ public class SubServiceStartupTests : TestWithServices
     [Fact]
     public async Task ErrorInSerializerFactory()
     {
-        TestException exception = new ();
+        TestException exception = new();
 
         using TestObserver observer = new(this, 1);
 

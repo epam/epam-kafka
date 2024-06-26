@@ -1,6 +1,7 @@
 ﻿// Copyright © 2024 EPAM Systems
 
 using Confluent.Kafka;
+
 using Epam.Kafka.PubSub.Subscription.Topics;
 using Epam.Kafka.PubSub.Utils;
 
@@ -37,7 +38,9 @@ internal static class ExternalStateExtensions
 
             // compare actual and expected value to understand if offset was committed or reset
             if (expected.Offset == item.Offset)
+            {
                 committed.Add(expected);
+            }
             else
             {
                 TopicPartitionOffset tpo = new(item.TopicPartition, item.Offset);

@@ -46,9 +46,9 @@ internal class PublicationTopicWrapper<TKey, TValue> : IPublicationTopicWrapper<
                 config.SocketTimeoutMs = config.TransactionTimeoutMs - 1000;
             }
 
-            if (!monitor.TryRegisterTransactionId(config, out var existing))
+            if (!monitor.TryRegisterTransactionId(config, out string? existing))
             {
-                InvalidOperationException exception = new InvalidOperationException(
+                var exception = new InvalidOperationException(
                     $"Unable to use '{config.TransactionalId}' transactional.id in '{monitor.Name}' publication because it already used by '{existing}'.");
                 exception.DoNotRetryBatch();
 

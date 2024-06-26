@@ -18,7 +18,7 @@ internal abstract class PubSubHealthCheck : IHealthCheck
     protected PubSubOptions Options { get; }
     protected virtual DateTime UtcNow => DateTime.UtcNow;
 
-    public Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = new ())
+    public Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = new())
     {
         PipelineMonitor monitor = this.GetPipelineMonitor();
 

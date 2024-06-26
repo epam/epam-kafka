@@ -1,6 +1,7 @@
 ﻿// Copyright © 2024 EPAM Systems
 
 using Confluent.Kafka;
+
 using Epam.Kafka.PubSub.Subscription.Topics;
 using Epam.Kafka.PubSub.Utils;
 
@@ -25,7 +26,7 @@ internal abstract class BatchState
 
         cancellationToken.ThrowIfCancellationRequested();
 
-        var batch = topic.GetBatch(activitySpan, cancellationToken);
+        IReadOnlyCollection<ConsumeResult<TKey, TValue>> batch = topic.GetBatch(activitySpan, cancellationToken);
 
         // try to throw handler assign exception after read to be able to do it after potential re-balance in same batch.
         topic.ThrowIfNeeded();

@@ -24,7 +24,6 @@ using Epam.Kafka.PubSub.Tests.Helpers;
 namespace Epam.Kafka.PubSub.EntityFrameworkCore.Tests;
 #endif
 
-
 public class DbContextEntityPublicationHandlerTests : TestWithContext
 {
     public DbContextEntityPublicationHandlerTests(ITestOutputHelper output) : base(output)

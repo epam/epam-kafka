@@ -231,7 +231,7 @@ internal class PublicationBackgroundService<TKey, TValue, THandler> : PubSubBack
             }
             catch (Exception e2)
             {
-                AggregateException exception = new AggregateException(e1, e2);
+                var exception = new AggregateException(e1, e2);
                 exception.DoNotRetryBatch();
 
                 throw exception;

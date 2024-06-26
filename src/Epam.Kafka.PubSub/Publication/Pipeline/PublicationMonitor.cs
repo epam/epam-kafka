@@ -1,10 +1,11 @@
 ﻿// Copyright © 2024 EPAM Systems
 
-using System.Collections.Concurrent;
 using Confluent.Kafka;
 
 using Epam.Kafka.PubSub.Common;
 using Epam.Kafka.PubSub.Common.Pipeline;
+
+using System.Collections.Concurrent;
 
 namespace Epam.Kafka.PubSub.Publication.Pipeline;
 
@@ -48,7 +49,7 @@ public class PublicationMonitor : PubSubMonitor<PublicationBatchResult>
 
         if (!result)
         {
-            existingName = ids[id]?.Name;
+            existingName = ids[id].Name;
         }
 
         return result;

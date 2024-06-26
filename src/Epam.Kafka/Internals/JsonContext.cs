@@ -8,5 +8,5 @@ namespace Epam.Kafka.Internals;
 [JsonSerializable(typeof(Statistics))]
 internal partial class JsonContext : JsonSerializerContext
 {
-    
+
 }

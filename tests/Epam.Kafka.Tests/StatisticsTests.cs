@@ -1,6 +1,7 @@
 ﻿// Copyright © 2024 EPAM Systems
 
 using Shouldly;
+
 using Xunit;
 
 namespace Epam.Kafka.Tests;
@@ -18,7 +19,7 @@ public class StatisticsTests
     [Fact]
     public void ParseOk()
     {
-        Statistics value = Statistics.FromJson(
+        var value = Statistics.FromJson(
 @"{
     ""txmsgs"": 5,
     ""rxmsgs"": 4

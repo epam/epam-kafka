@@ -3,7 +3,9 @@
 using Confluent.Kafka;
 
 using Epam.Kafka.Tests.Common;
+
 using Microsoft.Extensions.Logging;
+
 using Shouldly;
 
 using Xunit;
@@ -231,7 +233,7 @@ public class KafkaFactoryTests : TestWithServices
     [Fact]
     public void ConfigSecretsInLogError()
     {
-        CollectionLoggerProvider logger = new CollectionLoggerProvider();
+        var logger = new CollectionLoggerProvider();
         this.LoggingBuilder.AddProvider(logger);
 
         MockCluster.AddMockCluster(this);
@@ -247,7 +249,7 @@ public class KafkaFactoryTests : TestWithServices
     [Fact]
     public void ConfigSecretsInLog()
     {
-        CollectionLoggerProvider logger = new CollectionLoggerProvider();
+        var logger = new CollectionLoggerProvider();
         this.LoggingBuilder.AddProvider(logger);
 
         MockCluster.AddMockCluster(this);

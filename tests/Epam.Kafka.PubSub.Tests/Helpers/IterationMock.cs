@@ -41,7 +41,7 @@ public abstract class IterationMock<T>
 
     public void Verify(bool noOther = true)
     {
-        foreach (var mock in this._iterations.Values)
+        foreach (Mock<T> mock in this._iterations.Values)
         {
             mock.VerifyAll();
             if (noOther)
