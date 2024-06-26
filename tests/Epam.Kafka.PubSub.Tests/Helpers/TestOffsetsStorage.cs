@@ -1,9 +1,11 @@
 ﻿// Copyright © 2024 EPAM Systems
 
 using Confluent.Kafka;
+
 using Epam.Kafka.PubSub.Subscription;
 
 using Moq;
+using Moq.Language.Flow;
 
 namespace Epam.Kafka.PubSub.Tests.Helpers;
 
@@ -89,7 +91,7 @@ public class TestOffsetsStorage : IterationMock<TestOffsetsStorage.ITestExternal
 
         foreach (TopicPartitionOffset? offset in offsets.OrderBy(x => x.Topic).ThenBy(x => x.Partition.Value))
         {
-            var setup = mock.Setup(x =>
+            ISetup<ITestExternalState, TopicPartitionOffset> setup = mock.Setup(x =>
                 x.CommitOrReset(
                     It.Is<TopicPartitionOffset>(v =>
                         v.Topic == offset.TopicPartition.Topic &&
