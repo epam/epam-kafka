@@ -46,5 +46,5 @@ public sealed class CollectionLoggerProvider : ILoggerProvider
             return null;
         }
     }
-    
+
 }

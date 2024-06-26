@@ -1,7 +1,9 @@
 ﻿// Copyright © 2024 EPAM Systems
 
 using Confluent.Kafka;
+
 using Shouldly;
+
 using Xunit;
 
 namespace Epam.Kafka.Tests;
@@ -11,7 +13,7 @@ public class KafkaConfigExtensionsTests
     [Fact]
     public void CancellationDelayMaxMs()
     {
-        ConsumerConfig cfg = new ConsumerConfig();
+        var cfg = new ConsumerConfig();
         int defValue = cfg.GetCancellationDelayMaxMs();
 
         Assert.Equal(100, defValue);
@@ -42,7 +44,7 @@ public class KafkaConfigExtensionsTests
     [Fact]
     public void LoggerCategory()
     {
-        ConsumerConfig cfg = new ConsumerConfig();
+        var cfg = new ConsumerConfig();
         string defValue = cfg.GetDotnetLoggerCategory();
 
         Assert.Equal("Epam.Kafka.DefaultLogHandler", defValue);
@@ -59,12 +61,12 @@ public class KafkaConfigExtensionsTests
     }
 
     [Theory]
-    [InlineData("qwe","qwe")]
-    [InlineData("<qwe>","123")]
-    [InlineData("a<qwe>b<QWE>c","a123b123c")]
+    [InlineData("qwe", "qwe")]
+    [InlineData("<qwe>", "123")]
+    [InlineData("a<qwe>b<QWE>c", "a123b123c")]
     public void Clone(string clientId, string expected)
     {
-        ConsumerConfig cfg = new ConsumerConfig { ClientId = clientId };
+        var cfg = new ConsumerConfig { ClientId = clientId };
 
         ConsumerConfig result = cfg.Clone(new Dictionary<string, string>()
         {

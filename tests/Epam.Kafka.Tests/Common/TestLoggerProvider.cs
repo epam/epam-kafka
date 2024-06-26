@@ -1,6 +1,7 @@
 ﻿// Copyright © 2024 EPAM Systems
 
 using Microsoft.Extensions.Logging;
+
 using Xunit.Abstractions;
 
 namespace Epam.Kafka.Tests.Common;
@@ -16,7 +17,7 @@ public sealed class TestLoggerProvider : ILoggerProvider
 
     public void Dispose()
     {
-        
+
     }
 
     public ILogger CreateLogger(string categoryName)

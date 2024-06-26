@@ -2,7 +2,9 @@
 
 using Confluent.Kafka;
 using Confluent.Kafka.Admin;
+
 using Microsoft.Extensions.Configuration;
+
 using Shouldly;
 
 namespace Epam.Kafka.Tests.Common;
