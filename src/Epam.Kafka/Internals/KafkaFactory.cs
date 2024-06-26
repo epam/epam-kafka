@@ -186,6 +186,7 @@ internal sealed class KafkaFactory : IKafkaFactory, IDisposable
             {
             } // handler already set
         }
+
         try
         {
             builder.SetLogHandler((_, m) => this._loggerFactory.CreateLogger(logHandler).KafkaLogHandler(m));

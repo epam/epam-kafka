@@ -1,9 +1,9 @@
 ﻿// Copyright © 2024 EPAM Systems
 
+using Epam.Kafka.Internals;
+
 using System.Text.Json;
 using System.Text.Json.Serialization;
-
-using Epam.Kafka.Internals;
 
 namespace Epam.Kafka;
 

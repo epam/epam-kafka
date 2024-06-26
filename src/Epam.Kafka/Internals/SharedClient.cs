@@ -18,7 +18,7 @@ internal sealed class SharedClient : ISharedClient
     {
         if (kafkaFactory == null) throw new ArgumentNullException(nameof(kafkaFactory));
 
-        var config = kafkaFactory.CreateProducerConfig(ProducerName);
+        ProducerConfig config = kafkaFactory.CreateProducerConfig(ProducerName);
 
         this._client = kafkaFactory.CreateProducer<Null, Null>(config, cluster, builder =>
         {
@@ -41,7 +41,7 @@ internal sealed class SharedClient : ISharedClient
         {
             value = Statistics.FromJson(json);
         }
-        catch (Exception e) when(e is ArgumentNullException or ArgumentException)
+        catch (Exception e) when (e is ArgumentNullException or ArgumentException)
         {
             foreach (IObserver<Statistics> observer in this._statObservers)
             {
@@ -94,7 +94,7 @@ internal sealed class SharedClient : ISharedClient
         }
         finally
         {
-            foreach (var item in this._errorObservers.ToArray())
+            foreach (IObserver<Error> item in this._errorObservers.ToArray())
             {
                 if (this._errorObservers.Contains(item))
                 {
@@ -115,7 +115,7 @@ internal sealed class SharedClient : ISharedClient
 
         return new Unsubscriber<Error>(this._errorObservers, observer);
     }
-    
+
     public IDisposable Subscribe(IObserver<Statistics> observer)
     {
         if (!this._statObservers.Contains(observer))

@@ -7,7 +7,7 @@ namespace Epam.Kafka;
 /// <summary>
 /// Extend <see cref="IClient"/> by adding <see cref="IObservable{T}"/> for <see cref="Error"/> and <see cref="Statistics"/>.
 /// </summary>
-public interface ISharedClient: IObservable<Error>, IObservable<Statistics>, IClient
+public interface ISharedClient : IObservable<Error>, IObservable<Statistics>, IClient
 {
-    
+
 }

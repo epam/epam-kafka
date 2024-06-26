@@ -31,16 +31,19 @@ internal static class CompatibilityExtensions
             // Same as original .NET C# string.Replace behavior.
             throw new ArgumentNullException(nameof(str));
         }
+
         if (oldValue == null)
         {
             // Same as original .NET C# string.Replace behavior.
             throw new ArgumentNullException(nameof(oldValue));
         }
+
         if (oldValue.Length == 0)
         {
             // Same as original .NET C# string.Replace behavior.
             throw new ArgumentException("String cannot be of zero length.");
         }
+
         if (str.Length == 0)
         {
             // Same as original .NET C# string.Replace behavior.
@@ -49,7 +52,7 @@ internal static class CompatibilityExtensions
 
         // Prepare string builder for storing the processed string.
         // Note: StringBuilder has a better performance than String by 30-40%.
-        StringBuilder resultStringBuilder = new StringBuilder(str.Length);
+        var resultStringBuilder = new StringBuilder(str.Length);
 
         // Analyze the replacement: replace or remove.
         bool isReplacementNullOrEmpty = string.IsNullOrEmpty(newValue);
