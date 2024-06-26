@@ -1,9 +1,12 @@
 ﻿// Copyright © 2024 EPAM Systems
 
 using Epam.Kafka.Tests.Common;
+
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+
 using Shouldly;
+
 using Xunit;
 using Xunit.Abstractions;
 
@@ -35,7 +38,7 @@ public class HealthCheckTests : TestWithServices
                 x.SkipAdminClient = true;
             });
 
-        var hc = this.ServiceProvider.GetRequiredService<ClusterHealthCheck>();
+        ClusterHealthCheck hc = this.ServiceProvider.GetRequiredService<ClusterHealthCheck>();
 
         HealthCheckResult result = await hc.CheckHealthAsync(new HealthCheckContext
         {
@@ -61,7 +64,7 @@ public class HealthCheckTests : TestWithServices
                 x.SkipAdminClient = true;
             });
 
-        var hc = this.ServiceProvider.GetRequiredService<ClusterHealthCheck>();
+        ClusterHealthCheck hc = this.ServiceProvider.GetRequiredService<ClusterHealthCheck>();
 
         HealthCheckResult result = await hc.CheckHealthAsync(new HealthCheckContext
         {
@@ -87,7 +90,7 @@ public class HealthCheckTests : TestWithServices
                 x.IncludeUnused = true;
             });
 
-        var hc = this.ServiceProvider.GetRequiredService<ClusterHealthCheck>();
+        ClusterHealthCheck hc = this.ServiceProvider.GetRequiredService<ClusterHealthCheck>();
 
         HealthCheckResult result = await hc.CheckHealthAsync(new HealthCheckContext
         {
@@ -96,7 +99,6 @@ public class HealthCheckTests : TestWithServices
 
         result.Status.ShouldBe(HealthStatus.Unhealthy);
         result.Description!.ShouldContain("AdminClient: any-not-existing-value:9092");
-        result.Description!.ShouldContain("SchemaRegistry:");
-        result.Description!.Substring(result.Description!.IndexOf("SchemaRegistry:",StringComparison.Ordinal)).ShouldContain("SchemaRegistry: [http://any-not-existing-value:8080/] HttpRequestException");
+        result.Description!.ShouldContain("SchemaRegistry: [http://any-not-existing-value:8080/] HttpRequestException");
     }
 }
