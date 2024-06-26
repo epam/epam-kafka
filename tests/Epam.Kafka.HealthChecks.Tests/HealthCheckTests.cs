@@ -39,7 +39,7 @@ public class HealthCheckTests : TestWithServices
 
         HealthCheckResult result = await hc.CheckHealthAsync(new HealthCheckContext
         {
-            Registration = new HealthCheckRegistration("Epam.Kafka.Clusters.Sandbox", hc, HealthStatus.Unhealthy, null,
+            Registration = new HealthCheckRegistration("Epam.Kafka.Cluster.Sandbox", hc, HealthStatus.Unhealthy, null,
                 TimeSpan.FromSeconds(20))
         });
 
@@ -65,7 +65,7 @@ public class HealthCheckTests : TestWithServices
 
         HealthCheckResult result = await hc.CheckHealthAsync(new HealthCheckContext
         {
-            Registration = new HealthCheckRegistration("Epam.Kafka.Clusters.Sandbox", hc, HealthStatus.Unhealthy, null,
+            Registration = new HealthCheckRegistration("Epam.Kafka.Cluster.Sandbox", hc, HealthStatus.Unhealthy, null,
                 TimeSpan.FromSeconds(20))
         });
 
@@ -91,7 +91,7 @@ public class HealthCheckTests : TestWithServices
 
         HealthCheckResult result = await hc.CheckHealthAsync(new HealthCheckContext
         {
-            Registration = new HealthCheckRegistration("Epam.Kafka.Clusters.Sandbox", hc, HealthStatus.Unhealthy, null, TimeSpan.FromSeconds(3))
+            Registration = new HealthCheckRegistration("Epam.Kafka.Cluster.Sandbox", hc, HealthStatus.Unhealthy, null, TimeSpan.FromSeconds(3))
         });
 
         result.Status.ShouldBe(HealthStatus.Unhealthy);
