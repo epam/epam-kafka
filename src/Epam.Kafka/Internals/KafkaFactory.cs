@@ -15,7 +15,7 @@ internal sealed class KafkaFactory : IKafkaFactory, IDisposable
 {
     private const string LoggerCategoryName = "Epam.Kafka.Factory";
 
-    private readonly Dictionary<KafkaClusterOptions, AdminClient> _clients = new();
+    private readonly Dictionary<KafkaClusterOptions, SharedClient> _clients = new();
     private readonly IOptionsMonitor<KafkaClusterOptions> _clusterOptions;
     private readonly IOptionsMonitor<KafkaConsumerOptions> _consumerOptions;
     private readonly ILoggerFactory _loggerFactory;
@@ -47,7 +47,7 @@ internal sealed class KafkaFactory : IKafkaFactory, IDisposable
 
         lock (this._syncObj)
         {
-            foreach (KeyValuePair<KafkaClusterOptions, AdminClient> producer in this._clients)
+            foreach (KeyValuePair<KafkaClusterOptions, SharedClient> producer in this._clients)
             {
                 producer.Value.DisposeInternal();
             }
@@ -212,21 +212,19 @@ internal sealed class KafkaFactory : IKafkaFactory, IDisposable
         }
     }
 
-    public IClient GetOrCreateClient(string? cluster = null)
+    public ISharedClient GetOrCreateClient(string? cluster = null)
     {
         this.CheckIfDisposed();
 
         KafkaClusterOptions clusterOptions = this.GetAndValidateClusterOptions(cluster);
 
-        AdminClient? result;
+        SharedClient? result;
 
         lock (this._syncObj)
         {
             if (!this._clients.TryGetValue(clusterOptions, out result))
             {
-                var config = new ProducerConfig(clusterOptions.ClientConfig);
-
-                result = new AdminClient(this, config, cluster);
+                result = new SharedClient(this, cluster);
 
                 this._clients.Add(clusterOptions, result);
             }

@@ -18,7 +18,7 @@ internal sealed class ClusterHealthCheck : IHealthCheck, IObserver<Error>
     private readonly IOptionsMonitor<KafkaClusterOptions> _clusterOptionsMonitor;
     private readonly List<Error> _errors = new();
 
-    public const string NamePrefix = "Epam.Kafka.Clusters.";
+    public const string NamePrefix = "Epam.Kafka.Cluster.";
 
     public ClusterHealthCheck(
         IKafkaFactory kafkaFactory,
@@ -54,9 +54,9 @@ internal sealed class ClusterHealthCheck : IHealthCheck, IObserver<Error>
 
                 try
                 {
-                    using IClient client = this._kafkaFactory.GetOrCreateClient(name);
+                    using ISharedClient client = this._kafkaFactory.GetOrCreateClient(name);
 
-                    using IDisposable subscription = ((IObservable<Error>)client).Subscribe(this);
+                    using IDisposable subscription = client.Subscribe(this);
 
                     using IAdminClient adminClient = client.CreateDependentAdminClient();
 
@@ -65,7 +65,15 @@ internal sealed class ClusterHealthCheck : IHealthCheck, IObserver<Error>
                         { RequestTimeout = context.Registration.Timeout })
                         .ConfigureAwait(false);
 
-                    description += "OK.";
+                    if (this._errors.Count > 0)
+                    {
+                        status = HealthStatus.Degraded;
+                        description += string.Join(", ", this._errors) + ".";
+                    }
+                    else
+                    {
+                        description += "OK.";
+                    }
                 }
                 catch (Exception e)
                 {

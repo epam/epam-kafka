@@ -6,9 +6,10 @@ namespace Epam.Kafka
         Confluent.Kafka.ConsumerConfig CreateConsumerConfig(string? configName = null);
         Confluent.Kafka.IProducer<TKey, TValue> CreateProducer<TKey, TValue>(Confluent.Kafka.ProducerConfig config, string? cluster = null, System.Action<Confluent.Kafka.ProducerBuilder<TKey, TValue>>? configure = null);
         Confluent.Kafka.ProducerConfig CreateProducerConfig(string? configName = null);
-        Confluent.Kafka.IClient GetOrCreateClient(string? cluster = null);
+        Epam.Kafka.ISharedClient GetOrCreateClient(string? cluster = null);
         Confluent.SchemaRegistry.ISchemaRegistryClient GetOrCreateSchemaRegistryClient(string? cluster = null);
     }
+    public interface ISharedClient : Confluent.Kafka.IClient, System.IDisposable, System.IObservable<Confluent.Kafka.Error>, System.IObservable<Epam.Kafka.Statistics> { }
     public class KafkaBuilder
     {
         public Microsoft.Extensions.DependencyInjection.IServiceCollection Services { get; }
@@ -56,6 +57,17 @@ namespace Epam.Kafka
     public static class ServiceCollectionExtensions
     {
         public static Epam.Kafka.KafkaBuilder AddKafka(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, bool useConfiguration = true) { }
+    }
+    public class Statistics
+    {
+        public Statistics() { }
+        [System.Text.Json.Serialization.JsonPropertyName("client_id")]
+        public string ClientId { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("rxmsgs")]
+        public long ConsumedMessagesTotal { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("txmsgs")]
+        public long TransmittedMessagesTotal { get; set; }
+        public static Epam.Kafka.Statistics FromJson(string json) { }
     }
 }
 namespace Epam.Kafka.Options

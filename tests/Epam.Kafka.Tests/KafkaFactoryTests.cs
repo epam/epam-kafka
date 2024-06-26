@@ -221,6 +221,14 @@ public class KafkaFactoryTests : TestWithServices
     }
 
     [Fact]
+    public void CreateDefaultClientsError()
+    {
+        MockCluster.AddMockCluster(this).WithProducerConfig("Shared").Configure(x => x.ProducerConfig.TransactionalId = "any");
+
+        Assert.Throws<InvalidOperationException>(() => this.KafkaFactory.GetOrCreateClient()).Message.ShouldContain("Producer config 'Shared' in corrupted state");
+    }
+
+    [Fact]
     public void ConfigSecretsInLogError()
     {
         CollectionLoggerProvider logger = new CollectionLoggerProvider();

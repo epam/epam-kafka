@@ -9,7 +9,7 @@ namespace Epam.Kafka;
 
 /// <summary>
 ///     A factory abstraction for a component that can create <see cref="IConsumer{TKey,TValue}" />,
-///     <see cref="IProducer{TKey,TValue}" />, <see cref="IClient" />, <see cref="ISchemaRegistryClient" />,
+///     <see cref="IProducer{TKey,TValue}" />, <see cref="ISharedClient" />, <see cref="ISchemaRegistryClient" />,
 ///     <see cref="ConsumerConfig" /> , <see cref="ProducerConfig" /> instances with custom
 ///     configuration for a given logical name.
 /// </summary>
@@ -93,27 +93,28 @@ public interface IKafkaFactory
         Action<ProducerBuilder<TKey, TValue>>? configure = null);
 
     /// <summary>
-    ///     Creates new or return existing an <see cref="IClient" /> instance using
-    ///     <see cref="ClientConfig" /> that corresponds to the logical name specified by <paramref name="cluster" />.
+    ///     Creates new or return existing an <see cref="ISharedClient" /> instance using both:
+    ///     <list type="string"><see cref="ProducerConfig"/> with <b>predefined</b> logical name '<c>Shared</c>'</list>
+    ///     <list type="string"><see cref="ClientConfig" /> that corresponds to the logical name specified by <paramref name="cluster" /></list>
     /// </summary>
     /// <param name="cluster">The logical name of the <see cref="ClientConfig" />.</param>
-    /// <returns>An <see cref="IClient" /> instance.</returns>
+    /// <returns>An <see cref="ISharedClient" /> instance.</returns>
     /// <remarks>
     ///     <para>
     ///         First call to <see cref="GetOrCreateClient(string)" /> with given <paramref name="cluster" /> value is
-    ///         guaranteed to return a new <see cref="IClient" /> instance and cache it using <paramref name="cluster" /> value
+    ///         guaranteed to return a new <see cref="ISharedClient" /> instance and cache it using <paramref name="cluster" /> value
     ///         as a key.
     ///         All subsequent calls with same <paramref name="cluster" /> value will return cached instance.
     ///     </para>
     ///     <para>
-    ///         <see cref="IClient" /> implements <see cref="IDisposable" />, so you can safely call
+    ///         <see cref="ISharedClient" /> implements <see cref="IDisposable" />, so you can safely call
     ///         <see cref="IDisposable.Dispose" /> even if instances returned from cache, however it's not necessary.
     ///         Lifetime of the clients created by <see cref="GetOrCreateClient(string)" /> controlled by
     ///         <see cref="IKafkaFactory" />. All of them will be disposed together with <see cref="IKafkaFactory" /> default
     ///         implementation.
     ///     </para>
     /// </remarks>
-    IClient GetOrCreateClient(string? cluster = null);
+    ISharedClient GetOrCreateClient(string? cluster = null);
 
     /// <summary>
     ///     Creates new or return existing an <see cref="ISchemaRegistryClient" /> instance using
