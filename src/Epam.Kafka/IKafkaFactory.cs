@@ -93,8 +93,9 @@ public interface IKafkaFactory
         Action<ProducerBuilder<TKey, TValue>>? configure = null);
 
     /// <summary>
-    ///     Creates new or return existing an <see cref="ISharedClient" /> instance using
-    ///     <see cref="ClientConfig" /> that corresponds to the logical name specified by <paramref name="cluster" />.
+    ///     Creates new or return existing an <see cref="ISharedClient" /> instance using both:
+    ///     <list type="string"><see cref="ProducerConfig"/> with <b>predefined</b> logical name '<c>Shared</c>'</list>
+    ///     <list type="string"><see cref="ClientConfig" /> that corresponds to the logical name specified by <paramref name="cluster" /></list>
     /// </summary>
     /// <param name="cluster">The logical name of the <see cref="ClientConfig" />.</param>
     /// <returns>An <see cref="ISharedClient" /> instance.</returns>

@@ -14,6 +14,7 @@ namespace Epam.Kafka.Internals;
 internal sealed class KafkaFactory : IKafkaFactory, IDisposable
 {
     private const string LoggerCategoryName = "Epam.Kafka.Factory";
+    private const string SharedConfigName = "Shared";
 
     private readonly Dictionary<KafkaClusterOptions, SharedClient> _clients = new();
     private readonly IOptionsMonitor<KafkaClusterOptions> _clusterOptions;
@@ -224,7 +225,13 @@ internal sealed class KafkaFactory : IKafkaFactory, IDisposable
         {
             if (!this._clients.TryGetValue(clusterOptions, out result))
             {
-                var config = new ProducerConfig(clusterOptions.ClientConfig);
+                var config = this.CreateProducerConfig(SharedConfigName);
+
+                if (config.TransactionalId != null)
+                {
+                    throw new InvalidOperationException(
+                        $"Producer config with logical name '{SharedConfigName}' should not use 'transactional.id'.");
+                }
 
                 result = new SharedClient(this, config, cluster);
 
