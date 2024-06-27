@@ -76,7 +76,7 @@ internal abstract class ObservableClient : IObservable<Error>, IObservable<Stati
         if (this.ErrorObservers == null)
         {
             throw new InvalidOperationException(
-                "Unable to subscribe for errors because handler was explicitly set in producer/consumer builder.");
+                "Cannot subscribe to errors because handler was explicitly set in producer/consumer builder.");
         }
 
         if (!this.ErrorObservers.Contains(observer))
@@ -92,7 +92,7 @@ internal abstract class ObservableClient : IObservable<Error>, IObservable<Stati
         if (this.StatObservers == null)
         {
             throw new InvalidOperationException(
-                "Unable to subscribe for statistics because handler was explicitly set in producer/consumer builder.");
+                "Cannot subscribe to statistics because handler was explicitly set in producer/consumer builder.");
         }
 
         if (!this.StatObservers.Contains(observer))
