@@ -136,7 +136,7 @@ public static class KafkaConfigExtensions
     {
         if (placeholders != null)
         {
-            foreach (var kvp in placeholders)
+            foreach (KeyValuePair<string, string> kvp in placeholders)
             {
                 ValidatePlaceholder(kvp.Key, kvp.Value);
             }
@@ -144,7 +144,7 @@ public static class KafkaConfigExtensions
 
         TConfig result = new();
 
-        foreach (var x in config.Where(x => x.Value != null))
+        foreach (KeyValuePair<string, string> x in config.Where(x => x.Value != null))
         {
             result.Set(x.Key, ReplacePlaceholdersIfNeeded(x.Value, placeholders));
         }
@@ -159,7 +159,7 @@ public static class KafkaConfigExtensions
 
         if (placeholders is { Count: > 0 })
         {
-            foreach (var kvp in placeholders)
+            foreach (KeyValuePair<string, string> kvp in placeholders)
             {
                 value = value.Replace(kvp.Key, kvp.Value, StringComparison.OrdinalIgnoreCase);
             }

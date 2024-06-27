@@ -26,7 +26,9 @@ public class Statistics
         Statistics? result;
         try
         {
-            result = JsonSerializer.Deserialize(json, JsonContext.Default.Statistics);
+            result = JsonSerializer.Deserialize(json, JsonContext.Default.Statistics) ??
+                     throw new ArgumentException("Json deserialized to null value", nameof(json));
+            result.RawJson = json;
         }
         catch (JsonException jsonException)
         {
@@ -34,8 +36,14 @@ public class Statistics
                 nameof(json), jsonException);
         }
 
-        return result ?? throw new ArgumentException("Json deserialized to null value", nameof(json));
+        return result;
     }
+
+    /// <summary>
+    /// Handle instance name
+    /// </summary>
+    [JsonPropertyName("name")]
+    public string Name { get; set; } = string.Empty;
 
     /// <summary>
     /// The configured (or default) client.id
@@ -44,14 +52,26 @@ public class Statistics
     public string ClientId { get; set; } = "rdkafka";
 
     /// <summary>
-    /// Total number of messages transmitted (produced) to Kafka brokers.
+    /// Total number of messages transmitted (produced) to Kafka brokers
     /// </summary>
     [JsonPropertyName("txmsgs")]
     public long TransmittedMessagesTotal { get; set; }
 
     /// <summary>
-    /// Total number of messages consumed, not including ignored messages (due to offset, etc), from Kafka brokers.
+    /// Total number of messages consumed, not including ignored messages (due to offset, etc), from Kafka brokers
     /// </summary>
     [JsonPropertyName("rxmsgs")]
     public long ConsumedMessagesTotal { get; set; }
+
+    /// <summary>
+    /// Raw json string representation emitted by handler.
+    /// </summary>
+    [JsonIgnore]
+    public string RawJson { get; private set; } = null!;
+
+    /// <summary>
+    /// Time since this client instance was created (microseconds)
+    /// </summary>
+    [JsonPropertyName("age")]
+    public long AgeMicroseconds { get; set; }
 }
