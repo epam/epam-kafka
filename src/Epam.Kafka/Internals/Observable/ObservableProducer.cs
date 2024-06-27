@@ -1,8 +1,10 @@
 ﻿// Copyright © 2024 EPAM Systems
 
-using System.Diagnostics.Metrics;
 using Confluent.Kafka;
+
 using Epam.Kafka.Internals.Metrics;
+
+using System.Diagnostics.Metrics;
 
 namespace Epam.Kafka.Internals.Observable;
 
@@ -11,7 +13,7 @@ internal class ObservableProducer<TKey, TValue> : ObservableClient, IProducer<TK
     private readonly IProducer<TKey, TValue> _inner;
     private readonly Meter? _meter;
 
-    public ObservableProducer(ProducerBuilder<TKey,TValue> builder, bool metrics)
+    public ObservableProducer(ProducerBuilder<TKey, TValue> builder, bool metrics)
     {
         if (builder == null) throw new ArgumentNullException(nameof(builder));
 

@@ -1,8 +1,8 @@
 ﻿// Copyright © 2024 EPAM Systems
 
-using System.Diagnostics.Metrics;
 using Epam.Kafka.Internals;
 
+using System.Diagnostics.Metrics;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 

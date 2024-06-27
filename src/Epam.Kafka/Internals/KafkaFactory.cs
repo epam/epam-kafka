@@ -2,6 +2,7 @@
 
 using Confluent.Kafka;
 using Confluent.SchemaRegistry;
+
 using Epam.Kafka.Internals.Observable;
 using Epam.Kafka.Options;
 

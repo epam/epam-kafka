@@ -79,7 +79,6 @@ public static class KafkaConfigExtensions
     {
         if (config == null) throw new ArgumentNullException(nameof(config));
 
-
         string? s = config.Where(prop => prop.Key == DotnetStatisticMetricsKey).Select(a => a.Value).FirstOrDefault();
 
         return string.Equals(bool.TrueString, s, StringComparison.OrdinalIgnoreCase);
@@ -139,7 +138,7 @@ public static class KafkaConfigExtensions
                 throw new ArgumentException($"'{DotnetCancellationDelayMaxMsKey}' must be a valid integer value.");
             }
 
-            if (result < DotnetCancellationDelayMaxMsMin || result > DotnetCancellationDelayMaxMsMax)
+            if (result is < DotnetCancellationDelayMaxMsMin or > DotnetCancellationDelayMaxMsMax)
             {
                 throw new ArgumentOutOfRangeException(nameof(config), result, $"'{DotnetCancellationDelayMaxMsKey}' must be in the range {DotnetCancellationDelayMaxMsMin} <= '{DotnetCancellationDelayMaxMsKey}' <= {DotnetCancellationDelayMaxMsMax}");
             }
@@ -160,7 +159,7 @@ public static class KafkaConfigExtensions
     {
         if (config == null) throw new ArgumentNullException(nameof(config));
 
-        if (value < DotnetCancellationDelayMaxMsMin || value > DotnetCancellationDelayMaxMsMax)
+        if (value is < DotnetCancellationDelayMaxMsMin or > DotnetCancellationDelayMaxMsMax)
         {
             throw new ArgumentOutOfRangeException(nameof(value), value, $"'{DotnetCancellationDelayMaxMsKey}' must be in the range {DotnetCancellationDelayMaxMsMin} <= '{DotnetCancellationDelayMaxMsKey}' <= {DotnetCancellationDelayMaxMsMax}");
         }

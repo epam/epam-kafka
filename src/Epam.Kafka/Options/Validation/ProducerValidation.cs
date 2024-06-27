@@ -1,6 +1,7 @@
 ﻿// Copyright © 2024 EPAM Systems
 
 using Epam.Kafka.Internals;
+
 using Microsoft.Extensions.Options;
 
 namespace Epam.Kafka.Options.Validation;

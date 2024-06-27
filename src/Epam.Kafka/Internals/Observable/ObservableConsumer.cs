@@ -2,8 +2,9 @@
 
 using Confluent.Kafka;
 
-using System.Diagnostics.Metrics;
 using Epam.Kafka.Internals.Metrics;
+
+using System.Diagnostics.Metrics;
 
 namespace Epam.Kafka.Internals.Observable;
 

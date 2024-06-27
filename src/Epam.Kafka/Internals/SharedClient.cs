@@ -4,14 +4,13 @@ using Confluent.Kafka;
 
 namespace Epam.Kafka.Internals;
 
-internal sealed class SharedClient : IClient, IObservable<Error>,IObservable<Statistics>
+internal sealed class SharedClient : IClient, IObservable<Error>, IObservable<Statistics>
 {
     public const string ProducerName = "Shared";
 
 #pragma warning disable CA2213 // See comments for Dispose() method.
     private readonly IClient _client;
 #pragma warning restore CA2213
-
 
     public SharedClient(IKafkaFactory kafkaFactory, string? cluster)
     {
@@ -21,7 +20,7 @@ internal sealed class SharedClient : IClient, IObservable<Error>,IObservable<Sta
 
         this._client = kafkaFactory.CreateProducer<Null, Null>(config, cluster);
     }
-    
+
     public void Dispose()
     {
         // Have to implement IDisposable because it required by interface IClient defined in external library. 
