@@ -36,13 +36,7 @@ public class Statistics
                 nameof(json), jsonException);
         }
 
-        return result ;
-    }
-
-    [JsonConstructor]
-    internal Statistics()
-    {
-        
+        return result;
     }
 
     /// <summary>
@@ -74,4 +68,10 @@ public class Statistics
     /// </summary>
     [JsonIgnore]
     public string RawJson { get; private set; } = null!;
+
+    /// <summary>
+    /// Time since this client instance was created (microseconds)
+    /// </summary>
+    [JsonPropertyName("age")]
+    public long AgeMicroseconds { get; set; }
 }

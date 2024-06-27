@@ -22,6 +22,7 @@ public class StatisticsTests
         var value = Statistics.FromJson(
 @"{
     ""name"":  ""rdkafka#producer-1"",
+    ""age"": 53,
     ""txmsgs"": 5,
     ""rxmsgs"": 4
   }");
@@ -30,5 +31,6 @@ public class StatisticsTests
         value.ClientId.ShouldBe("rdkafka");
         value.TransmittedMessagesTotal.ShouldBe(5);
         value.ConsumedMessagesTotal.ShouldBe(4);
+        value.AgeMicroseconds.ShouldBe(53);
     }
 }
