@@ -6,10 +6,9 @@ namespace Epam.Kafka
         Confluent.Kafka.ConsumerConfig CreateConsumerConfig(string? configName = null);
         Confluent.Kafka.IProducer<TKey, TValue> CreateProducer<TKey, TValue>(Confluent.Kafka.ProducerConfig config, string? cluster = null, System.Action<Confluent.Kafka.ProducerBuilder<TKey, TValue>>? configure = null);
         Confluent.Kafka.ProducerConfig CreateProducerConfig(string? configName = null);
-        Epam.Kafka.ISharedClient GetOrCreateClient(string? cluster = null);
+        Confluent.Kafka.IClient GetOrCreateClient(string? cluster = null);
         Confluent.SchemaRegistry.ISchemaRegistryClient GetOrCreateSchemaRegistryClient(string? cluster = null);
     }
-    public interface ISharedClient : Confluent.Kafka.IClient, System.IDisposable, System.IObservable<Confluent.Kafka.Error>, System.IObservable<Epam.Kafka.Statistics> { }
     public class KafkaBuilder
     {
         public Microsoft.Extensions.DependencyInjection.IServiceCollection Services { get; }
