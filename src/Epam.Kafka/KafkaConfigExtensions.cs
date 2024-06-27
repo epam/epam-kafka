@@ -1,5 +1,6 @@
 ﻿// Copyright © 2024 EPAM Systems
 
+using System.Diagnostics.Metrics;
 using System.Globalization;
 using System.Text.RegularExpressions;
 
@@ -31,6 +32,17 @@ public static class KafkaConfigExtensions
     /// Default <see cref="IKafkaFactory"/> implementation use it only for logger configuration and don't pass it to producer or consumer builder to avoid errors.
     /// </remarks> 
     public const string DotnetLoggerCategoryKey = "dotnet.logger.category";
+
+    /// <summary>
+    /// Config key to define whether expose metrics based on statistics emitted by librdkafka. Metrics emitted using <see cref="Meter"/> with  name <see cref="Statistics.MeterName"/>
+    /// </summary>
+    /// <remarks>
+    /// This key is not standard, so that causing errors when passed to producer or consumer builder.
+    /// Default <see cref="IKafkaFactory"/> implementation use it only for metrics switch and don't pass it to producer or consumer builder to avoid errors.
+    /// Works only if 'statistics.interval.ms' is defined and statistics handler not assigned explicitly in producer/consumer builder, otherwise silently not working.
+    /// </remarks>
+    public const string DotnetStatisticMetricsKey = "dotnet.statistics.metrics";
+
     private const string DotnetLoggerCategoryDefault = "Epam.Kafka.DefaultLogHandler";
 
     /// <summary>
@@ -57,6 +69,23 @@ public static class KafkaConfigExtensions
     }
 
     /// <summary>
+    /// Read and return 'dotnet.statistics.metrics' value if it exists, default value <c>false</c> otherwise. <inheritdoc cref="DotnetStatisticMetricsKey"/>
+    /// </summary>
+    /// <remarks><inheritdoc cref="DotnetStatisticMetricsKey"/></remarks>
+    /// <param name="config">The config</param>
+    /// <returns></returns>
+    /// <exception cref="ArgumentNullException"></exception>
+    public static bool GetDotnetStatisticMetrics(this Config config)
+    {
+        if (config == null) throw new ArgumentNullException(nameof(config));
+
+
+        string? s = config.Where(prop => prop.Key == DotnetStatisticMetricsKey).Select(a => a.Value).FirstOrDefault();
+
+        return string.Equals(bool.TrueString, s, StringComparison.OrdinalIgnoreCase);
+    }
+
+    /// <summary>
     /// Set 'dotnet.logger.category' value to config. <inheritdoc cref="DotnetLoggerCategoryKey"/>
     /// </summary>
     /// <remarks><inheritdoc cref="DotnetLoggerCategoryKey"/></remarks>
@@ -70,6 +99,21 @@ public static class KafkaConfigExtensions
         if (value == null) throw new ArgumentNullException(nameof(value));
 
         config.Set(DotnetLoggerCategoryKey, value);
+    }
+
+    /// <summary>
+    /// Set 'dotnet.statistics.metrics' value to config. <inheritdoc cref="DotnetStatisticMetricsKey"/>
+    /// </summary>
+    /// <remarks><inheritdoc cref="DotnetStatisticMetricsKey"/></remarks>
+    /// <param name="config">The config to update</param>
+    /// <param name="value">The value</param>
+    /// <returns></returns>
+    /// <exception cref="ArgumentNullException"></exception>
+    public static void SetDotnetStatisticMetrics(this Config config, bool value)
+    {
+        if (config == null) throw new ArgumentNullException(nameof(config));
+
+        config.Set(DotnetStatisticMetricsKey, value.ToString(CultureInfo.InvariantCulture).ToLowerInvariant());
     }
 
     /// <summary>

@@ -1,5 +1,6 @@
 ﻿// Copyright © 2024 EPAM Systems
 
+using System.Diagnostics.Metrics;
 using Epam.Kafka.Internals;
 
 using System.Text.Json;
@@ -12,6 +13,11 @@ namespace Epam.Kafka;
 /// </summary>
 public class Statistics
 {
+    /// <summary>
+    /// Name of <see cref="Meter"/> used to expose statistics if <see cref="KafkaConfigExtensions.DotnetStatisticMetricsKey"/> enable it.
+    /// </summary>
+    public const string MeterName = "Epam.Kafka.Statistics";
+
     /// <summary>
     /// Create new instance of <see cref="Statistics"/> object from json representation.
     /// </summary>
@@ -38,6 +44,12 @@ public class Statistics
 
         return result;
     }
+
+    /// <summary>
+    /// Instance type (producer or consumer)
+    /// </summary>
+    [JsonPropertyName("type")]
+    public string Type { get; set; } = "unknown";
 
     /// <summary>
     /// Handle instance name

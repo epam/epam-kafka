@@ -2,13 +2,17 @@
 
 using Confluent.Kafka;
 
+using System.Diagnostics.Metrics;
+using Epam.Kafka.Internals.Metrics;
+
 namespace Epam.Kafka.Internals.Observable;
 
 internal class ObservableConsumer<TKey, TValue> : ObservableClient, IConsumer<TKey, TValue>
 {
     private readonly IConsumer<TKey, TValue> _inner;
+    private readonly Meter? _meter;
 
-    public ObservableConsumer(ConsumerBuilder<TKey, TValue> builder)
+    public ObservableConsumer(ConsumerBuilder<TKey, TValue> builder, bool metrics)
     {
         if (builder == null) throw new ArgumentNullException(nameof(builder));
 
@@ -26,6 +30,11 @@ internal class ObservableConsumer<TKey, TValue> : ObservableClient, IConsumer<TK
         {
             builder.SetStatisticsHandler((_, json) => this.StatisticsHandler(json));
             this.StatObservers = new List<IObserver<Statistics>>();
+            if (metrics)
+            {
+                this._meter = new Meter(Statistics.MeterName);
+                this.StatObservers.Add(new ConsumerMetrics(this._meter));
+            }
         }
         catch (InvalidOperationException)
         {
@@ -44,6 +53,8 @@ internal class ObservableConsumer<TKey, TValue> : ObservableClient, IConsumer<TK
         finally
         {
             this.ClearObservers();
+
+            this._meter?.Dispose();
         }
     }
 
