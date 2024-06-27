@@ -94,16 +94,22 @@ internal sealed class SharedClient : ISharedClient
         }
         finally
         {
-            foreach (IObserver<Error> item in this._errorObservers.ToArray())
-            {
-                if (this._errorObservers.Contains(item))
-                {
-                    item.OnCompleted();
-                }
-            }
-
-            this._errorObservers.Clear();
+            ClearObservers(this._errorObservers);
+            ClearObservers(this._statObservers);
         }
+    }
+
+    private static void ClearObservers<T>(List<IObserver<T>> items)
+    {
+        foreach (IObserver<T> item in items.ToArray())
+        {
+            if (items.Contains(item))
+            {
+                item.OnCompleted();
+            }
+        }
+
+        items.Clear();
     }
 
     public IDisposable Subscribe(IObserver<Error> observer)
