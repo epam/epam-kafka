@@ -1,11 +1,10 @@
 ﻿// Copyright © 2024 EPAM Systems
 
 using Confluent.Kafka;
-using Epam.Kafka.Internals.Observable;
 
 namespace Epam.Kafka.Internals;
 
-internal sealed class SharedClient : ObservableClient, IClient
+internal sealed class SharedClient : IClient, IObservable<Error>,IObservable<Statistics>
 {
     public const string ProducerName = "Shared";
 
@@ -20,14 +19,7 @@ internal sealed class SharedClient : ObservableClient, IClient
 
         ProducerConfig config = kafkaFactory.CreateProducerConfig(ProducerName);
 
-        this._client = kafkaFactory.CreateProducer<Null, Null>(config, cluster, builder =>
-        {
-            builder.SetErrorHandler((_, error) => this.ErrorHandler(error));
-            builder.SetStatisticsHandler((_, json) => this.StatisticsHandler(json));
-        });
-
-        this.ErrorObservers = new List<IObserver<Error>>();
-        this.StatObservers = new List<IObserver<Statistics>>();
+        this._client = kafkaFactory.CreateProducer<Null, Null>(config, cluster);
     }
     
     public void Dispose()
@@ -53,13 +45,16 @@ internal sealed class SharedClient : ObservableClient, IClient
 
     public void DisposeInternal()
     {
-        try
-        {
-            this._client.Dispose();
-        }
-        finally
-        {
-            this.ClearObservers();
-        }
+        this._client.Dispose();
+    }
+
+    public IDisposable Subscribe(IObserver<Error> observer)
+    {
+        return ((IObservable<Error>)this._client).Subscribe(observer);
+    }
+
+    public IDisposable Subscribe(IObserver<Statistics> observer)
+    {
+        return ((IObservable<Statistics>)this._client).Subscribe(observer);
     }
 }
