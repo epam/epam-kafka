@@ -37,7 +37,14 @@ internal class ObservableProducer<TKey, TValue> : ObservableClient, IProducer<TK
 
     public void Dispose()
     {
-        this._inner.Dispose();
+        try
+        {
+            this._inner.Dispose();
+        }
+        finally
+        {
+            this.ClearObservers();
+        }
     }
 
     public int AddBrokers(string brokers)
