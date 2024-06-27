@@ -21,10 +21,13 @@ public class StatisticsTests
     {
         var value = Statistics.FromJson(
 @"{
+    ""name"":  ""rdkafka#producer-1"",
     ""txmsgs"": 5,
     ""rxmsgs"": 4
   }");
 
+        value.Name.ShouldBe("rdkafka#producer-1");
+        value.ClientId.ShouldBe("rdkafka");
         value.TransmittedMessagesTotal.ShouldBe(5);
         value.ConsumedMessagesTotal.ShouldBe(4);
     }
