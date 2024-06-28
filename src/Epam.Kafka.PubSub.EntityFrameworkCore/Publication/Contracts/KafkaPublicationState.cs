@@ -34,7 +34,7 @@ public enum KafkaPublicationState
     Committed = 3,
 
     /// <summary>
-    ///     The entity not published dur to error. Attempt to publish should be performed again after some timeout.
+    ///     The entity not published due to error. Attempt to publish should be performed again after some timeout.
     /// </summary>
     Error = 4
 }
