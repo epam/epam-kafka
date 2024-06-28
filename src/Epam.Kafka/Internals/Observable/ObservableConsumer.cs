@@ -45,7 +45,9 @@ internal class ObservableConsumer<TKey, TValue> : ObservableClient, IConsumer<TK
         this._inner = builder.Build();
     }
 
-    public void Dispose()
+    protected override IClient Inner => this._inner;
+
+    public override void Dispose()
     {
         try
         {
@@ -58,20 +60,6 @@ internal class ObservableConsumer<TKey, TValue> : ObservableClient, IConsumer<TK
             this._meter?.Dispose();
         }
     }
-
-    public int AddBrokers(string brokers)
-    {
-        return this._inner.AddBrokers(brokers);
-    }
-
-    public void SetSaslCredentials(string username, string password)
-    {
-        this._inner.SetSaslCredentials(username, password);
-    }
-
-    public Handle Handle => this._inner.Handle;
-
-    public string Name => this._inner.Name;
 
     public ConsumeResult<TKey, TValue> Consume(int millisecondsTimeout)
     {
