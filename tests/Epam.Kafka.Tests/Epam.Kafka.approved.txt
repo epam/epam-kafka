@@ -1,5 +1,17 @@
 namespace Epam.Kafka
 {
+    public class BrokerStatistics
+    {
+        public BrokerStatistics() { }
+        [System.Text.Json.Serialization.JsonPropertyName("name")]
+        public string Name { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("source")]
+        public string Source { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("state")]
+        public string State { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("stateage")]
+        public long StateAgeMicroseconds { get; set; }
+    }
     public interface IKafkaFactory
     {
         Confluent.Kafka.IConsumer<TKey, TValue> CreateConsumer<TKey, TValue>(Confluent.Kafka.ConsumerConfig config, string? cluster = null, System.Action<Confluent.Kafka.ConsumerBuilder<TKey, TValue>>? configure = null);
@@ -49,6 +61,26 @@ namespace Epam.Kafka
         public string PrincipalName { get; }
         public string TokenValue { get; }
     }
+    public class PartitionStatistics
+    {
+        public PartitionStatistics() { }
+        [System.Text.Json.Serialization.JsonPropertyName("committed_offset")]
+        public long CommittedOffset { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("consumer_lag")]
+        public long ConsumerLag { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("fetch_state")]
+        public string FetchState { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("hi_offset")]
+        public long HiOffset { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("partition")]
+        public long Id { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("lo_offset")]
+        public long LoOffset { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("ls_offset")]
+        public long LsOffset { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("next_offset")]
+        public long NextOffset { get; set; }
+    }
     public class ProducerPartitioner
     {
         public ProducerPartitioner() { }
@@ -66,6 +98,8 @@ namespace Epam.Kafka
         public Statistics() { }
         [System.Text.Json.Serialization.JsonPropertyName("age")]
         public long AgeMicroseconds { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("brokers")]
+        public System.Collections.Generic.Dictionary<string, Epam.Kafka.BrokerStatistics> Brokers { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("client_id")]
         public string ClientId { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("rxmsgs")]
@@ -74,11 +108,25 @@ namespace Epam.Kafka
         public string Name { get; set; }
         [System.Text.Json.Serialization.JsonIgnore]
         public string RawJson { get; }
+        [System.Text.Json.Serialization.JsonPropertyName("topics")]
+        public System.Collections.Generic.Dictionary<string, Epam.Kafka.TopicStatistics> Topics { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("txmsgs")]
         public long TransmittedMessagesTotal { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("type")]
         public string Type { get; set; }
         public static Epam.Kafka.Statistics FromJson(string json) { }
+    }
+    public class TopicStatistics
+    {
+        public TopicStatistics() { }
+        [System.Text.Json.Serialization.JsonPropertyName("age")]
+        public long AgeMilliseconds { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("metadata_age")]
+        public long MetadataAgeMilliseconds { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("topic")]
+        public string Name { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("partitions")]
+        public System.Collections.Generic.Dictionary<long, Epam.Kafka.PartitionStatistics> Partitions { get; set; }
     }
 }
 namespace Epam.Kafka.Options

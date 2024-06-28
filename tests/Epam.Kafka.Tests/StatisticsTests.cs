@@ -17,20 +17,38 @@ public class StatisticsTests
     }
 
     [Fact]
-    public void ParseOk()
+    public void ParseConsumerOk()
     {
-        var value = Statistics.FromJson(
-@"{
-    ""name"":  ""rdkafka#producer-1"",
-    ""age"": 53,
-    ""txmsgs"": 5,
-    ""rxmsgs"": 4
-  }");
+        using Stream json = typeof(StatisticsTests).Assembly.GetManifestResourceStream("Epam.Kafka.Tests.Data.ConsumerStat.json")!;
+        using StreamReader reader = new StreamReader(json);
 
-        value.Name.ShouldBe("rdkafka#producer-1");
-        value.ClientId.ShouldBe("rdkafka");
-        value.TransmittedMessagesTotal.ShouldBe(5);
-        value.ConsumedMessagesTotal.ShouldBe(4);
-        value.AgeMicroseconds.ShouldBe(53);
+        var value = Statistics.FromJson(reader.ReadToEnd());
+
+        value.Name.ShouldBe("Epam.Kafka.Sample@QWE:Sample#consumer-2");
+        value.ClientId.ShouldBe("Epam.Kafka.Sample@QWE:Sample");
+        value.ConsumedMessagesTotal.ShouldBe(2);
+        value.AgeMicroseconds.ShouldBe(40044513);
+
+        value.Brokers.ShouldNotBeNull().Count.ShouldBe(8);
+        BrokerStatistics broker = value.Brokers["sasl_ssl://kafka-4.sandbox.contoso.com:9095/534"];
+        broker.Name.ShouldBe("sasl_ssl://kafka-4.sandbox.contoso.com:9095/534");
+        broker.Source.ShouldBe("learned");
+        broker.State.ShouldBe("UP");
+        broker.StateAgeMicroseconds.ShouldBe(23884830);
+
+        value.Topics.ShouldNotBeNull().Count.ShouldBe(1);
+        TopicStatistics topic = value.Topics["epam-kafka-sample-topic-2"];
+        topic.Name.ShouldBe("epam-kafka-sample-topic-2");
+        topic.AgeMilliseconds.ShouldBe(23753);
+        topic.MetadataAgeMilliseconds.ShouldBe(35918);
+
+        topic.Partitions.ShouldNotBeNull().Count.ShouldBe(2);
+        PartitionStatistics partition = topic.Partitions[0];
+        partition.Id.ShouldBe(0);
+        partition.CommittedOffset.ShouldBe(11);
+        partition.HiOffset.ShouldBe(12);
+        partition.LsOffset.ShouldBe(12);
+        partition.LoOffset.ShouldBe(10);
+        partition.ConsumerLag.ShouldBe(1);
     }
 }

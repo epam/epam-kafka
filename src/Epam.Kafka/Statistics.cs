@@ -49,7 +49,7 @@ public class Statistics
     /// Instance type (producer or consumer)
     /// </summary>
     [JsonPropertyName("type")]
-    public string Type { get; set; } = "unknown";
+    public string Type { get; set; } = string.Empty;
 
     /// <summary>
     /// Handle instance name
@@ -86,4 +86,135 @@ public class Statistics
     /// </summary>
     [JsonPropertyName("age")]
     public long AgeMicroseconds { get; set; }
+
+#pragma warning disable CA2227 // Required for json deserialization
+    /// <summary>
+    /// Dict of brokers, key is broker name, value is <see cref="BrokerStatistics"/>
+    /// </summary>
+    [JsonPropertyName("brokers")]
+    public Dictionary<string, BrokerStatistics> Brokers { get; set; } = new();
+
+    /// <summary>
+    /// Dict of topics, key is topic name, value is <see cref="TopicStatistics"/>
+    /// </summary>
+    [JsonPropertyName("topics")]
+    public Dictionary<string, TopicStatistics> Topics { get; set; } = new();
+#pragma warning restore CA2227
+}
+
+/// <summary>
+/// Per broker statistics. See https://github.com/confluentinc/librdkafka/blob/master/STATISTICS.md for details.
+/// </summary>
+public class BrokerStatistics
+{
+    /// <summary>
+    /// Broker hostname, port and broker id
+    /// </summary>
+    [JsonPropertyName("name")]
+    public string Name { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Broker source (learned, configured, internal, logical)
+    /// </summary>
+    [JsonPropertyName("source")]
+    public string Source { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Broker state (INIT, DOWN, CONNECT, AUTH, APIVERSION_QUERY, AUTH_HANDSHAKE, UP, UPDATE)
+    /// </summary>
+    [JsonPropertyName("state")]
+    public string State { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Time since last broker state change (microseconds)
+    /// </summary>
+    [JsonPropertyName("stateage")]
+    public long StateAgeMicroseconds { get; set; }
+}
+
+/// <summary>
+/// Topic statistics. See https://github.com/confluentinc/librdkafka/blob/master/STATISTICS.md for details.
+/// </summary>
+public class TopicStatistics
+{
+    /// <summary>
+    /// Topic name
+    /// </summary>
+    [JsonPropertyName("topic")]
+    public string Name { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Age of client's topic object (milliseconds)
+    /// </summary>
+    [JsonPropertyName("age")]
+    public long AgeMilliseconds { get; set; }
+
+    /// <summary>
+    /// Age of metadata from broker for this topic (milliseconds)
+    /// </summary>
+    [JsonPropertyName("metadata_age")]
+    public long MetadataAgeMilliseconds { get; set; }
+
+#pragma warning disable CA2227 // Required for json deserialization
+    /// <summary>
+    /// Partitions dict, key is partition id, value is <see cref="PartitionStatistics"/>
+    /// </summary>
+    [JsonPropertyName("partitions")]
+    public Dictionary<long, PartitionStatistics> Partitions { get; set; } = new();
+#pragma warning restore CA2227
+}
+
+/// <summary>
+/// Partition statistics. See https://github.com/confluentinc/librdkafka/blob/master/STATISTICS.md for details.
+/// </summary>
+public class PartitionStatistics
+{
+    /// <summary>
+    /// Partition Id (-1 for internal UA/UnAssigned partition)
+    /// </summary>
+    [JsonPropertyName("partition")]
+    public long Id { get; set; }
+
+    /// <summary>
+    /// Consumer fetch state for this partition (none, stopping, stopped, offset-query, offset-wait, active)
+    /// </summary>
+    [JsonPropertyName("fetch_state")]
+    public string FetchState { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Next offset to fetch
+    /// </summary>
+    [JsonPropertyName("next_offset")]
+    public long NextOffset { get; set; }
+
+    /// <summary>
+    /// Last committed offset
+    /// </summary>
+    [JsonPropertyName("committed_offset")]
+    public long CommittedOffset { get; set; }
+
+    /// <summary>
+    /// Difference between (hi_offset or ls_offset) and committed_offset). hi_offset is used when isolation.level=read_uncommitted, otherwise ls_offset.
+    /// </summary>
+    [JsonPropertyName("consumer_lag")]
+    public long ConsumerLag { get; set; }
+
+    /// <summary>
+    /// Partition's high watermark offset on broker
+    /// </summary>
+    [JsonPropertyName("hi_offset")]
+    public long HiOffset { get; set; }
+
+    /// <summary>
+    /// Partition's last stable offset on broker, or same as hi_offset is broker version is less than 0.11.0.0
+    /// </summary>
+    [JsonPropertyName("ls_offset")]
+    public long LsOffset { get; set; }
+
+    /// <summary>
+    /// Partition's low watermark offset on broker
+    /// </summary>
+    [JsonPropertyName("lo_offset")]
+    public long LoOffset { get; set; }
+
 }
