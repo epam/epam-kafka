@@ -2,6 +2,8 @@
 
 using Confluent.Kafka;
 
+using Epam.Kafka.Stats;
+
 namespace Epam.Kafka.Internals;
 
 internal sealed class SharedClient : ClientWrapper, IObservable<Error>, IObservable<Statistics>

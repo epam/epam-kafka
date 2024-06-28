@@ -2,13 +2,15 @@
 
 using Confluent.Kafka;
 
+using Epam.Kafka.Stats;
+
 namespace Epam.Kafka.Internals.Observable;
 
 internal abstract class ObservableClient : ClientWrapper, IObservable<Error>, IObservable<Statistics>
 {
     protected List<IObserver<Error>>? ErrorObservers { get; set; }
     protected List<IObserver<Statistics>>? StatObservers { get; set; }
-    
+
     protected void StatisticsHandler(string json)
     {
         // don't try to parse if no subscribers

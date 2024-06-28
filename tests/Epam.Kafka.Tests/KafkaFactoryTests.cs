@@ -2,6 +2,7 @@
 
 using Confluent.Kafka;
 
+using Epam.Kafka.Stats;
 using Epam.Kafka.Tests.Common;
 
 using Microsoft.Extensions.Logging;
@@ -12,8 +13,6 @@ using Shouldly;
 
 using Xunit;
 using Xunit.Abstractions;
-
-using static Confluent.Kafka.ConfigPropertyNames;
 
 namespace Epam.Kafka.Tests;
 
@@ -188,8 +187,8 @@ public class KafkaFactoryTests : TestWithServices
 
         Assert.NotNull(producer);
 
-        Mock<IObserver<Error>> errorObs = new Mock<IObserver<Error>>();
-        Mock<IObserver<Statistics>> statsObs = new Mock<IObserver<Statistics>>();
+        var errorObs = new Mock<IObserver<Error>>();
+        var statsObs = new Mock<IObserver<Statistics>>();
 
         producer.ShouldBeAssignableTo<IObservable<Error>>()!.Subscribe(errorObs.Object);
         producer.ShouldBeAssignableTo<IObservable<Statistics>>()!.Subscribe(statsObs.Object);
@@ -212,8 +211,8 @@ public class KafkaFactoryTests : TestWithServices
 
         Assert.NotNull(consumer);
 
-        Mock<IObserver<Error>> errorObs = new Mock<IObserver<Error>>();
-        Mock<IObserver<Statistics>> statsObs = new Mock<IObserver<Statistics>>();
+        var errorObs = new Mock<IObserver<Error>>();
+        var statsObs = new Mock<IObserver<Statistics>>();
 
         consumer.ShouldBeAssignableTo<IObservable<Error>>()!.Subscribe(errorObs.Object);
         consumer.ShouldBeAssignableTo<IObservable<Statistics>>()!.Subscribe(statsObs.Object);
@@ -239,8 +238,8 @@ public class KafkaFactoryTests : TestWithServices
 
         Assert.NotNull(consumer);
 
-        Mock<IObserver<Error>> errorObs = new Mock<IObserver<Error>>();
-        Mock<IObserver<Statistics>> statsObs = new Mock<IObserver<Statistics>>();
+        var errorObs = new Mock<IObserver<Error>>();
+        var statsObs = new Mock<IObserver<Statistics>>();
 
         Assert.Throws<InvalidOperationException>(() =>
                 consumer.ShouldBeAssignableTo<IObservable<Error>>()!.Subscribe(errorObs.Object))
@@ -268,8 +267,8 @@ public class KafkaFactoryTests : TestWithServices
 
         Assert.NotNull(producer);
 
-        Mock<IObserver<Error>> errorObs = new Mock<IObserver<Error>>();
-        Mock<IObserver<Statistics>> statsObs = new Mock<IObserver<Statistics>>();
+        var errorObs = new Mock<IObserver<Error>>();
+        var statsObs = new Mock<IObserver<Statistics>>();
 
         Assert.Throws<InvalidOperationException>(() =>
                 producer.ShouldBeAssignableTo<IObservable<Error>>()!.Subscribe(errorObs.Object))

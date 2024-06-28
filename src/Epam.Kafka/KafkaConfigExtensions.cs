@@ -6,6 +6,8 @@ using System.Text.RegularExpressions;
 
 using Confluent.Kafka;
 
+using Epam.Kafka.Stats;
+
 #if !NET6_0_OR_GREATER
 using Epam.Kafka.Internals;
 #else

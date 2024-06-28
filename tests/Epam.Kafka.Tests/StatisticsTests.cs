@@ -1,5 +1,7 @@
 ﻿// Copyright © 2024 EPAM Systems
 
+using Epam.Kafka.Stats;
+
 using Shouldly;
 
 using Xunit;
@@ -20,7 +22,7 @@ public class StatisticsTests
     public void ParseConsumerOk()
     {
         using Stream json = typeof(StatisticsTests).Assembly.GetManifestResourceStream("Epam.Kafka.Tests.Data.ConsumerStat.json")!;
-        using StreamReader reader = new StreamReader(json);
+        using var reader = new StreamReader(json);
 
         var value = Statistics.FromJson(reader.ReadToEnd());
 
@@ -50,5 +52,6 @@ public class StatisticsTests
         partition.LsOffset.ShouldBe(12);
         partition.LoOffset.ShouldBe(10);
         partition.ConsumerLag.ShouldBe(1);
+        partition.FetchState.ShouldBe("active");
     }
 }

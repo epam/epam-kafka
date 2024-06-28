@@ -1,5 +1,7 @@
 ﻿// Copyright © 2024 EPAM Systems
 
+using Epam.Kafka.Stats;
+
 namespace Epam.Kafka.Internals.Metrics;
 
 internal abstract class StatisticsMetrics : IObserver<Statistics>

@@ -3,6 +3,7 @@
 using Confluent.Kafka;
 
 using Epam.Kafka.Internals.Metrics;
+using Epam.Kafka.Stats;
 
 using System.Diagnostics.Metrics;
 
