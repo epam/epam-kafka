@@ -60,6 +60,24 @@ public class KafkaConfigExtensionsTests
         Assert.Equal("text", cfg.GetDotnetLoggerCategory());
     }
 
+    [Fact]
+    public void StatMetrics()
+    {
+        var cfg = new ConsumerConfig();
+        bool defValue = cfg.GetDotnetStatisticMetrics();
+
+        Assert.False(defValue);
+
+        cfg.SetDotnetStatisticMetrics(true);
+        Assert.True(cfg.GetDotnetStatisticMetrics());
+
+        Assert.Throws<ArgumentNullException>(() => KafkaConfigExtensions.GetDotnetStatisticMetrics(null!));
+        Assert.Throws<ArgumentNullException>(() => KafkaConfigExtensions.SetDotnetStatisticMetrics(null!, true));
+
+        cfg.Set("dotnet.statistics.metrics", "True");
+        Assert.True(cfg.GetDotnetStatisticMetrics());
+    }
+
     [Theory]
     [InlineData("qwe", "qwe")]
     [InlineData("<qwe>", "123")]

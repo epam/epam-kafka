@@ -54,9 +54,9 @@ internal sealed class ClusterHealthCheck : IHealthCheck, IObserver<Error>
 
                 try
                 {
-                    using ISharedClient client = this._kafkaFactory.GetOrCreateClient(name);
+                    using IClient client = this._kafkaFactory.GetOrCreateClient(name);
 
-                    using IDisposable subscription = client.Subscribe(this);
+                    using IDisposable subscription = ((IObservable<Error>)client).Subscribe(this);
 
                     using IAdminClient adminClient = client.CreateDependentAdminClient();
 

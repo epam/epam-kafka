@@ -3,6 +3,7 @@
 using Confluent.Kafka;
 using Confluent.SchemaRegistry;
 
+using Epam.Kafka.Internals.Observable;
 using Epam.Kafka.Options;
 
 using Microsoft.Extensions.Logging;
@@ -114,7 +115,9 @@ internal sealed class KafkaFactory : IKafkaFactory, IDisposable
 
         // Init logger category from config and remove key because it is not standard key and cause errors.
         string logHandler = config.GetDotnetLoggerCategory();
+        bool metrics = config.GetDotnetStatisticMetrics();
         resultConfig.Remove(KafkaConfigExtensions.DotnetLoggerCategoryKey);
+        resultConfig.Remove(KafkaConfigExtensions.DotnetStatisticMetricsKey);
 
         var builder = new ConsumerBuilder<TKey, TValue>(config);
 
@@ -143,7 +146,7 @@ internal sealed class KafkaFactory : IKafkaFactory, IDisposable
 
         try
         {
-            IConsumer<TKey, TValue> consumer = builder.Build();
+            IConsumer<TKey, TValue> consumer = new ObservableConsumer<TKey, TValue>(builder, metrics);
 
             fl.ConsumerCreateOk(PrepareConfigForLogs(config), typeof(TKey), typeof(TValue));
 
@@ -170,7 +173,9 @@ internal sealed class KafkaFactory : IKafkaFactory, IDisposable
 
         // Init logger category from config and remove key because it is not standard key and cause errors.
         string logHandler = config.GetDotnetLoggerCategory();
+        bool metrics = config.GetDotnetStatisticMetrics();
         resultConfig.Remove(KafkaConfigExtensions.DotnetLoggerCategoryKey);
+        resultConfig.Remove(KafkaConfigExtensions.DotnetStatisticMetricsKey);
 
         ProducerBuilder<TKey, TValue> builder = new(config);
 
@@ -199,7 +204,7 @@ internal sealed class KafkaFactory : IKafkaFactory, IDisposable
 
         try
         {
-            IProducer<TKey, TValue> producer = builder.Build();
+            ObservableProducer<TKey, TValue> producer = new(builder, metrics);
 
             fl.ProducerCreateOk(PrepareConfigForLogs(config), typeof(TKey), typeof(TValue));
 
@@ -213,7 +218,7 @@ internal sealed class KafkaFactory : IKafkaFactory, IDisposable
         }
     }
 
-    public ISharedClient GetOrCreateClient(string? cluster = null)
+    public IClient GetOrCreateClient(string? cluster = null)
     {
         this.CheckIfDisposed();
 

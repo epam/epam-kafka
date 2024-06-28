@@ -6,10 +6,9 @@ namespace Epam.Kafka
         Confluent.Kafka.ConsumerConfig CreateConsumerConfig(string? configName = null);
         Confluent.Kafka.IProducer<TKey, TValue> CreateProducer<TKey, TValue>(Confluent.Kafka.ProducerConfig config, string? cluster = null, System.Action<Confluent.Kafka.ProducerBuilder<TKey, TValue>>? configure = null);
         Confluent.Kafka.ProducerConfig CreateProducerConfig(string? configName = null);
-        Epam.Kafka.ISharedClient GetOrCreateClient(string? cluster = null);
+        Confluent.Kafka.IClient GetOrCreateClient(string? cluster = null);
         Confluent.SchemaRegistry.ISchemaRegistryClient GetOrCreateSchemaRegistryClient(string? cluster = null);
     }
-    public interface ISharedClient : Confluent.Kafka.IClient, System.IDisposable, System.IObservable<Confluent.Kafka.Error>, System.IObservable<Epam.Kafka.Statistics> { }
     public class KafkaBuilder
     {
         public Microsoft.Extensions.DependencyInjection.IServiceCollection Services { get; }
@@ -27,12 +26,15 @@ namespace Epam.Kafka
     public static class KafkaConfigExtensions
     {
         public const string DotnetLoggerCategoryKey = "dotnet.logger.category";
+        public const string DotnetStatisticMetricsKey = "dotnet.statistics.metrics";
         public static TConfig Clone<TConfig>(this TConfig config, System.Collections.Generic.IReadOnlyDictionary<string, string>? placeholders = null)
             where TConfig : Confluent.Kafka.Config, new () { }
         public static int GetCancellationDelayMaxMs(this Confluent.Kafka.ConsumerConfig config) { }
         public static string GetDotnetLoggerCategory(this Confluent.Kafka.Config config) { }
+        public static bool GetDotnetStatisticMetrics(this Confluent.Kafka.Config config) { }
         public static void SetCancellationDelayMaxMs(this Confluent.Kafka.ConsumerConfig config, int value) { }
         public static void SetDotnetLoggerCategory(this Confluent.Kafka.Config config, string value) { }
+        public static void SetDotnetStatisticMetrics(this Confluent.Kafka.Config config, bool value) { }
     }
     public static class LogExtensions
     {
@@ -60,6 +62,7 @@ namespace Epam.Kafka
     }
     public class Statistics
     {
+        public const string MeterName = "Epam.Kafka.Statistics";
         public Statistics() { }
         [System.Text.Json.Serialization.JsonPropertyName("age")]
         public long AgeMicroseconds { get; set; }
@@ -73,6 +76,8 @@ namespace Epam.Kafka
         public string RawJson { get; }
         [System.Text.Json.Serialization.JsonPropertyName("txmsgs")]
         public long TransmittedMessagesTotal { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("type")]
+        public string Type { get; set; }
         public static Epam.Kafka.Statistics FromJson(string json) { }
     }
 }
