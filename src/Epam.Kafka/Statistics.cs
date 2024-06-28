@@ -170,6 +170,11 @@ public class TopicStatistics
 public class PartitionStatistics
 {
     /// <summary>
+    ///  Internal UA/UnAssigned partition
+    /// </summary>
+    public const long InternalUnassignedPartition = -1;
+
+    /// <summary>
     /// Partition Id (-1 for internal UA/UnAssigned partition)
     /// </summary>
     [JsonPropertyName("partition")]

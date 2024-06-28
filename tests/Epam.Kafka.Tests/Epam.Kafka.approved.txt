@@ -63,6 +63,7 @@ namespace Epam.Kafka
     }
     public class PartitionStatistics
     {
+        public const long InternalUnassignedPartition = -1;
         public PartitionStatistics() { }
         [System.Text.Json.Serialization.JsonPropertyName("committed_offset")]
         public long CommittedOffset { get; set; }
