@@ -103,6 +103,20 @@ namespace Epam.Kafka.Stats
         [System.Text.Json.Serialization.JsonPropertyName("stateage")]
         public long StateAgeMicroseconds { get; set; }
     }
+    public class GroupStatistics
+    {
+        public GroupStatistics() { }
+        [System.Text.Json.Serialization.JsonPropertyName("join_state")]
+        public string JoinState { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("rebalance_age")]
+        public long RebalanceAgeMilliseconds { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("rebalance_cnt")]
+        public long RebalanceCount { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("state")]
+        public string State { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("stateage")]
+        public long StateAgeMilliseconds { get; set; }
+    }
     public class PartitionStatistics
     {
         public const long InternalUnassignedPartition = -1;
@@ -136,6 +150,8 @@ namespace Epam.Kafka.Stats
         public string ClientId { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("rxmsgs")]
         public long ConsumedMessagesTotal { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("cgrp")]
+        public Epam.Kafka.Stats.GroupStatistics? ConsumerGroups { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("name")]
         public string Name { get; set; }
         [System.Text.Json.Serialization.JsonIgnore]

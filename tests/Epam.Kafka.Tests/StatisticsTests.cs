@@ -53,5 +53,12 @@ public class StatisticsTests
         partition.LoOffset.ShouldBe(10);
         partition.ConsumerLag.ShouldBe(1);
         partition.FetchState.ShouldBe("active");
+
+        GroupStatistics group = value.ConsumerGroups.ShouldNotBeNull();
+        group.State.ShouldBe("up");
+        group.StateAgeMilliseconds.ShouldBe(39225);
+        group.JoinState.ShouldBe("steady");
+        group.RebalanceAgeMilliseconds.ShouldBe(35748);
+        group.RebalanceCount.ShouldBe(1);
     }
 }
