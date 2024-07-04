@@ -141,6 +141,7 @@ namespace Epam.Kafka.Stats
     public class Statistics
     {
         public const string MeterName = "Epam.Kafka.Statistics";
+        public const string TopicsMeterName = "Epam.Kafka.Statistics.Topics";
         public Statistics() { }
         [System.Text.Json.Serialization.JsonPropertyName("age")]
         public long AgeMicroseconds { get; set; }

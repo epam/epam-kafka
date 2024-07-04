@@ -14,9 +14,14 @@ namespace Epam.Kafka.Stats;
 public class Statistics
 {
     /// <summary>
-    /// Name of <see cref="Meter"/> used to expose statistics if <see cref="KafkaConfigExtensions.DotnetStatisticMetricsKey"/> enable it.
+    /// Name of <see cref="Meter"/> used to expose top level statistics if <see cref="KafkaConfigExtensions.DotnetStatisticMetricsKey"/> enable it.
     /// </summary>
     public const string MeterName = "Epam.Kafka.Statistics";
+
+    /// <summary>
+    /// Name of <see cref="Meter"/> used to expose topics statistics if <see cref="KafkaConfigExtensions.DotnetStatisticMetricsKey"/> enable it.
+    /// </summary>
+    public const string TopicsMeterName = "Epam.Kafka.Statistics.Topics";
 
     /// <summary>
     /// Create new instance of <see cref="Statistics"/> object from json representation.

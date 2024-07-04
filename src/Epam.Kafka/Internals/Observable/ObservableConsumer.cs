@@ -38,6 +38,7 @@ internal class ObservableConsumer<TKey, TValue> : ObservableClient, IConsumer<TK
                 this._meter = new Meter(Statistics.MeterName);
                 this._topicsMeter = new Meter(Statistics.TopicsMeterName);
                 this.StatObservers.Add(new ConsumerMetrics(this._meter));
+                this.StatObservers.Add(new ConsumerTopicsMetrics(this._topicsMeter));
             }
         }
         catch (InvalidOperationException)
