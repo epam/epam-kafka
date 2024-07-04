@@ -16,6 +16,7 @@ internal sealed class ConsumerMetrics : StatisticsMetrics
     protected override void Create()
     {
         this._meter.CreateObservableCounter($"{NamePrefix}_rxmsgs",
-            () => new Measurement<long>(this.Latest.ConsumedMessagesTotal, this.Tags));
+            () => new Measurement<long>(this.Latest.ConsumedMessagesTotal, this.Tags), null,
+            "Total number of messages consumed, not including ignored messages (due to offset, etc).");
     }
 }

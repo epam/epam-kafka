@@ -16,6 +16,7 @@ internal sealed class ProducerMetrics : StatisticsMetrics
     protected override void Create()
     {
         this._meter.CreateObservableCounter($"{NamePrefix}_txmsgs",
-            () => new Measurement<long>(this.Latest.TransmittedMessagesTotal, this.Tags));
+            () => new Measurement<long>(this.Latest.TransmittedMessagesTotal, this.Tags), null,
+            "Total number of messages transmitted (produced).");
     }
 }
