@@ -6,16 +6,13 @@ namespace Epam.Kafka.Internals.Metrics;
 
 internal sealed class ProducerMetrics : StatisticsMetrics
 {
-    private readonly Meter _meter;
-
-    public ProducerMetrics(Meter meter)
+    public ProducerMetrics(Meter meter) : base(meter)
     {
-        this._meter = meter ?? throw new ArgumentNullException(nameof(meter));
     }
 
     protected override void Create()
     {
-        this._meter.CreateObservableCounter($"{NamePrefix}_txmsgs",
+        this.Meter.CreateObservableCounter($"{NamePrefix}_txmsgs",
             () => new Measurement<long>(this.Latest.TransmittedMessagesTotal, this.Tags), null,
             "Total number of messages transmitted (produced).");
     }

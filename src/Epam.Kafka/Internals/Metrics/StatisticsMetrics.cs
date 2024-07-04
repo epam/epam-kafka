@@ -1,5 +1,6 @@
 ﻿// Copyright © 2024 EPAM Systems
 
+using System.Diagnostics.Metrics;
 using Epam.Kafka.Stats;
 
 namespace Epam.Kafka.Internals.Metrics;
@@ -11,6 +12,13 @@ internal abstract class StatisticsMetrics : IObserver<Statistics>
     private bool _created;
     protected Statistics Latest { get; private set; } = null!;
     protected KeyValuePair<string, object?>[] Tags { get; private set; } = null!;
+    protected Meter Meter { get; }
+
+    protected StatisticsMetrics(Meter meter)
+    {
+        this.Meter = meter ?? throw new ArgumentNullException(nameof(meter));
+    }
+
     public void OnCompleted()
     {
     }
