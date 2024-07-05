@@ -63,6 +63,12 @@ public class Statistics
     public string Name { get; set; } = string.Empty;
 
     /// <summary>
+    /// Wall clock time in seconds since the epoch.
+    /// </summary>
+    [JsonPropertyName("time")]
+    public long EpochTimeSeconds { get; set; }
+
+    /// <summary>
     /// The configured (or default) client.id
     /// </summary>
     [JsonPropertyName("client_id")]

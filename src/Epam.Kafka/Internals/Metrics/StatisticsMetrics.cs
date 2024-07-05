@@ -1,6 +1,7 @@
 ﻿// Copyright © 2024 EPAM Systems
 
 using System.Diagnostics.Metrics;
+
 using Epam.Kafka.Stats;
 
 namespace Epam.Kafka.Internals.Metrics;
@@ -59,5 +60,11 @@ internal abstract class StatisticsMetrics : IObserver<Statistics>
                 { "topic", topic },
                 { "partition", partition }
             });
+    }
+
+    protected Measurement<long> CreateStatusMetric(string value)
+    {
+        return new Measurement<long>(this.Latest.EpochTimeSeconds,
+            this.Tags.Concat(Enumerable.Repeat(new KeyValuePair<string, object?>("state", value), 1)));
     }
 }

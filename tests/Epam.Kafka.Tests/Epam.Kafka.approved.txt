@@ -153,6 +153,8 @@ namespace Epam.Kafka.Stats
         public long ConsumedMessagesTotal { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("cgrp")]
         public Epam.Kafka.Stats.GroupStatistics? ConsumerGroups { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("time")]
+        public long EpochTimeSeconds { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("name")]
         public string Name { get; set; }
         [System.Text.Json.Serialization.JsonIgnore]

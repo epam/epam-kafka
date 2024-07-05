@@ -30,6 +30,7 @@ public class StatisticsTests
         value.ClientId.ShouldBe("Epam.Kafka.Sample@QWE:Sample");
         value.ConsumedMessagesTotal.ShouldBe(2);
         value.AgeMicroseconds.ShouldBe(40044513);
+        value.EpochTimeSeconds.ShouldBe(1719564501);
 
         value.Brokers.ShouldNotBeNull().Count.ShouldBe(8);
         BrokerStatistics broker = value.Brokers["sasl_ssl://kafka-4.sandbox.contoso.com:9095/534"];
