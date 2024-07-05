@@ -1,5 +1,9 @@
 ﻿// Copyright © 2024 EPAM Systems
 
+using Epam.Kafka.Stats;
+
+using System.Diagnostics.Metrics;
+
 namespace Epam.Kafka.Internals.Metrics;
 
 internal abstract class StatisticsMetrics : IObserver<Statistics>
@@ -9,6 +13,13 @@ internal abstract class StatisticsMetrics : IObserver<Statistics>
     private bool _created;
     protected Statistics Latest { get; private set; } = null!;
     protected KeyValuePair<string, object?>[] Tags { get; private set; } = null!;
+    protected Meter Meter { get; }
+
+    protected StatisticsMetrics(Meter meter)
+    {
+        this.Meter = meter ?? throw new ArgumentNullException(nameof(meter));
+    }
+
     public void OnCompleted()
     {
     }
@@ -40,4 +51,20 @@ internal abstract class StatisticsMetrics : IObserver<Statistics>
     }
 
     protected abstract void Create();
+
+    protected IEnumerable<KeyValuePair<string, object?>> BuildTpTags(string topic, long partition)
+    {
+        return this.Tags.Concat(
+            new Dictionary<string, object?>
+            {
+                { "topic", topic },
+                { "partition", partition }
+            });
+    }
+
+    protected Measurement<long> CreateStatusMetric(string value)
+    {
+        return new Measurement<long>(this.Latest.EpochTimeSeconds,
+            this.Tags.Concat(Enumerable.Repeat(new KeyValuePair<string, object?>("state", value), 1)));
+    }
 }

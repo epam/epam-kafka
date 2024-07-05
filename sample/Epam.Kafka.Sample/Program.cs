@@ -10,7 +10,7 @@ using Epam.Kafka.PubSub.EntityFrameworkCore.Publication.Contracts;
 using Epam.Kafka.Sample.Data;
 using Epam.Kafka.Sample.Json;
 using Epam.Kafka.Sample.Samples;
-
+using Epam.Kafka.Stats;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
@@ -32,8 +32,11 @@ internal static class Program
             services.AddSingleton<IHealthCheckPublisher, ConsoleHealthCheckPublisher>();
 
             // view metrics in console for demo purposes only
-            services.AddOpenTelemetry().WithMetrics(mb =>
-                mb.AddMeter(PipelineMonitor.StatusMeterName, PipelineMonitor.HealthMeterName, Statistics.MeterName).AddConsoleExporter());
+            services.AddOpenTelemetry()
+                .WithMetrics(mb => mb
+                    .AddMeter(PipelineMonitor.StatusMeterName, PipelineMonitor.HealthMeterName, Statistics.MeterName,
+                        Statistics.TopicsMeterName)
+                    .AddConsoleExporter());
 
             KafkaBuilder kafkaBuilder = services.AddKafka()
                 .WithConfigPlaceholders("<EnvironmentName>", context.HostingEnvironment.EnvironmentName);
