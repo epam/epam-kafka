@@ -6,7 +6,7 @@ namespace Epam.Kafka.Internals.Metrics;
 
 internal sealed class ConsumerMetrics : StatisticsMetrics
 {
-    public ConsumerMetrics(Meter meter):base(meter)
+    public ConsumerMetrics(Meter meter) : base(meter)
     {
     }
 

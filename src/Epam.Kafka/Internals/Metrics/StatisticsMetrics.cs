@@ -1,8 +1,8 @@
 ﻿// Copyright © 2024 EPAM Systems
 
-using System.Diagnostics.Metrics;
-
 using Epam.Kafka.Stats;
+
+using System.Diagnostics.Metrics;
 
 namespace Epam.Kafka.Internals.Metrics;
 
