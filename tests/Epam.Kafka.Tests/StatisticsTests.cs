@@ -1,5 +1,8 @@
 ﻿// Copyright © 2024 EPAM Systems
 
+using System.Diagnostics;
+using System.Diagnostics.Metrics;
+using Epam.Kafka.Internals.Metrics;
 using Epam.Kafka.Stats;
 
 using Shouldly;
@@ -61,5 +64,70 @@ public class StatisticsTests
         group.JoinState.ShouldBe("steady");
         group.RebalanceAgeMilliseconds.ShouldBe(35748);
         group.RebalanceCount.ShouldBe(1);
+    }
+
+    [Fact]
+    public void ConsumerMetrics()
+    {
+        using Stream json = typeof(StatisticsTests).Assembly.GetManifestResourceStream("Epam.Kafka.Tests.Data.ConsumerStat.json")!;
+        using var reader = new StreamReader(json);
+
+        var value = Statistics.FromJson(reader.ReadToEnd());
+
+        MeterListener ml = new MeterListener();
+
+        ml.InstrumentPublished = (instrument, listener) =>
+        {
+            listener.EnableMeasurementEvents(instrument);
+        };
+
+        Dictionary<string, Tuple<long, Dictionary<string, string>>> results = new();
+
+        ml.SetMeasurementEventCallback<long>((instrument, measurement, tags, _) =>
+        {
+            results.Add(instrument.Name,
+                new Tuple<long, Dictionary<string, string>>(measurement,
+                    tags.ToArray().ToDictionary(p => p.Key, p => p.Value!.ToString()!)));
+        });
+
+        ml.Start();
+
+        using Meter testMeter = new Meter("TestConsumerMetrics");
+
+        ConsumerMetrics cm = new ConsumerMetrics(testMeter);
+        cm.OnNext(value);
+
+        ProducerMetrics pm = new ProducerMetrics(testMeter);
+        pm.OnNext(value);
+
+        ConsumerTopicsMetrics ctm = new ConsumerTopicsMetrics(testMeter);
+        ctm.OnNext(value);
+
+        ml.RecordObservableInstruments();
+
+        AssertMeasurement(results, "epam_kafka_statistics_rxmsgs", 2);
+        AssertMeasurement(results, "epam_kafka_statistics_cgrp_state", 1719564501);
+        AssertMeasurement(results, "epam_kafka_statistics_txmsgs", 0);
+        AssertTopicMeasurement(results, "epam_kafka_statistics_tp_lag", 1);
+    }
+
+    private static void AssertMeasurement<T>(Dictionary<string, Tuple<T, Dictionary<string, string>>> results,
+        string name, T value)
+    {
+        results.ShouldContainKey(name);
+        results[name].Item1.ShouldBe(value);
+
+        results[name].Item2["client"].ShouldBe("Epam.Kafka.Sample@QWE:Sample");
+        results[name].Item2["instance"].ShouldBe("2");
+        results[name].Item2["type"].ShouldBe("consumer");
+    }
+
+    private static void AssertTopicMeasurement<T>(Dictionary<string, Tuple<T, Dictionary<string, string>>> results,
+        string name, T value)
+    {
+        AssertMeasurement(results,name,value);
+
+        results[name].Item2["topic"].ShouldBe("epam-kafka-sample-topic-2");
+        results[name].Item2["partition"].ShouldBe("0");
     }
 }
