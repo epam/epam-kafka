@@ -78,9 +78,9 @@ internal static partial class LogExtensions
         EventId = 21,
         EventName = "OffsetsReset",
         Level = LogLevel.Warning,
-        Message = "Offsets reset for '{IndexedKey}'. {TopicPartitionOffsets}")]
+        Message = "Offsets reset for '{IndexedKey}'. To {To} from {From}")]
     public static partial void OffsetsReset(this ILogger logger, string indexedKey,
-        IEnumerable<TopicPartitionOffset> topicPartitionOffsets);
+        IEnumerable<TopicPartitionOffset> to, IEnumerable<TopicPartitionOffset> from);
 
     [LoggerMessage(
         EventId = 22,
