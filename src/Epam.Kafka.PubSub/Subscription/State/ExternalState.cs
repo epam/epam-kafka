@@ -29,7 +29,7 @@ internal sealed class ExternalState<TOffsetsStorage> : BatchState
         IReadOnlyCollection<TopicPartitionOffset> state =
             topic.GetAndResetState(this._offsetsStorage, topicPartitions, cancellationToken);
 
-        var reset = new List<TopicPartitionOffset>();
+        var reset = new Dictionary<TopicPartitionOffset, TopicPartitionOffset?>();
         var assign = new List<TopicPartitionOffset>();
 
         foreach (TopicPartitionOffset item in state)
@@ -40,10 +40,14 @@ internal sealed class ExternalState<TOffsetsStorage> : BatchState
                 if (topic.Offsets[item.TopicPartition] != item.Offset)
                 {
                     TopicPartitionOffset tpo = new(item.TopicPartition, item.Offset);
+
+                    reset.Add(tpo,
+                        topic.Offsets.TryGetValue(item.TopicPartition, out var old)
+                            ? new TopicPartitionOffset(item.TopicPartition, old)
+                            : null);
+
                     topic.Consumer.Seek(tpo);
                     topic.Offsets[item.TopicPartition] = item.Offset;
-
-                    reset.Add(tpo);
                 }
             }
             else
