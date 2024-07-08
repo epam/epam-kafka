@@ -118,8 +118,7 @@ public class StatisticsTests
         results[name].Item1.ShouldBe(value);
 
         results[name].Item2["client"].ShouldBe("Epam.Kafka.Sample@QWE:Sample");
-        results[name].Item2["instance"].ShouldBe("2");
-        results[name].Item2["type"].ShouldBe("consumer");
+        results[name].Item2["handle"].ShouldBe("consumer-2");
     }
 
     private static void AssertTopicMeasurement<T>(Dictionary<string, Tuple<T, Dictionary<string, string>>> results,

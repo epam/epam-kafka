@@ -13,7 +13,8 @@ internal abstract class PubSubHealthMetrics : MetricsWithName
     protected PubSubHealthMetrics(PipelineMonitor monitor) : base(PipelineMonitor.HealthMeterName, monitor)
     {
         this.CreateObservableGauge(PipelineMonitor.HealthGaugeName,
-            () => (int)this.CreateHealthCheck().CheckHealthAsync(Context).GetAwaiter().GetResult().Status);
+            () => (int)this.CreateHealthCheck().CheckHealthAsync(Context).GetAwaiter().GetResult().Status,
+            "Health check status: 0 - Unhealthy, 1 - Degraded, 2 - Healthy");
     }
 
     protected abstract IHealthCheck CreateHealthCheck();

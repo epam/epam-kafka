@@ -34,7 +34,7 @@ internal abstract class StatisticsMetrics : IObserver<Statistics>
 
         if (this._created == false)
         {
-            const int len = 10;
+            const int len = 1;
 
             bool trim = value.Name.StartsWith(value.ClientId, StringComparison.OrdinalIgnoreCase) &&
                         value.Name.Length - value.ClientId.Length > len;
@@ -42,8 +42,7 @@ internal abstract class StatisticsMetrics : IObserver<Statistics>
             this.Tags = new[]
             {
                 new KeyValuePair<string, object?>("client", value.ClientId),
-                new KeyValuePair<string, object?>("instance", trim ? value.Name.Substring(value.ClientId.Length + len) : value.Name),
-                new KeyValuePair<string, object?>("type", value.Type),
+                new KeyValuePair<string, object?>("handle", trim ? value.Name.Substring(value.ClientId.Length + len) : value.Name)
             };
             this.Create();
             this._created = true;
