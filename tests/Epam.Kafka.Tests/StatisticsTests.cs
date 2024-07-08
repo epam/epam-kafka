@@ -106,7 +106,9 @@ public class StatisticsTests
         ml.RecordObservableInstruments();
 
         AssertMeasurement(results, "epam_kafka_statistics_rxmsgs", 2);
-        AssertMeasurement(results, "epam_kafka_statistics_cgrp_state", 1719564501);
+        AssertStateMeasurement(results, "epam_kafka_statistics_cgrp_state", 1719564501, "up");
+        AssertStateMeasurement(results, "epam_kafka_statistics_cgrp_join_state", 1719564501, "steady");
+        AssertMeasurement(results, "epam_kafka_statistics_cgrp_rebalance_count", 1);
         AssertMeasurement(results, "epam_kafka_statistics_txmsgs", 0);
         AssertTopicMeasurement(results, "epam_kafka_statistics_tp_lag", 1);
     }
@@ -128,5 +130,13 @@ public class StatisticsTests
 
         results[name].Item2["topic"].ShouldBe("epam-kafka-sample-topic-2");
         results[name].Item2["partition"].ShouldBe("0");
+    }
+
+    private static void AssertStateMeasurement<T>(Dictionary<string, Tuple<T, Dictionary<string, string>>> results,
+        string name, T value, string state)
+    {
+        AssertMeasurement(results, name, value);
+
+        results[name].Item2["state"].ShouldBe(state);
     }
 }
