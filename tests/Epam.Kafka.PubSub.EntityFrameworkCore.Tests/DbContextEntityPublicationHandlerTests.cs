@@ -64,6 +64,39 @@ public class DbContextEntityPublicationHandlerTests : TestWithContext
     }
 
     [Theory]
+    [InlineData(1, 1)]
+    [InlineData(2, 2)]
+    [InlineData(3, 2)]
+    public void BatchSize(int batchSize, int expectedCount)
+    {
+        this.Services.AddScoped<TestDbContextEntityPublicationHandler>();
+
+        this.SeedData(new TestEntityDb
+        {
+            Id = 1,
+            ExternalId = "eid1",
+            KafkaPubState = KafkaPublicationState.Queued,
+            KafkaPubNbf = DateTime.MinValue
+        }, new TestEntityDb
+        {
+            Id = 2,
+            ExternalId = "eid2",
+            KafkaPubState = KafkaPublicationState.Queued,
+            KafkaPubNbf = DateTime.MinValue
+        });
+
+        using IServiceScope scope = this.ServiceProvider.CreateScope();
+
+        TestDbContextEntityPublicationHandler pub =
+            scope.ServiceProvider.GetRequiredService<TestDbContextEntityPublicationHandler>();
+
+        IReadOnlyCollection<TopicMessage<string, TestEntityKafka>> batch = pub.GetBatch(batchSize, false,
+            CancellationToken.None);
+
+        Assert.Equal(expectedCount, batch.Count);
+    }
+
+    [Theory]
     [InlineData(ErrorCode.NoError, PersistenceStatus.Persisted, null, KafkaPublicationState.Committed)]
     [InlineData(ErrorCode.NoError, PersistenceStatus.Persisted, 5000, KafkaPublicationState.Delivered)]
     public void ReportResultsSingle(ErrorCode errorCode, PersistenceStatus persistenceStatus,
