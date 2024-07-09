@@ -22,7 +22,7 @@ internal static class ExternalStateExtensions
         if (offsets == null)
             throw new ArgumentNullException(nameof(offsets));
 
-        var reset = new Dictionary<TopicPartitionOffset, TopicPartitionOffset?>();
+        var reset = new List<TopicPartitionOffset>();
         var committed = new List<TopicPartitionOffset>();
         IReadOnlyCollection<TopicPartitionOffset> newState;
 
@@ -45,12 +45,9 @@ internal static class ExternalStateExtensions
             {
                 TopicPartitionOffset tpo = new(item.TopicPartition, item.Offset);
 
-                reset.Add(tpo,
-                    topic.Offsets.TryGetValue(item.TopicPartition, out var old)
-                        ? new TopicPartitionOffset(item.TopicPartition, old)
-                        : null);
-
                 topic.Seek(tpo);
+
+                reset.Add(tpo);
             }
         }
 
