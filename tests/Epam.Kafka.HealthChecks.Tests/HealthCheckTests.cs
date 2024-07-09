@@ -22,7 +22,7 @@ public class HealthCheckTests : TestWithServices
     [Fact]
     public void AddCheckExceptions()
     {
-        Assert.Throws<ArgumentNullException>(() => HealthCheckExtensions.WithHealthCheck(null!));
+        Assert.Throws<ArgumentNullException>(() => KafkaHealthCheckExtensions.WithHealthCheck(null!));
 
         Assert.Throws<ArgumentException>(() =>
                 this.Services.AddKafka(false).WithClusterConfig(string.Empty).WithHealthCheck()).Message

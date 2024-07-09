@@ -12,7 +12,7 @@ namespace Epam.Kafka.HealthChecks;
 /// <summary>
 /// 
 /// </summary>
-public static class HealthCheckExtensions
+public static class KafkaHealthCheckExtensions
 {
     /// <summary>
     /// Extensions to configure kafka cluster health checks.
