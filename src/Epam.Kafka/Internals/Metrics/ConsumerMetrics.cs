@@ -16,30 +16,8 @@ internal sealed class ConsumerMetrics : StatisticsMetrics
             () => new Measurement<long>(this.Latest.ConsumedMessagesTotal, this.Tags), null,
             "Total number of messages consumed, not including ignored messages (due to offset, etc).");
 
-        this.Meter.CreateObservableGauge($"{NamePrefix}_cgrp_state", this.ObserveCgrpState, null,
-            "Epoch time in seconds when local consumer group handler's state was observed.");
-
-        this.Meter.CreateObservableGauge($"{NamePrefix}_cgrp_join_state", this.ObserveCgrpJoinState, null,
-            "Epoch time in seconds when local consumer group handler's join state was observed.");
-
         this.Meter.CreateObservableCounter($"{NamePrefix}_cgrp_rebalance_count", this.ObserveCgrpRebalanceCount, null,
             "Total number of re-balances (assign or revoke).");
-    }
-
-    private IEnumerable<Measurement<long>> ObserveCgrpState()
-    {
-        if (this.Latest.ConsumerGroups != null)
-        {
-            yield return this.CreateStatusMetric(this.Latest.ConsumerGroups.State);
-        }
-    }
-
-    private IEnumerable<Measurement<long>> ObserveCgrpJoinState()
-    {
-        if (this.Latest.ConsumerGroups != null)
-        {
-            yield return this.CreateStatusMetric(this.Latest.ConsumerGroups.JoinState);
-        }
     }
 
     private IEnumerable<Measurement<long>> ObserveCgrpRebalanceCount()
