@@ -198,7 +198,7 @@ internal sealed class SubscriptionTopicWrapper<TKey, TValue> : IDisposable
     {
         if (reset.Count > 0)
         {
-            this.Logger.OffsetsReset(this.Monitor.Name, reset.Keys, reset.Values.Where(x => x != null)!);
+            this.Logger.OffsetsReset(this.Monitor.Name, reset.Keys, reset.Values.Where(x => x != null).Select(x => x!).ToArray());
 
             this.CleanupBuffer(x => reset.Any(v => v.Key.TopicPartition == x.TopicPartition), "partition offset reset");
         }
@@ -415,6 +415,12 @@ internal sealed class SubscriptionTopicWrapper<TKey, TValue> : IDisposable
 
             throw;
         }
+    }
+
+    public void Seek(TopicPartitionOffset tpo)
+    {
+        this.Consumer.Seek(tpo);
+        this.Offsets[tpo.TopicPartition] = tpo.Offset;
     }
 
     public void ThrowIfNeeded()

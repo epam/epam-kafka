@@ -44,7 +44,7 @@ internal class CombinedState<TOffsetsStorage> : InternalKafkaState
                 if (previous != item.Offset)
                 {
                     reset.Add(item, new TopicPartitionOffset(item.TopicPartition, previous));
-                    topic.Consumer.Seek(item);
+                    topic.Seek(item);
                 }
             }
 

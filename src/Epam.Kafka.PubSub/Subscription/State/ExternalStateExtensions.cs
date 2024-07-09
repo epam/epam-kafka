@@ -50,8 +50,7 @@ internal static class ExternalStateExtensions
                         ? new TopicPartitionOffset(item.TopicPartition, old)
                         : null);
 
-                topic.Consumer.Seek(tpo);
-                topic.Offsets[item.TopicPartition] = item.Offset;
+                topic.Seek(tpo);
             }
         }
 

@@ -46,8 +46,7 @@ internal sealed class ExternalState<TOffsetsStorage> : BatchState
                             ? new TopicPartitionOffset(item.TopicPartition, old)
                             : null);
 
-                    topic.Consumer.Seek(tpo);
-                    topic.Offsets[item.TopicPartition] = item.Offset;
+                    topic.Seek(tpo);
                 }
             }
             else

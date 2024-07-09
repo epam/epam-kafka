@@ -209,4 +209,77 @@ public class ResetTests : TestWithServices, IClassFixture<MockCluster>
         // iteration 3
         observer.AssertSubEmpty();
     }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task ResetToBeginning(bool onCommit)
+    {
+        TopicPartition tp3 = new(this.AnyTopicName, 3);
+
+        using TestObserver observer = new(this, 3);
+
+        var handler = new TestSubscriptionHandler(observer);
+        var offsets = new TestOffsetsStorage(observer, 0, 1, 2);
+        var deserializer = new TestDeserializer(observer);
+
+        this.Services.AddScoped(_ => handler);
+        this.Services.AddScoped(_ => offsets);
+
+        observer.CreateDefaultSubscription(this._mockCluster).WithValueDeserializer(_ => deserializer)
+            .WithSubscribeAndExternalOffsets<TestOffsetsStorage>().WithOptions(x => x.BatchSize = 5);
+
+        var m1 = (await MockCluster.SeedKafka(this, 10, tp3)).Take(5).ToDictionary(p => p.Key, p => p.Value);
+
+        handler.WithSuccess(2, m1);
+        deserializer.WithSuccess(2, m1.Keys.ToArray());
+
+        var offset0 = new TopicPartitionOffset(tp3, 0);
+        var offset5 = new TopicPartitionOffset(tp3, 5);
+        var beginning = new TopicPartitionOffset(tp3, Offset.Beginning);
+
+        offsets.WithGet(2, offset0);
+
+        if (onCommit)
+        {
+            offsets.WithReset(2, offset5, beginning);
+        }
+        else
+        {
+            offsets.WithSet(2, offset5);
+        }
+
+        offsets.WithGet(3, beginning);
+        offsets.WithSet(3, offset5);
+
+        handler.WithSuccess(3, m1);
+        deserializer.WithSuccess(3, m1.Keys.ToArray());
+
+        await this.RunBackgroundServices();
+
+        deserializer.Verify();
+        handler.Verify();
+        offsets.Verify();
+
+        // iteration 1
+        observer.AssertSubNotAssigned();
+
+        // iteration 2
+        observer.AssertStart();
+        observer.AssertAssign();
+        observer.AssertRead(5);
+        observer.AssertProcess();
+        observer.AssertCommitExternal();
+        observer.AssertCommitKafka();
+        observer.AssertStop(SubscriptionBatchResult.Processed);
+
+        // iteration 3
+        observer.AssertStart();
+        observer.AssertAssign();
+        observer.AssertRead(5);
+        observer.AssertProcess();
+        observer.AssertCommitExternal();
+        observer.AssertCommitKafka();
+        observer.AssertStop(SubscriptionBatchResult.Processed);
+    }
 }
