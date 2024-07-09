@@ -11,6 +11,6 @@ public class PublicApiTests
     [Fact]
     public void ApiDifferenceTests()
     {
-        typeof(HealthCheckExtensions).Assembly.ShouldMatchApproved();
+        typeof(KafkaHealthCheckExtensions).Assembly.ShouldMatchApproved();
     }
 }
