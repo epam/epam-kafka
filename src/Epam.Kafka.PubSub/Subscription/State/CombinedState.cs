@@ -26,7 +26,7 @@ internal class CombinedState<TOffsetsStorage> : InternalKafkaState
 
         if (topic.Consumer.Assignment.Count > 0)
         {
-            var reset = new Dictionary<TopicPartitionOffset,TopicPartitionOffset?>();
+            var reset = new List<TopicPartitionOffset>();
 
             IReadOnlyCollection<TopicPartitionOffset> state = this._offsetsStorage.GetOrCreate(
                 topic.Consumer.Assignment, topic.ConsumerGroup,
@@ -36,14 +36,14 @@ internal class CombinedState<TOffsetsStorage> : InternalKafkaState
             {
                 if (!topic.Offsets.TryGetValue(item.TopicPartition, out Offset previous))
                 {
-                    reset.Add(item, null);
+                    reset.Add(item);
                     continue; // Don't need to seek if previous offset unavailable
                 }
 
                 // don't reset paused offset
                 if (previous != item.Offset)
                 {
-                    reset.Add(item, new TopicPartitionOffset(item.TopicPartition, previous));
+                    reset.Add(item);
                     topic.Seek(item);
                 }
             }

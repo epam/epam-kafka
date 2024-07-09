@@ -194,13 +194,13 @@ internal sealed class SubscriptionTopicWrapper<TKey, TValue> : IDisposable
         }
     }
 
-    public void OnReset(IReadOnlyDictionary<TopicPartitionOffset, TopicPartitionOffset?> reset)
+    public void OnReset(IReadOnlyCollection<TopicPartitionOffset> reset)
     {
         if (reset.Count > 0)
         {
-            this.Logger.OffsetsReset(this.Monitor.Name, reset.Keys, reset.Values.Where(x => x != null).Select(x => x!).ToArray());
+            this.Logger.OffsetsReset(this.Monitor.Name, reset);
 
-            this.CleanupBuffer(x => reset.Any(v => v.Key.TopicPartition == x.TopicPartition), "partition offset reset");
+            this.CleanupBuffer(x => reset.Any(v => v.TopicPartition == x.TopicPartition), "partition offset reset");
         }
     }
 
