@@ -19,9 +19,9 @@ internal abstract class BatchState
 
         topic.ClearIfNotAssigned();
 
-        using (activitySpan.CreateSpan("assign"))
+        using (var span = activitySpan.CreateSpan("assign"))
         {
-            this.AssignConsumer(topic, cancellationToken);
+            this.AssignConsumer(topic, span, cancellationToken);
         }
 
         cancellationToken.ThrowIfCancellationRequested();
@@ -35,6 +35,7 @@ internal abstract class BatchState
     }
 
     protected abstract void AssignConsumer<TKey, TValue>(SubscriptionTopicWrapper<TKey, TValue> topic,
+        ActivityWrapper activitySpan,
         CancellationToken cancellationToken);
 
     public void CommitResults<TKey, TValue>(SubscriptionTopicWrapper<TKey, TValue> topic,

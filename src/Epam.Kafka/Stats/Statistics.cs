@@ -19,11 +19,6 @@ public class Statistics
     public const string MeterName = "Epam.Kafka.Statistics";
 
     /// <summary>
-    /// Name of <see cref="Meter"/> used to expose topics statistics if <see cref="KafkaConfigExtensions.DotnetStatisticMetricsKey"/> enable it.
-    /// </summary>
-    public const string TopicsMeterName = "Epam.Kafka.Statistics.Topics";
-
-    /// <summary>
     /// Create new instance of <see cref="Statistics"/> object from json representation.
     /// </summary>
     /// <param name="json"></param>

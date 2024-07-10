@@ -18,11 +18,12 @@ internal class CombinedState<TOffsetsStorage> : InternalKafkaState
     }
 
     protected override void AssignConsumer<TKey, TValue>(SubscriptionTopicWrapper<TKey, TValue> topic,
+        ActivityWrapper activitySpan,
         CancellationToken cancellationToken)
     {
         topic.ExternalState = list => topic.GetAndResetState(this._offsetsStorage, list, cancellationToken);
 
-        base.AssignConsumer(topic, cancellationToken);
+        base.AssignConsumer(topic, activitySpan, cancellationToken);
 
         if (topic.Consumer.Assignment.Count > 0)
         {
@@ -49,6 +50,8 @@ internal class CombinedState<TOffsetsStorage> : InternalKafkaState
             }
 
             topic.OnReset(reset);
+
+            topic.CommitOffsetIfNeeded(activitySpan, reset);
         }
     }
 

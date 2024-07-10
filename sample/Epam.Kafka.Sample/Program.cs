@@ -34,8 +34,7 @@ internal static class Program
             // view metrics in console for demo purposes only
             services.AddOpenTelemetry()
                 .WithMetrics(mb => mb
-                    .AddMeter(PipelineMonitor.StatusMeterName, PipelineMonitor.HealthMeterName, Statistics.MeterName,
-                        Statistics.TopicsMeterName)
+                    .AddMeter(PipelineMonitor.StatusMeterName, PipelineMonitor.HealthMeterName, Statistics.MeterName)
                     .AddConsoleExporter());
 
             KafkaBuilder kafkaBuilder = services.AddKafka()

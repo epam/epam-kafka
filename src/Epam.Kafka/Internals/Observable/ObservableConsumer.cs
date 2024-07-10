@@ -13,7 +13,6 @@ internal class ObservableConsumer<TKey, TValue> : ObservableClient, IConsumer<TK
 {
     private readonly IConsumer<TKey, TValue> _inner;
     private readonly Meter? _meter;
-    private readonly Meter? _topicsMeter;
 
     public ObservableConsumer(ConsumerBuilder<TKey, TValue> builder, bool metrics)
     {
@@ -36,9 +35,7 @@ internal class ObservableConsumer<TKey, TValue> : ObservableClient, IConsumer<TK
             if (metrics)
             {
                 this._meter = new Meter(Statistics.MeterName);
-                this._topicsMeter = new Meter(Statistics.TopicsMeterName);
                 this.StatObservers.Add(new ConsumerMetrics(this._meter));
-                this.StatObservers.Add(new ConsumerTopicsMetrics(this._topicsMeter));
             }
         }
         catch (InvalidOperationException)
@@ -62,7 +59,6 @@ internal class ObservableConsumer<TKey, TValue> : ObservableClient, IConsumer<TK
             this.ClearObservers();
 
             this._meter?.Dispose();
-            this._topicsMeter?.Dispose();
         }
     }
 

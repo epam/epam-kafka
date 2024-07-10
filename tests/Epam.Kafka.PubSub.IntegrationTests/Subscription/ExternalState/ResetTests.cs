@@ -80,7 +80,7 @@ public class ResetTests : TestWithServices, IClassFixture<MockCluster>
 
         // iteration 2
         observer.AssertStart();
-        observer.AssertAssign();
+        observer.AssertAssign(true);
         observer.AssertRead(5);
         observer.AssertProcess();
         observer.AssertCommitExternal();
@@ -134,7 +134,7 @@ public class ResetTests : TestWithServices, IClassFixture<MockCluster>
 
         // iteration 2
         observer.AssertStart();
-        observer.AssertAssign();
+        observer.AssertAssign(true);
         observer.AssertRead(5);
         observer.AssertProcess();
         observer.AssertCommitExternal();
@@ -203,6 +203,6 @@ public class ResetTests : TestWithServices, IClassFixture<MockCluster>
         observer.AssertStop(SubscriptionBatchResult.Processed);
 
         // iteration 2
-        observer.AssertSubEmpty();
+        observer.AssertSubEmpty(!onCommit);
     }
 }

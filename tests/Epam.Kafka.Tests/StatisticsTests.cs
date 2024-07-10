@@ -99,15 +99,11 @@ public class StatisticsTests
         ProducerMetrics pm = new ProducerMetrics(testMeter);
         pm.OnNext(value);
 
-        ConsumerTopicsMetrics ctm = new ConsumerTopicsMetrics(testMeter);
-        ctm.OnNext(value);
-
         ml.RecordObservableInstruments();
 
         AssertMeasurement(results, "epam_kafka_statistics_rxmsgs", 2);
         AssertMeasurement(results, "epam_kafka_statistics_cgrp_rebalance_count", 1);
         AssertMeasurement(results, "epam_kafka_statistics_txmsgs", 0);
-        AssertTopicMeasurement(results, "epam_kafka_statistics_tp_lag", 1);
     }
 
     private static void AssertMeasurement<T>(Dictionary<string, Tuple<T, Dictionary<string, string>>> results,
@@ -118,14 +114,5 @@ public class StatisticsTests
 
         results[name].Item2["client"].ShouldBe("Epam.Kafka.Sample@QWE:Sample");
         results[name].Item2["handle"].ShouldBe("consumer-2");
-    }
-
-    private static void AssertTopicMeasurement<T>(Dictionary<string, Tuple<T, Dictionary<string, string>>> results,
-        string name, T value)
-    {
-        AssertMeasurement(results,name,value);
-
-        results[name].Item2["topic"].ShouldBe("epam-kafka-sample-topic-2");
-        results[name].Item2["partition"].ShouldBe("0");
     }
 }

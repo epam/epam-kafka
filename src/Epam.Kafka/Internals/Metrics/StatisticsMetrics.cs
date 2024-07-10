@@ -50,20 +50,4 @@ internal abstract class StatisticsMetrics : IObserver<Statistics>
     }
 
     protected abstract void Create();
-
-    protected IEnumerable<KeyValuePair<string, object?>> BuildTpTags(string topic, long partition)
-    {
-        return this.Tags.Concat(
-            new Dictionary<string, object?>
-            {
-                { "topic", topic },
-                { "partition", partition }
-            });
-    }
-
-    protected Measurement<long> CreateStatusMetric(string value)
-    {
-        return new Measurement<long>(this.Latest.EpochTimeSeconds,
-            this.Tags.Concat(Enumerable.Repeat(new KeyValuePair<string, object?>("state", value), 1)));
-    }
 }

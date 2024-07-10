@@ -11,6 +11,7 @@ namespace Epam.Kafka.PubSub.Subscription.State;
 internal class InternalKafkaState : BatchState
 {
     protected override void AssignConsumer<TKey, TValue>(SubscriptionTopicWrapper<TKey, TValue> topic,
+        ActivityWrapper activitySpan,
         CancellationToken cancellationToken)
     {
         if (topic == null)
