@@ -17,10 +17,14 @@ internal static class ExternalStateExtensions
         CancellationToken cancellationToken)
     {
         if (topic == null)
+        {
             throw new ArgumentNullException(nameof(topic));
+        }
 
         if (offsets == null)
+        {
             throw new ArgumentNullException(nameof(offsets));
+        }
 
         var reset = new List<TopicPartitionOffset>();
         var committed = new List<TopicPartitionOffset>();
@@ -53,21 +57,53 @@ internal static class ExternalStateExtensions
 
         topic.OnReset(reset);
 
+        topic.CommitOffsetIfNeeded(activitySpan, newState);
+
+        return committed;
+    }
+
+    public static void CommitOffsetIfNeeded<TKey, TValue>(
+        this SubscriptionTopicWrapper<TKey, TValue> topic, 
+        ActivityWrapper activitySpan,
+        IReadOnlyCollection<TopicPartitionOffset> offsets)
+    {
         if (topic.Options.ExternalStateCommitToKafka)
         {
             try
             {
-                topic.CommitOffsets(activitySpan, committed);
+                List<TopicPartitionOffset> toCommit = new();
+
+                foreach (TopicPartitionOffset item in offsets)
+                {
+                    if (item.Offset.Value >= 0)
+                    {
+                        toCommit.Add(item);
+                    }
+                    else if (item.Offset == Offset.Beginning)
+                    {
+                        var w = topic.Consumer.GetWatermarkOffsets(item.TopicPartition);
+
+                        if (w.Low == Offset.Unset)
+                        {
+                            w = topic.Consumer.QueryWatermarkOffsets(item.TopicPartition, TimeSpan.FromSeconds(5));
+                        }
+
+                        if (w.Low.Value >= 0)
+                        {
+                            toCommit.Add(new TopicPartitionOffset(item.TopicPartition, w.Low));
+                        }
+                    }
+                }
+
+                topic.CommitOffsets(activitySpan, toCommit);
             }
             catch (KafkaException exception)
             {
-                topic.Logger.KafkaCommitFailed(exception, topic.Monitor.Name, committed);
+                topic.Logger.KafkaCommitFailed(exception, topic.Monitor.Name, offsets);
 
                 // ignore exception because external provider is a single point of truth for offsets.
                 // failed commit will trigger offset reset on next batch iteration
             }
         }
-
-        return committed;
     }
 }

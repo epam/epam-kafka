@@ -19,6 +19,7 @@ internal sealed class ExternalState<TOffsetsStorage> : BatchState
     }
 
     protected override void AssignConsumer<TKey, TValue>(SubscriptionTopicWrapper<TKey, TValue> topic,
+        ActivityWrapper activitySpan,
         CancellationToken cancellationToken)
     {
         if (topic == null)
@@ -63,6 +64,8 @@ internal sealed class ExternalState<TOffsetsStorage> : BatchState
         }
 
         topic.OnReset(reset);
+
+        topic.CommitOffsetIfNeeded(activitySpan, reset);
     }
 
     protected override IReadOnlyCollection<TopicPartitionOffset> CommitState<TKey, TValue>(

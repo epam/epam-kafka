@@ -346,10 +346,13 @@ internal sealed class SubscriptionTopicWrapper<TKey, TValue> : IDisposable
 
     public void CommitOffsets(ActivityWrapper activitySpan, IReadOnlyCollection<TopicPartitionOffset> offsets)
     {
-        using (activitySpan.CreateSpan("commit_kafka"))
+        if (offsets.Count > 0)
         {
+            using var span = activitySpan.CreateSpan("commit_kafka");
             // commit to kafka also
             this.Consumer.Commit(offsets);
+
+            span.SetResult(offsets);
         }
     }
 
