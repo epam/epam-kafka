@@ -10,7 +10,7 @@ using Epam.Kafka.PubSub.EntityFrameworkCore.Publication.Contracts;
 using Epam.Kafka.Sample.Data;
 using Epam.Kafka.Sample.Json;
 using Epam.Kafka.Sample.Samples;
-using Epam.Kafka.Stats;
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
@@ -34,7 +34,7 @@ internal static class Program
             // view metrics in console for demo purposes only
             services.AddOpenTelemetry()
                 .WithMetrics(mb => mb
-                    .AddMeter(PipelineMonitor.StatusMeterName, PipelineMonitor.HealthMeterName, Statistics.MeterName)
+                    .AddMeter(PipelineMonitor.StatusMeterName, PipelineMonitor.HealthMeterName)
                     .AddConsoleExporter());
 
             KafkaBuilder kafkaBuilder = services.AddKafka()
@@ -47,10 +47,6 @@ internal static class Program
                 // For demo purposes run Mock server instead of real one and create required topics.
                 // Also it is possible to run real kafka cluster in docker using provided 'docker-compose.yml' file.
                 options.ClientConfig.BootstrapServers = RunMockServer();
-
-                // Emit librdkafka statistics and expose it via metrics
-                options.ClientConfig.SetDotnetStatisticMetrics(true);
-                options.ClientConfig.StatisticsIntervalMs = 10_000;
 
             }).WithHealthCheck().Configure(options =>
             {

@@ -2,19 +2,13 @@
 
 using Confluent.Kafka;
 
-using Epam.Kafka.Internals.Metrics;
-using Epam.Kafka.Stats;
-
-using System.Diagnostics.Metrics;
-
 namespace Epam.Kafka.Internals.Observable;
 
 internal class ObservableProducer<TKey, TValue> : ObservableClient, IProducer<TKey, TValue>
 {
     private readonly IProducer<TKey, TValue> _inner;
-    private readonly Meter? _meter;
 
-    public ObservableProducer(ProducerBuilder<TKey, TValue> builder, bool metrics)
+    public ObservableProducer(ProducerBuilder<TKey, TValue> builder)
     {
         if (builder == null) throw new ArgumentNullException(nameof(builder));
 
@@ -31,12 +25,7 @@ internal class ObservableProducer<TKey, TValue> : ObservableClient, IProducer<TK
         try
         {
             builder.SetStatisticsHandler((_, json) => this.StatisticsHandler(json));
-            this.StatObservers = new List<IObserver<Statistics>>();
-            if (metrics)
-            {
-                this._meter = new Meter(Statistics.MeterName);
-                this.StatObservers.Add(new ProducerMetrics(this._meter));
-            }
+            this.StatObservers = new List<IObserver<string>>();
         }
         catch (InvalidOperationException)
         {
@@ -57,8 +46,6 @@ internal class ObservableProducer<TKey, TValue> : ObservableClient, IProducer<TK
         finally
         {
             this.ClearObservers();
-
-            this._meter?.Dispose();
         }
     }
 

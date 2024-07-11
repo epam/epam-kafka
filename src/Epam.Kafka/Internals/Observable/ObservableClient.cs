@@ -2,42 +2,18 @@
 
 using Confluent.Kafka;
 
-using Epam.Kafka.Stats;
-
 namespace Epam.Kafka.Internals.Observable;
 
-internal abstract class ObservableClient : ClientWrapper, IObservable<Error>, IObservable<Statistics>
+internal abstract class ObservableClient : ClientWrapper, IObservable<Error>, IObservable<string>
 {
     protected List<IObserver<Error>>? ErrorObservers { get; set; }
-    protected List<IObserver<Statistics>>? StatObservers { get; set; }
+    protected List<IObserver<string>>? StatObservers { get; set; }
 
     protected void StatisticsHandler(string json)
     {
-        // don't try to parse if no subscribers
-        if (this.StatObservers!.Count <= 0)
+        foreach (IObserver<string> observer in this.StatObservers!)
         {
-            return;
-        }
-
-        Statistics value;
-
-        try
-        {
-            value = Statistics.FromJson(json);
-        }
-        catch (Exception e) when (e is ArgumentNullException or ArgumentException)
-        {
-            foreach (IObserver<Statistics> observer in this.StatObservers)
-            {
-                observer.OnError(e);
-            }
-
-            return;
-        }
-
-        foreach (IObserver<Statistics> observer in this.StatObservers)
-        {
-            observer.OnNext(value);
+            observer.OnNext(json);
         }
     }
 
@@ -89,7 +65,7 @@ internal abstract class ObservableClient : ClientWrapper, IObservable<Error>, IO
         return new Unsubscriber<Error>(this.ErrorObservers, observer);
     }
 
-    public IDisposable Subscribe(IObserver<Statistics> observer)
+    public IDisposable Subscribe(IObserver<string> observer)
     {
         if (this.StatObservers == null)
         {
@@ -102,7 +78,7 @@ internal abstract class ObservableClient : ClientWrapper, IObservable<Error>, IO
             this.StatObservers.Add(observer);
         }
 
-        return new Unsubscriber<Statistics>(this.StatObservers, observer);
+        return new Unsubscriber<string>(this.StatObservers, observer);
     }
 
     private class Unsubscriber<T> : IDisposable
