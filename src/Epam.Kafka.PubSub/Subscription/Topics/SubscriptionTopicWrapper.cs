@@ -65,6 +65,8 @@ internal sealed class SubscriptionTopicWrapper<TKey, TValue> : IDisposable
         });
     }
 
+    public bool Rebalanced { get; set; }
+
     public SubscriptionMonitor Monitor { get; }
     public SubscriptionOptions Options { get; }
     public ILogger Logger { get; }
@@ -230,41 +232,55 @@ internal sealed class SubscriptionTopicWrapper<TKey, TValue> : IDisposable
         }
     }
 
-    public void OnPause(IReadOnlyCollection<TopicPartition> items)
+    public bool OnPause(IReadOnlyCollection<TopicPartition> items)
     {
-        if (items.Count > 0)
+        return items.Count > 0 && this.OnPauseEnumerate(items);
+    }
+
+    private bool OnPauseEnumerate(IEnumerable<TopicPartition> items)
+    {
+        List<TopicPartition> result = new();
+
+        foreach (TopicPartition tp in items)
         {
-            List<TopicPartition> result = new();
-
-            foreach (TopicPartition tp in items)
+            if (this.Consumer.Assignment.Contains(tp) && !this._paused.Contains(tp))
             {
-                if (this.Consumer.Assignment.Contains(tp) && !this._paused.Contains(tp))
-                {
-                    result.Add(tp);
-                }
-            }
-
-            if (result.Count > 0)
-            {
-                this.Consumer.Pause(result);
-
-                foreach (var r in result)
-                {
-                    this._paused.Add(r);
-                    this.Offsets[r] = ExternalOffset.Paused;
-                }
-
-                this.Logger.PartitionsPaused(this.Monitor.Name, result);
-
-                this.CleanupBuffer(x => result.Any(v => v == x.TopicPartition), "partition paused");
+                result.Add(tp);
             }
         }
+
+        if (result.Count > 0)
+        {
+            try
+            {
+                this.Consumer.Pause(result);
+            }
+            catch (Exception e)
+            {
+                e.DoNotRetryBatch();
+                throw;
+            }
+
+            foreach (var r in result)
+            {
+                this._paused.Add(r);
+                this.Offsets[r] = ExternalOffset.Paused;
+            }
+
+            this.Logger.PartitionsPaused(this.Monitor.Name, result);
+
+            return this.CleanupBuffer(x => result.Any(v => v == x.TopicPartition), "partition paused");
+        }
+
+        return false;
     }
 
     private void ConfigureConsumerBuilder(ConsumerBuilder<TKey, TValue> builder)
     {
         builder.SetPartitionsAssignedHandler((consumer, list) =>
         {
+            this.Rebalanced = true;
+
             var result = new List<TopicPartitionOffset>(list.Count);
             result.AddRange(list.Select(x => new TopicPartitionOffset(x, Offset.Unset)));
 
@@ -281,6 +297,8 @@ internal sealed class SubscriptionTopicWrapper<TKey, TValue> : IDisposable
 
     private void OnPartitionsLost(IConsumer<TKey, TValue> c, List<TopicPartitionOffset> list)
     {
+        this.Rebalanced = true;
+
         if (list.Count > 0)
         {
             this.Logger.PartitionsLost(this.Monitor.Name, c.MemberId, list);
@@ -299,6 +317,8 @@ internal sealed class SubscriptionTopicWrapper<TKey, TValue> : IDisposable
 
     private void OnPartitionsRevoked(IConsumer<TKey, TValue> c, List<TopicPartitionOffset> list)
     {
+        this.Rebalanced = true;
+
         if (list.Count > 0)
         {
             this.Logger.PartitionsRevoked(this.Monitor.Name, c.MemberId, list);
@@ -328,14 +348,16 @@ internal sealed class SubscriptionTopicWrapper<TKey, TValue> : IDisposable
 #pragma warning disable CA1031 // can't throw exceptions in handler callback because it triggers incorrect state in librdkafka and some times leads to app crash. 
                 try
                 {
-                    IReadOnlyCollection<TopicPartitionOffset> state = this.ExternalState.Invoke(tp);
+                    IEnumerable<TopicPartitionOffset> state = this.ExternalState.Invoke(tp);
 
                     foreach (TopicPartitionOffset tpo in state)
                     {
                         this.Offsets[tpo.TopicPartition] = tpo.Offset;
-                    }
 
-                    list.AddRange(state);
+                        list.Add(tpo.Offset == ExternalOffset.Paused
+                            ? new TopicPartitionOffset(tpo.TopicPartition, Offset.End)
+                            : tpo);
+                    }
                 }
                 catch (Exception exception)
                 {
@@ -364,7 +386,7 @@ internal sealed class SubscriptionTopicWrapper<TKey, TValue> : IDisposable
         }
     }
 
-    private void CleanupBuffer(Predicate<ConsumeResult<TKey, TValue>> predicate, string reason)
+    private bool CleanupBuffer(Predicate<ConsumeResult<TKey, TValue>> predicate, string reason)
     {
         if (predicate == null)
         {
@@ -377,6 +399,8 @@ internal sealed class SubscriptionTopicWrapper<TKey, TValue> : IDisposable
         {
             this.Logger.BufferCleanup(this.Monitor.Name, count, reason);
         }
+
+        return count > 0;
     }
 
     private void ConfigureConsumerConfig(ConsumerConfig config)
