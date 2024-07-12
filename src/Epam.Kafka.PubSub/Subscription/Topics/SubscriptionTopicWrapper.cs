@@ -18,6 +18,8 @@ internal sealed class SubscriptionTopicWrapper<TKey, TValue> : IDisposable
 
     private readonly AutoOffsetReset? _autoOffsetReset;
 
+    private readonly HashSet<TopicPartition> _paused = new();
+
     private readonly int _consumeTimeoutMs;
 
     public SubscriptionTopicWrapper(IKafkaFactory kafkaFactory,
@@ -194,13 +196,68 @@ internal sealed class SubscriptionTopicWrapper<TKey, TValue> : IDisposable
         }
     }
 
-    public void OnReset(IReadOnlyCollection<TopicPartitionOffset> reset)
+    public void OnReset(IReadOnlyCollection<TopicPartitionOffset> items)
     {
-        if (reset.Count > 0)
+        if (items.Count > 0)
         {
-            this.Logger.OffsetsReset(this.Monitor.Name, reset);
+            List<TopicPartitionOffset> reset = new(items.Count);
+            List<TopicPartitionOffset> resume = new(items.Count);
 
-            this.CleanupBuffer(x => reset.Any(v => v.TopicPartition == x.TopicPartition), "partition offset reset");
+            foreach (var tpo in items)
+            {
+                if (this._paused.Remove(tpo.TopicPartition))
+                {
+                    resume.Add(tpo);
+                }
+                else
+                {
+                    reset.Add(tpo);
+                }
+            }
+
+            if (reset.Count > 0)
+            {
+                this.Logger.OffsetsReset(this.Monitor.Name, reset);
+                this.CleanupBuffer(x => reset.Any(v => v.TopicPartition == x.TopicPartition), "partition offset reset");
+            }
+
+            if (resume.Count > 0)
+            {
+                this.Consumer.Resume(resume.Select(x => x.TopicPartition));
+                this.Logger.PartitionsResumed(this.Monitor.Name, resume);
+                this.CleanupBuffer(x => resume.Any(v => v.TopicPartition == x.TopicPartition), "partition offset resume");
+            }
+        }
+    }
+
+    public void OnPause(IReadOnlyCollection<TopicPartition> items)
+    {
+        if (items.Count > 0)
+        {
+            List<TopicPartition> result = new();
+
+            foreach (TopicPartition tp in items)
+            {
+                if (this.Consumer.Assignment.Contains(tp) && !this._paused.Contains(tp))
+                {
+                    result.Add(tp);
+                }
+            }
+
+            if (result.Count > 0)
+            {
+                this.Consumer.Pause(result);
+
+                foreach (var r in result)
+                {
+                    this._paused.Add(r);
+                    this.Offsets[r] = ExternalOffset.Paused;
+                }
+
+                this.Logger.PartitionsPaused(this.Monitor.Name, result);
+
+                this.CleanupBuffer(x => result.Any(v => v == x.TopicPartition), "partition paused");
+            }
         }
     }
 

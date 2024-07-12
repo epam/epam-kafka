@@ -30,8 +30,10 @@ internal sealed class ExternalState<TOffsetsStorage> : BatchState
         IReadOnlyCollection<TopicPartitionOffset> state =
             topic.GetAndResetState(this._offsetsStorage, topicPartitions, cancellationToken);
 
+        var pause = new List<TopicPartition>();
         var reset = new List<TopicPartitionOffset>();
         var assign = new List<TopicPartitionOffset>();
+        var assignNonPaused = new List<TopicPartitionOffset>();
 
         foreach (TopicPartitionOffset item in state)
         {
@@ -40,16 +42,24 @@ internal sealed class ExternalState<TOffsetsStorage> : BatchState
             {
                 if (topic.Offsets[item.TopicPartition] != item.Offset)
                 {
-                    TopicPartitionOffset tpo = new(item.TopicPartition, item.Offset);
-
-                    topic.Seek(tpo);
-
-                    reset.Add(tpo);
+                    ExternalStateExtensions.PauseOrReset(topic, item, pause, reset);
                 }
             }
             else
             {
                 TopicPartitionOffset tpo = new(item.TopicPartition, item.Offset);
+
+                // first assign offset.end, than pause consumer
+                if (tpo.Offset == ExternalOffset.Paused)
+                {
+                    pause.Add(item.TopicPartition);
+                    tpo = new(item.TopicPartition, Offset.End);
+                }
+                else
+                {
+                    assignNonPaused.Add(tpo);
+                }
+
                 topic.Offsets[item.TopicPartition] = item.Offset;
 
                 assign.Add(tpo);
@@ -65,7 +75,9 @@ internal sealed class ExternalState<TOffsetsStorage> : BatchState
 
         topic.OnReset(reset);
 
-        topic.CommitOffsetIfNeeded(activitySpan, reset);
+        topic.OnPause(pause);
+
+        topic.CommitOffsetIfNeeded(activitySpan, reset.Concat(assignNonPaused));
     }
 
     protected override IReadOnlyCollection<TopicPartitionOffset> CommitState<TKey, TValue>(

@@ -57,7 +57,7 @@ public class SerializationErrorTests : TestWithServices, IClassFixture<MockClust
 
         // iteration 1
         observer.AssertStart();
-        observer.AssertAssign();
+        observer.AssertAssign(true);
         observer.AssertRead();
         observer.AssertStop<ConsumeException>("Value deserialization error");
 
@@ -109,7 +109,7 @@ public class SerializationErrorTests : TestWithServices, IClassFixture<MockClust
 
         // iteration 1 process deserialized items before error
         observer.AssertStart();
-        observer.AssertAssign();
+        observer.AssertAssign(true);
         observer.AssertRead(1);
         observer.AssertProcess();
         observer.AssertCommitExternal();
