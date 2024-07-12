@@ -37,7 +37,7 @@ public enum SubscriptionBatchResult
     NotAssigned = 4,
 
     /// <summary>
-    ///     All assigned topic partitions paused (pointing to <see cref="Offset.End"/> special value). Valid only for external and combined offsets storage.
+    ///     All assigned topic partitions paused (pointing to <see cref="ExternalOffset.Paused"/> special value). Valid only for external and combined offsets storage.
     /// </summary>
     Paused = 5
 }
