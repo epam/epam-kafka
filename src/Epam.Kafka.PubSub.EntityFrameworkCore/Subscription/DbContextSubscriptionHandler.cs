@@ -6,6 +6,7 @@ using Epam.Kafka.PubSub.Subscription;
 
 #if EF6
 using System.Data.Entity;
+
 #else
 using Microsoft.EntityFrameworkCore;
 #endif

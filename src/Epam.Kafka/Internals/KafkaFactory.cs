@@ -3,6 +3,7 @@
 using Confluent.Kafka;
 using Confluent.SchemaRegistry;
 
+using Epam.Kafka.Internals.Observable;
 using Epam.Kafka.Options;
 
 using Microsoft.Extensions.Logging;
@@ -15,7 +16,7 @@ internal sealed class KafkaFactory : IKafkaFactory, IDisposable
 {
     private const string LoggerCategoryName = "Epam.Kafka.Factory";
 
-    private readonly Dictionary<KafkaClusterOptions, AdminClient> _clients = new();
+    private readonly Dictionary<KafkaClusterOptions, SharedClient> _clients = new();
     private readonly IOptionsMonitor<KafkaClusterOptions> _clusterOptions;
     private readonly IOptionsMonitor<KafkaConsumerOptions> _consumerOptions;
     private readonly ILoggerFactory _loggerFactory;
@@ -24,6 +25,8 @@ internal sealed class KafkaFactory : IKafkaFactory, IDisposable
     private readonly object _syncObj = new();
     private readonly IOptionsMonitor<KafkaFactoryOptions> _topicOptions;
     private bool _disposed;
+
+    internal HashSet<string> UsedClusters { get; } = new();
 
     public KafkaFactory(
         IOptionsMonitor<KafkaFactoryOptions> topicOptions,
@@ -45,7 +48,7 @@ internal sealed class KafkaFactory : IKafkaFactory, IDisposable
 
         lock (this._syncObj)
         {
-            foreach (KeyValuePair<KafkaClusterOptions, AdminClient> producer in this._clients)
+            foreach (KeyValuePair<KafkaClusterOptions, SharedClient> producer in this._clients)
             {
                 producer.Value.DisposeInternal();
             }
@@ -137,11 +140,11 @@ internal sealed class KafkaFactory : IKafkaFactory, IDisposable
         {
         } // handler already set
 
-        ILogger fl =  this._loggerFactory.CreateLogger(LoggerCategoryName);
+        ILogger fl = this._loggerFactory.CreateLogger(LoggerCategoryName);
 
         try
         {
-            IConsumer<TKey, TValue> consumer = builder.Build();
+            IConsumer<TKey, TValue> consumer = new ObservableConsumer<TKey, TValue>(builder);
 
             fl.ConsumerCreateOk(PrepareConfigForLogs(config), typeof(TKey), typeof(TValue));
 
@@ -184,6 +187,7 @@ internal sealed class KafkaFactory : IKafkaFactory, IDisposable
             {
             } // handler already set
         }
+
         try
         {
             builder.SetLogHandler((_, m) => this._loggerFactory.CreateLogger(logHandler).KafkaLogHandler(m));
@@ -196,7 +200,7 @@ internal sealed class KafkaFactory : IKafkaFactory, IDisposable
 
         try
         {
-            IProducer<TKey, TValue> producer = builder.Build();
+            ObservableProducer<TKey, TValue> producer = new(builder);
 
             fl.ProducerCreateOk(PrepareConfigForLogs(config), typeof(TKey), typeof(TValue));
 
@@ -216,15 +220,13 @@ internal sealed class KafkaFactory : IKafkaFactory, IDisposable
 
         KafkaClusterOptions clusterOptions = this.GetAndValidateClusterOptions(cluster);
 
-        AdminClient? result;
+        SharedClient? result;
 
         lock (this._syncObj)
         {
             if (!this._clients.TryGetValue(clusterOptions, out result))
             {
-                var config = new ProducerConfig(clusterOptions.ClientConfig);
-
-                result = new AdminClient(this.CreateProducer<Null, Null>(config, cluster));
+                result = new SharedClient(this, cluster);
 
                 this._clients.Add(clusterOptions, result);
             }
@@ -288,6 +290,9 @@ internal sealed class KafkaFactory : IKafkaFactory, IDisposable
         cluster ??= this._topicOptions.CurrentValue.Cluster;
 
         ValidateLogicalName(cluster, "cluster");
+
+        // save cluster name for further health check
+        this.UsedClusters.Add(cluster!);
 
         try
         {

@@ -1,7 +1,5 @@
 ﻿// Copyright © 2024 EPAM Systems
 
-using Castle.Components.DictionaryAdapter;
-
 using Confluent.Kafka;
 
 using Epam.Kafka.PubSub.Publication;

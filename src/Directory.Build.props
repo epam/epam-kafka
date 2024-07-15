@@ -23,9 +23,9 @@
 		<PackageTags>epam kafka</PackageTags>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<NeutralLanguage>en</NeutralLanguage>
-
+		<PackageReleaseNotes>https://github.com/epam/epam-kafka/releases</PackageReleaseNotes>
 		<VersionPrefix>0</VersionPrefix>
-		<Version>2.2.$(VersionPrefix)</Version>
+		<Version>2.3.$(VersionPrefix)</Version>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -37,6 +37,7 @@
 
 	<ItemGroup>
 		<InternalsVisibleTo Include="$(AssemblyName).Tests" />
+		<InternalsVisibleTo Include="$(AssemblyName).HealthChecks" />
 		<InternalsVisibleTo Include="DynamicProxyGenAssembly2" />
 	</ItemGroup>
 </Project>

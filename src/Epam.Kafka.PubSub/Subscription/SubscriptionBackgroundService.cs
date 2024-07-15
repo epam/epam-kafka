@@ -98,12 +98,10 @@ internal sealed class SubscriptionBackgroundService<TKey, TValue, THandler> : Pu
     {
         BatchState state = ResolveRequiredService<BatchState>(sp, this.Options.StateType);
 
-        bool unassignedBeforeRead = topic.Consumer.Assignment.Count == 0;
-
         this.Monitor.Batch.Update(BatchStatus.Reading);
 
-        IReadOnlyCollection<ConsumeResult<TKey, TValue>> batch = state.GetBatch(
-            topic, activitySpan, cancellationToken);
+        bool unassignedBeforeRead = state.GetBatch(
+            topic, activitySpan, out var batch, cancellationToken);
 
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -141,7 +139,7 @@ internal sealed class SubscriptionBackgroundService<TKey, TValue, THandler> : Pu
             List<TopicPartition> assignments = topic.Consumer.Assignment;
 
             if (assignments.Count > 0 &&
-                assignments.All(x => topic.Offsets.TryGetValue(x, out Offset offset) && offset == Offset.End))
+                assignments.All(x => topic.TryGetOffset(x, out Offset offset) && offset == ExternalOffset.Paused))
             {
                 this.Monitor.Result.Update(SubscriptionBatchResult.Paused);
 

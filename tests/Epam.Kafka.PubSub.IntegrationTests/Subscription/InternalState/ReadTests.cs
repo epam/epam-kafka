@@ -177,7 +177,7 @@ public class ReadTests : TestWithServices, IClassFixture<MockCluster>
         observer.AssertSubNotAssigned();
 
         // iteration 2
-        observer.AssertSubNotAssigned();
+        observer.AssertSubEmpty();
 
         // iteration 3
         observer.AssertSubEmpty();

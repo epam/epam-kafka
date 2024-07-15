@@ -77,7 +77,7 @@ internal sealed class ActivityWrapper : IDisposable
 
                 this._activity.SetTag(Result, description);
             }
- 
+
             this._activity.SetStatus(ActivityStatusCode.Ok, description);
         }
     }

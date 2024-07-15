@@ -95,7 +95,7 @@ public class PubServiceStartupTests : TestWithServices
     [Fact]
     public async Task ErrorInSerializerFactory()
     {
-        TestException exception = new ();
+        TestException exception = new();
 
         using TestObserver observer = new(this, 1);
 

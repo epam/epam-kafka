@@ -8,6 +8,7 @@
 
 * Fluently set up multiple `ConsumerConfig`, `IConsumer<TKey, TValue>`, `ProducerConfig`, `IProducer<TKey, TValue>`, `IClient`, `ISchemaRegistryClient` configurations for applications that use DI via `AddKafka` extension method.
 * `KafkaFactory` caches `IClient`, `ISchemaRegistryClient` instances per configuration name, which allows to reuse resources.
+* Shared clients with observable errors and statistics for creation of dependent admin client and dependent producer.
 
 ## How to Use
 

@@ -1,14 +1,17 @@
 ﻿// Copyright © 2024 EPAM Systems
 
 using Confluent.Kafka;
+
 using Epam.Kafka.PubSub.Subscription;
 
 #if EF6
 using Epam.Kafka.PubSub.EntityFramework6.Subscription.State;
+
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
 #else
 using Epam.Kafka.PubSub.EntityFrameworkCore.Subscription.State;
+
 using Microsoft.EntityFrameworkCore;
 #endif
 
@@ -66,7 +69,7 @@ internal sealed class DbContextOffsetsStorage<TContext> : IExternalOffsetsStorag
 
             if (local != null)
             {
-                result.Add(new TopicPartitionOffset(item, local.Pause ? Offset.End : local.Offset));
+                result.Add(new TopicPartitionOffset(item, local.Pause ? ExternalOffset.Paused : local.Offset));
             }
             else
             {
@@ -106,9 +109,9 @@ internal sealed class DbContextOffsetsStorage<TContext> : IExternalOffsetsStorag
             KafkaTopicState local = locals.Single(x =>
                 x.Topic == item.Topic && x.Partition == item.Partition && x.ConsumerGroup == consumerGroup);
 
-            if (local.Pause && item.Offset == Offset.End)
+            if (local.Pause && item.Offset == ExternalOffset.Paused)
             {
-                // don't update paused topics with standard Offset.End value
+                // don't update paused topics with standard value.
             }
             else
             {
@@ -139,7 +142,7 @@ internal sealed class DbContextOffsetsStorage<TContext> : IExternalOffsetsStorag
 #else
                                  proposedValues.Properties
 #endif
-                                 )
+                                )
                         {
                             proposedValues[property] = databaseValues[property];
                         }
@@ -173,7 +176,7 @@ internal sealed class DbContextOffsetsStorage<TContext> : IExternalOffsetsStorag
 
             if (local != null)
             {
-                result.Add(new TopicPartitionOffset(item, local.Pause ? Offset.End : local.Offset));
+                result.Add(new TopicPartitionOffset(item, local.Pause ? ExternalOffset.Paused : local.Offset));
             }
             else
             {

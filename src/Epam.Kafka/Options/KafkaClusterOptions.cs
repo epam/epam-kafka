@@ -22,6 +22,8 @@ public sealed class KafkaClusterOptions : IOptions<KafkaClusterOptions>
     /// </summary>
     public SchemaRegistryConfig SchemaRegistryConfig { get; set; } = new();
 
+    internal bool UsedByFactory { get; set; }
+
     internal Action<IClient, string>? OauthHandler { get; private set; }
     internal IAuthenticationHeaderValueProvider? AuthenticationHeaderValueProvider { get; set; }
 

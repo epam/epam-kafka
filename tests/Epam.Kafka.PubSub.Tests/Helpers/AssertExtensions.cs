@@ -17,15 +17,27 @@ public static class AssertExtensions
         observer.AssertStop(SubscriptionBatchResult.NotAssigned);
     }
 
-    public static void AssertAssign(this TestObserver observer)
+    public static void AssertAssign(this TestObserver observer, bool offsetsCommit = false)
     {
         observer.AssertNextActivity("assign.Start");
+
+        if (offsetsCommit)
+        {
+            observer.AssertCommitKafka();
+        }
+
         observer.AssertNextActivity("assign.Stop");
     }
 
-    public static void AssertRead(this TestObserver observer, int? count = null)
+    public static void AssertRead(this TestObserver observer, int? count = null, bool withCommit = false)
     {
         observer.AssertNextActivity("read.Start");
+
+        if (withCommit)
+        {
+            observer.AssertCommitKafka();
+        }
+
         if (count.HasValue)
         {
             observer.AssertNextActivity("read.Stop", count.Value);
@@ -54,10 +66,10 @@ public static class AssertExtensions
         observer.AssertNextActivity("process.Stop");
     }
 
-    public static void AssertSubEmpty(this TestObserver observer)
+    public static void AssertSubEmpty(this TestObserver observer, bool offsetsCommit = false)
     {
         observer.AssertStart();
-        observer.AssertAssign();
+        observer.AssertAssign(offsetsCommit);
         observer.AssertRead(0);
         observer.AssertStop(SubscriptionBatchResult.Empty);
     }

@@ -3,7 +3,11 @@
 using Confluent.Kafka;
 
 using Epam.Kafka.Tests.Common;
+
 using Microsoft.Extensions.Logging;
+
+using Moq;
+
 using Shouldly;
 
 using Xunit;
@@ -167,6 +171,111 @@ public class KafkaFactoryTests : TestWithServices
         Assert.NotNull(producer);
     }
 
+    [Fact]
+    public void CreateObservableProducer()
+    {
+        MockCluster.AddMockCluster(this);
+
+        ProducerConfig config = this.KafkaFactory.CreateProducerConfig();
+
+        config.StatisticsIntervalMs = 5;
+
+        using IProducer<string, string> producer =
+            this.KafkaFactory.CreateProducer<string, string>(config);
+
+        Assert.NotNull(producer);
+
+        var errorObs = new Mock<IObserver<Error>>();
+        var statsObs = new Mock<IObserver<string>>();
+
+        producer.ShouldBeAssignableTo<IObservable<Error>>()!.Subscribe(errorObs.Object);
+        producer.ShouldBeAssignableTo<IObservable<string>>()!.Subscribe(statsObs.Object);
+    }
+
+    [Fact]
+    public void CreateObservableConsumer()
+    {
+        MockCluster.AddMockCluster(this).WithConsumerConfig("any").Configure(x =>
+        {
+            x.ConsumerConfig.GroupId = "any";
+            x.ConsumerConfig.StatisticsIntervalMs = 5;
+        });
+
+        ConsumerConfig config = this.KafkaFactory.CreateConsumerConfig("any");
+
+        using IConsumer<string, string> consumer =
+            this.KafkaFactory.CreateConsumer<string, string>(config);
+
+        Assert.NotNull(consumer);
+
+        var errorObs = new Mock<IObserver<Error>>();
+        var statsObs = new Mock<IObserver<string>>();
+
+        consumer.ShouldBeAssignableTo<IObservable<Error>>()!.Subscribe(errorObs.Object);
+        consumer.ShouldBeAssignableTo<IObservable<string>>()!.Subscribe(statsObs.Object);
+    }
+
+    [Fact]
+    public void ObservableConsumerErrors()
+    {
+        MockCluster.AddMockCluster(this).WithConsumerConfig("any").Configure(x =>
+        {
+            x.ConsumerConfig.GroupId = "any";
+            x.ConsumerConfig.StatisticsIntervalMs = 5;
+        });
+
+        ConsumerConfig config = this.KafkaFactory.CreateConsumerConfig("any");
+
+        IConsumer<string, string> consumer =
+            this.KafkaFactory.CreateConsumer<string, string>(config, null, builder =>
+            {
+                builder.SetErrorHandler((_, _) => { });
+                builder.SetStatisticsHandler((_, _) => { });
+            });
+
+        Assert.NotNull(consumer);
+
+        var errorObs = new Mock<IObserver<Error>>();
+        var statsObs = new Mock<IObserver<string>>();
+
+        Assert.Throws<InvalidOperationException>(() =>
+                consumer.ShouldBeAssignableTo<IObservable<Error>>()!.Subscribe(errorObs.Object))
+            .Message.ShouldContain("Cannot subscribe to errors because handler was explicitly set");
+        Assert.Throws<InvalidOperationException>(() =>
+                consumer.ShouldBeAssignableTo<IObservable<string>>()!.Subscribe(statsObs.Object))
+            .Message.ShouldContain("Cannot subscribe to statistics because handler was explicitly set");
+    }
+
+    [Fact]
+    public void ObservableProducerErrors()
+    {
+        MockCluster.AddMockCluster(this);
+
+        ProducerConfig config = this.KafkaFactory.CreateProducerConfig();
+
+        config.StatisticsIntervalMs = 5;
+
+        IProducer<string, string> producer =
+            this.KafkaFactory.CreateProducer<string, string>(config, null, builder =>
+            {
+                builder.SetErrorHandler((_, _) => { });
+                builder.SetStatisticsHandler((_, _) => { });
+            });
+
+        Assert.NotNull(producer);
+
+        var errorObs = new Mock<IObserver<Error>>();
+        var statsObs = new Mock<IObserver<string>>();
+
+        Assert.Throws<InvalidOperationException>(() =>
+                producer.ShouldBeAssignableTo<IObservable<Error>>()!.Subscribe(errorObs.Object))
+            .Message.ShouldContain("Cannot subscribe to errors because handler was explicitly set");
+
+        Assert.Throws<InvalidOperationException>(() =>
+                producer.ShouldBeAssignableTo<IObservable<string>>()!.Subscribe(statsObs.Object))
+            .Message.ShouldContain("Cannot subscribe to statistics because handler was explicitly set");
+    }
+
     [Theory]
     [InlineData(null)]
     [InlineData(MockCluster.ClusterName)]
@@ -221,9 +330,17 @@ public class KafkaFactoryTests : TestWithServices
     }
 
     [Fact]
+    public void CreateDefaultClientsError()
+    {
+        MockCluster.AddMockCluster(this).WithProducerConfig("Shared").Configure(x => x.ProducerConfig.TransactionalId = "any");
+
+        Assert.Throws<InvalidOperationException>(() => this.KafkaFactory.GetOrCreateClient()).Message.ShouldContain("Producer config 'Shared' in corrupted state");
+    }
+
+    [Fact]
     public void ConfigSecretsInLogError()
     {
-        CollectionLoggerProvider logger = new CollectionLoggerProvider();
+        var logger = new CollectionLoggerProvider();
         this.LoggingBuilder.AddProvider(logger);
 
         MockCluster.AddMockCluster(this);
@@ -239,7 +356,7 @@ public class KafkaFactoryTests : TestWithServices
     [Fact]
     public void ConfigSecretsInLog()
     {
-        CollectionLoggerProvider logger = new CollectionLoggerProvider();
+        var logger = new CollectionLoggerProvider();
         this.LoggingBuilder.AddProvider(logger);
 
         MockCluster.AddMockCluster(this);

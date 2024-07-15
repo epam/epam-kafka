@@ -5,10 +5,14 @@ using Epam.Kafka.PubSub.Publication;
 #if EF6
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
+
 using TEntry = System.Data.Entity.Infrastructure.DbEntityEntry;
+
 #else
 using Microsoft.EntityFrameworkCore;
+
 using TEntry = Microsoft.EntityFrameworkCore.ChangeTracking.EntityEntry;
+
 #endif
 using Microsoft.Extensions.Logging;
 
@@ -57,7 +61,7 @@ public abstract class
     protected override IEnumerable<TEntity> GetEntities(int count, bool transaction,
         CancellationToken cancellationToken)
     {
-        return this.OrderBy(this.GetTable().AsTracking().Where(this.IsQueued));
+        return this.OrderBy(this.GetTable().AsTracking().Where(this.IsQueued)).Take(count);
     }
 
     /// <summary>
@@ -103,7 +107,7 @@ public abstract class
                 throw;
             }
 
-            foreach (var entry in exception.Entries)
+            foreach (TEntry? entry in exception.Entries)
             {
                 entry.State = EntityState.Detached;
 
@@ -129,7 +133,7 @@ public abstract class
 #if EF6
             return null; // Unable to get it for EF6
 #else
-        return entry.Metadata.FindPrimaryKey()?.Properties.Select(x => entry.CurrentValues[x]).ToArray().FirstOrDefault();
+            return entry.Metadata.FindPrimaryKey()?.Properties.Select(x => entry.CurrentValues[x]).ToArray().FirstOrDefault();
 #endif
         }
         // 

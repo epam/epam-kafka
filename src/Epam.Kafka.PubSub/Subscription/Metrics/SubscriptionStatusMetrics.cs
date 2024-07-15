@@ -10,6 +10,7 @@ internal sealed class SubscriptionStatusMetrics : PubSubStatusMetrics
 {
     public SubscriptionStatusMetrics(SubscriptionMonitor monitor) : base(monitor)
     {
-        this.CreateObservableGauge(PipelineMonitor.StatusResultGaugeName, () => (int)monitor.Result.Value);
+        this.CreateObservableGauge(PipelineMonitor.StatusResultGaugeName, () => (int)monitor.Result.Value,
+            "The result of subscription batch iteration: 0 - None, 1 - Error, 2 - Empty (no consumed messages), 3 - Processed, 4 - Topic partition for consume not assigned, 5 - Paused");
     }
 }

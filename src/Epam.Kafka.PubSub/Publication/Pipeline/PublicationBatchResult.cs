@@ -25,7 +25,7 @@ public enum PublicationBatchResult
     Empty = BatchResult.Empty,
 
     /// <summary>
-    ///     At least one message was successfully published.
+    ///     All messages were successfully published.
     /// </summary>
     Processed = BatchResult.Processed,
 

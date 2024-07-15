@@ -24,7 +24,6 @@ using Epam.Kafka.PubSub.Tests.Helpers;
 namespace Epam.Kafka.PubSub.EntityFrameworkCore.Tests;
 #endif
 
-
 public class DbContextEntityPublicationHandlerTests : TestWithContext
 {
     public DbContextEntityPublicationHandlerTests(ITestOutputHelper output) : base(output)
@@ -62,6 +61,39 @@ public class DbContextEntityPublicationHandlerTests : TestWithContext
             CancellationToken.None);
 
         Assert.Equal(expected, batch.Count);
+    }
+
+    [Theory]
+    [InlineData(1, 1)]
+    [InlineData(2, 2)]
+    [InlineData(3, 2)]
+    public void BatchSize(int batchSize, int expectedCount)
+    {
+        this.Services.AddScoped<TestDbContextEntityPublicationHandler>();
+
+        this.SeedData(new TestEntityDb
+        {
+            Id = 1,
+            ExternalId = "eid1",
+            KafkaPubState = KafkaPublicationState.Queued,
+            KafkaPubNbf = DateTime.MinValue
+        }, new TestEntityDb
+        {
+            Id = 2,
+            ExternalId = "eid2",
+            KafkaPubState = KafkaPublicationState.Queued,
+            KafkaPubNbf = DateTime.MinValue
+        });
+
+        using IServiceScope scope = this.ServiceProvider.CreateScope();
+
+        TestDbContextEntityPublicationHandler pub =
+            scope.ServiceProvider.GetRequiredService<TestDbContextEntityPublicationHandler>();
+
+        IReadOnlyCollection<TopicMessage<string, TestEntityKafka>> batch = pub.GetBatch(batchSize, false,
+            CancellationToken.None);
+
+        Assert.Equal(expectedCount, batch.Count);
     }
 
     [Theory]

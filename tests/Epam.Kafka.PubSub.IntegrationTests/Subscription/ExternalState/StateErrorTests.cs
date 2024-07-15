@@ -103,7 +103,7 @@ public class StateErrorTests : TestWithServices, IClassFixture<MockCluster>
 
         // iteration 1
         observer.AssertStart();
-        observer.AssertAssign();
+        observer.AssertAssign(true);
         observer.AssertRead(5);
         observer.AssertProcess();
         observer.AssertCommitExternal();

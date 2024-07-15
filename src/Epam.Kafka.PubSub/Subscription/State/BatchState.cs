@@ -1,6 +1,7 @@
 ﻿// Copyright © 2024 EPAM Systems
 
 using Confluent.Kafka;
+
 using Epam.Kafka.PubSub.Subscription.Topics;
 using Epam.Kafka.PubSub.Utils;
 
@@ -8,9 +9,10 @@ namespace Epam.Kafka.PubSub.Subscription.State;
 
 internal abstract class BatchState
 {
-    public IReadOnlyCollection<ConsumeResult<TKey, TValue>> GetBatch<TKey, TValue>(
+    public bool GetBatch<TKey, TValue>(
         SubscriptionTopicWrapper<TKey, TValue> topic,
         ActivityWrapper activitySpan,
+        out IReadOnlyCollection<ConsumeResult<TKey, TValue>> batch,
         CancellationToken cancellationToken)
     {
         if (topic == null)
@@ -18,22 +20,23 @@ internal abstract class BatchState
 
         topic.ClearIfNotAssigned();
 
-        using (activitySpan.CreateSpan("assign"))
+        using (ActivityWrapper span = activitySpan.CreateSpan("assign"))
         {
-            this.AssignConsumer(topic, cancellationToken);
+            this.AssignConsumer(topic, span, cancellationToken);
         }
 
         cancellationToken.ThrowIfCancellationRequested();
 
-        var batch = topic.GetBatch(activitySpan, cancellationToken);
+        batch = topic.GetBatch(activitySpan, cancellationToken);
 
         // try to throw handler assign exception after read to be able to do it after potential re-balance in same batch.
         topic.ThrowIfNeeded();
 
-        return batch;
+        return topic.UnassignedBeforeRead;
     }
 
     protected abstract void AssignConsumer<TKey, TValue>(SubscriptionTopicWrapper<TKey, TValue> topic,
+        ActivityWrapper activitySpan,
         CancellationToken cancellationToken);
 
     public void CommitResults<TKey, TValue>(SubscriptionTopicWrapper<TKey, TValue> topic,

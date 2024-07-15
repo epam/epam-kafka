@@ -27,8 +27,8 @@ internal abstract class MetricsWithName : IDisposable
         this._meter.Dispose();
     }
 
-    protected void CreateObservableGauge<T>(string name, Func<T> observeValue) where T : struct
+    protected void CreateObservableGauge<T>(string name, Func<T> observeValue, string? description) where T : struct
     {
-        this._meter.CreateObservableGauge(name, () => new Measurement<T>(observeValue(), this._monitorName));
+        this._meter.CreateObservableGauge(name, () => new Measurement<T>(observeValue(), this._monitorName), null, description);
     }
 }

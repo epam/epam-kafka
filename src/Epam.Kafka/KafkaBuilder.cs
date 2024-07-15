@@ -18,7 +18,6 @@ public partial class KafkaBuilder
     private readonly bool _useConfiguration;
     private readonly OptionsBuilder<KafkaFactoryOptions> _factoryOptions;
 
-
     internal KafkaBuilder(IServiceCollection services, bool useConfiguration)
     {
         this._useConfiguration = useConfiguration;

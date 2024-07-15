@@ -1,6 +1,7 @@
 ﻿// Copyright © 2024 EPAM Systems
 
 using Confluent.Kafka;
+
 using Epam.Kafka.PubSub.Subscription.Topics;
 using Epam.Kafka.PubSub.Utils;
 
@@ -17,15 +18,17 @@ internal class CombinedState<TOffsetsStorage> : InternalKafkaState
     }
 
     protected override void AssignConsumer<TKey, TValue>(SubscriptionTopicWrapper<TKey, TValue> topic,
+        ActivityWrapper activitySpan,
         CancellationToken cancellationToken)
     {
         topic.ExternalState = list => topic.GetAndResetState(this._offsetsStorage, list, cancellationToken);
 
-        base.AssignConsumer(topic, cancellationToken);
+        base.AssignConsumer(topic, activitySpan, cancellationToken);
 
         if (topic.Consumer.Assignment.Count > 0)
         {
             var reset = new List<TopicPartitionOffset>();
+            var pause = new List<TopicPartition>();
 
             IReadOnlyCollection<TopicPartitionOffset> state = this._offsetsStorage.GetOrCreate(
                 topic.Consumer.Assignment, topic.ConsumerGroup,
@@ -33,24 +36,24 @@ internal class CombinedState<TOffsetsStorage> : InternalKafkaState
 
             foreach (TopicPartitionOffset item in state)
             {
-                if (!topic.Offsets.TryGetValue(item.TopicPartition, out Offset previous))
+                if (topic.TryGetOffset(item.TopicPartition, out Offset previous))
                 {
-                    reset.Add(item);
-                    continue; // Don't need to seek if previous offset unavailable
-                }
-
-                // don't reset paused offset
-                if (previous != item.Offset)
-                {
-                    reset.Add(item);
-                    topic.Consumer.Seek(item);
+                    // don't reset paused offset
+                    if (previous != item.Offset)
+                    {
+                        ExternalStateExtensions.PauseOrReset(topic, item, pause, reset);
+                    }
                 }
             }
 
             topic.OnReset(reset);
+
+            topic.OnPause(pause);
+
+            topic.CommitOffsetIfNeeded(activitySpan, reset);
         }
     }
-    
+
     protected override IReadOnlyCollection<TopicPartitionOffset> CommitState<TKey, TValue>(
         SubscriptionTopicWrapper<TKey, TValue> topic,
         IReadOnlyCollection<TopicPartitionOffset> offsets,

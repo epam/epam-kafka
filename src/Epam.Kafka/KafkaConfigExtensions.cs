@@ -24,21 +24,20 @@ public static class KafkaConfigExtensions
     private const int DotnetCancellationDelayMaxMsMax = 10000;
 
     /// <summary>
-    /// Config key to define logger category prefix for default log handler configured by <see cref="IKafkaFactory"/> implementation and logger category for kafka factory itself.
-    /// If dotnet.logger.category='custom' then following categories will be used:
-    /// <list type="string">'custom.DefaultLogHandler' for default log handler assigned to producer or consumer.</list>
-    /// <list type="string">'custom.Factory' for <see cref="IKafkaFactory"/> implementation.</list>
+    /// Config key to define logger category prefix for default log handler configured by <see cref="IKafkaFactory"/> implementation.
     /// </summary>
     /// <remarks>
     /// This key is not standard, so that causing errors when passed to producer or consumer builder.
     /// Default <see cref="IKafkaFactory"/> implementation use it only for logger configuration and don't pass it to producer or consumer builder to avoid errors.
     /// </remarks> 
     public const string DotnetLoggerCategoryKey = "dotnet.logger.category";
+
     private const string DotnetLoggerCategoryDefault = "Epam.Kafka.DefaultLogHandler";
 
     /// <summary>
-    /// Read and return 'dotnet.logger.category' value if it exists, default value 'Epam.Kafka.DefaultLogHandler' otherwise.
+    /// Read and return 'dotnet.logger.category' value if it exists, default value 'Epam.Kafka.DefaultLogHandler' otherwise. <inheritdoc cref="DotnetLoggerCategoryKey"/>
     /// </summary>
+    /// <remarks><inheritdoc cref="DotnetLoggerCategoryKey"/></remarks>
     /// <param name="config">The config</param>
     /// <returns></returns>
     /// <exception cref="ArgumentNullException"></exception>
@@ -59,8 +58,9 @@ public static class KafkaConfigExtensions
     }
 
     /// <summary>
-    /// Set 'dotnet.logger.category' value to config.
+    /// Set 'dotnet.logger.category' value to config. <inheritdoc cref="DotnetLoggerCategoryKey"/>
     /// </summary>
+    /// <remarks><inheritdoc cref="DotnetLoggerCategoryKey"/></remarks>
     /// <param name="config">The config to update</param>
     /// <param name="value">The value</param>
     /// <returns></returns>
@@ -96,7 +96,7 @@ public static class KafkaConfigExtensions
                 throw new ArgumentException($"'{DotnetCancellationDelayMaxMsKey}' must be a valid integer value.");
             }
 
-            if (result < DotnetCancellationDelayMaxMsMin || result > DotnetCancellationDelayMaxMsMax)
+            if (result is < DotnetCancellationDelayMaxMsMin or > DotnetCancellationDelayMaxMsMax)
             {
                 throw new ArgumentOutOfRangeException(nameof(config), result, $"'{DotnetCancellationDelayMaxMsKey}' must be in the range {DotnetCancellationDelayMaxMsMin} <= '{DotnetCancellationDelayMaxMsKey}' <= {DotnetCancellationDelayMaxMsMax}");
             }
@@ -117,7 +117,7 @@ public static class KafkaConfigExtensions
     {
         if (config == null) throw new ArgumentNullException(nameof(config));
 
-        if (value < DotnetCancellationDelayMaxMsMin || value > DotnetCancellationDelayMaxMsMax)
+        if (value is < DotnetCancellationDelayMaxMsMin or > DotnetCancellationDelayMaxMsMax)
         {
             throw new ArgumentOutOfRangeException(nameof(value), value, $"'{DotnetCancellationDelayMaxMsKey}' must be in the range {DotnetCancellationDelayMaxMsMin} <= '{DotnetCancellationDelayMaxMsKey}' <= {DotnetCancellationDelayMaxMsMax}");
         }
@@ -137,7 +137,7 @@ public static class KafkaConfigExtensions
     {
         if (placeholders != null)
         {
-            foreach (var kvp in placeholders)
+            foreach (KeyValuePair<string, string> kvp in placeholders)
             {
                 ValidatePlaceholder(kvp.Key, kvp.Value);
             }
@@ -145,7 +145,7 @@ public static class KafkaConfigExtensions
 
         TConfig result = new();
 
-        foreach (var x in config.Where(x => x.Value != null))
+        foreach (KeyValuePair<string, string> x in config.Where(x => x.Value != null))
         {
             result.Set(x.Key, ReplacePlaceholdersIfNeeded(x.Value, placeholders));
         }
@@ -160,7 +160,7 @@ public static class KafkaConfigExtensions
 
         if (placeholders is { Count: > 0 })
         {
-            foreach (var kvp in placeholders)
+            foreach (KeyValuePair<string, string> kvp in placeholders)
             {
                 value = value.Replace(kvp.Key, kvp.Value, StringComparison.OrdinalIgnoreCase);
             }

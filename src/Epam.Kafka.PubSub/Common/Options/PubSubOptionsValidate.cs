@@ -1,6 +1,5 @@
 ﻿// Copyright © 2024 EPAM Systems
 
-
 using System.Linq.Expressions;
 using System.Text.RegularExpressions;
 

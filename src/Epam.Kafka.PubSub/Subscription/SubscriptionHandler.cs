@@ -98,7 +98,7 @@ public abstract class SubscriptionHandler<TKey, TValue> : ISubscriptionHandler<T
             throw new ArgumentNullException(nameof(items));
         }
 
-        var filtered = items.Where(x => x.Value == null);
+        IEnumerable<KeyValuePair<ConsumeResult<TKey, TValue>, string?>> filtered = items.Where(x => x.Value == null);
 
 #if !NET6_0_OR_GREATER
         filtered = filtered.ToArray(); // to prevent collection modification
