@@ -139,7 +139,7 @@ internal sealed class SubscriptionBackgroundService<TKey, TValue, THandler> : Pu
             List<TopicPartition> assignments = topic.Consumer.Assignment;
 
             if (assignments.Count > 0 &&
-                assignments.All(x => topic.Offsets.TryGetValue(x, out Offset offset) && offset == ExternalOffset.Paused))
+                assignments.All(x => topic.TryGetOffset(x, out Offset offset) && offset == ExternalOffset.Paused))
             {
                 this.Monitor.Result.Update(SubscriptionBatchResult.Paused);
 

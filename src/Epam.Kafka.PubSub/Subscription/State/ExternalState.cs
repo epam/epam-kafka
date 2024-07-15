@@ -40,7 +40,7 @@ internal sealed class ExternalState<TOffsetsStorage> : BatchState
             // existing assignment, check if offset reset
             if (topic.Consumer.Assignment.Contains(item.TopicPartition))
             {
-                if (topic.Offsets[item.TopicPartition] != item.Offset)
+                if (topic.TryGetOffset(item.TopicPartition, out var tp) && tp != item.Offset)
                 {
                     ExternalStateExtensions.PauseOrReset(topic, item, pause, reset);
                 }
@@ -60,18 +60,11 @@ internal sealed class ExternalState<TOffsetsStorage> : BatchState
                     assignNonPaused.Add(tpo);
                 }
 
-                topic.Offsets[item.TopicPartition] = item.Offset;
-
                 assign.Add(tpo);
             }
         }
 
-        if (assign.Count > 0)
-        {
-            topic.Consumer.Assign(assign);
-
-            topic.Logger.PartitionsAssigned(topic.Monitor.Name, null, assign);
-        }
+        topic.OnAssign(assign);
 
         topic.OnReset(reset);
 

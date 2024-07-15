@@ -24,6 +24,7 @@ internal sealed class SubscriptionTopicWrapper<TKey, TValue> : IDisposable
     private readonly int _consumeTimeoutMs;
 
     private readonly HashSet<TopicPartition> _newPartitions = new();
+    private readonly Dictionary<TopicPartition, Offset> _offsets = new();
 
     public SubscriptionTopicWrapper(IKafkaFactory kafkaFactory,
         SubscriptionMonitor monitor,
@@ -72,13 +73,28 @@ internal sealed class SubscriptionTopicWrapper<TKey, TValue> : IDisposable
     public SubscriptionOptions Options { get; }
     public ILogger Logger { get; }
 
-    public IDictionary<TopicPartition, Offset> Offsets { get; } = new Dictionary<TopicPartition, Offset>();
-
     public IConsumer<TKey, TValue> Consumer { get; }
     public string ConsumerGroup { get; }
     public bool UnassignedBeforeRead { get; private set; }
 
     public Func<IReadOnlyCollection<TopicPartition>, IReadOnlyCollection<TopicPartitionOffset>>? ExternalState { get; set; }
+
+    public bool TryGetOffset(TopicPartition tp, out Offset result) => this._offsets.TryGetValue(tp, out result);
+
+    public void OnAssign(IReadOnlyCollection<TopicPartitionOffset> items)
+    {
+        if (items.Count > 0)
+        {
+            this.Consumer.Assign(items);
+
+            foreach (TopicPartitionOffset tpo in items)
+            {
+                this._offsets[tpo.TopicPartition] = tpo.Offset;
+            }
+
+            this.Logger.PartitionsAssigned(this.Monitor.Name, null, items);
+        }
+    }
 
     public void Dispose()
     {
@@ -164,7 +180,7 @@ internal sealed class SubscriptionTopicWrapper<TKey, TValue> : IDisposable
         if (this.Consumer.Assignment.Count == 0 && this.Consumer.Subscription.Count == 0)
         {
             this._buffer.Clear();
-            this.Offsets.Clear();
+            this._offsets.Clear();
         }
     }
 
@@ -201,7 +217,7 @@ internal sealed class SubscriptionTopicWrapper<TKey, TValue> : IDisposable
                 this.CleanupBuffer(x => x.TopicPartition == item.TopicPartition && x.Offset.Value < item.Offset.Value,
                     "OffsetsCommitted");
 
-                this.Offsets[item.TopicPartition] = item.Offset;
+                this._offsets[item.TopicPartition] = item.Offset;
             }
         }
     }
@@ -272,7 +288,7 @@ internal sealed class SubscriptionTopicWrapper<TKey, TValue> : IDisposable
             foreach (var r in result)
             {
                 this._paused.Add(r);
-                this.Offsets[r] = ExternalOffset.Paused;
+                this._offsets[r] = ExternalOffset.Paused;
             }
 
             this.Logger.PartitionsPaused(this.Monitor.Name, result);
@@ -317,7 +333,7 @@ internal sealed class SubscriptionTopicWrapper<TKey, TValue> : IDisposable
             {
                 foreach (TopicPartitionOffset partitionOffset in list)
                 {
-                    this.Offsets.Remove(partitionOffset.TopicPartition);
+                    this._offsets.Remove(partitionOffset.TopicPartition);
                 }
             }
         }
@@ -335,7 +351,7 @@ internal sealed class SubscriptionTopicWrapper<TKey, TValue> : IDisposable
             {
                 foreach (TopicPartitionOffset partitionOffset in list)
                 {
-                    this.Offsets.Remove(partitionOffset.TopicPartition);
+                    this._offsets.Remove(partitionOffset.TopicPartition);
                 }
             }
         }
@@ -358,7 +374,7 @@ internal sealed class SubscriptionTopicWrapper<TKey, TValue> : IDisposable
 
                     foreach (TopicPartitionOffset tpo in state)
                     {
-                        this.Offsets[tpo.TopicPartition] = tpo.Offset;
+                        this._offsets[tpo.TopicPartition] = tpo.Offset;
 
                         list.Add(tpo.Offset == ExternalOffset.Paused
                             ? new TopicPartitionOffset(tpo.TopicPartition, Offset.End)
@@ -523,12 +539,12 @@ internal sealed class SubscriptionTopicWrapper<TKey, TValue> : IDisposable
             if (this.Options.StateType != typeof(InternalKafkaState))
             {
                 this.CommitOffsetIfNeeded(span,
-                    this.Offsets.Where(x => this._newPartitions.Contains(x.Key))
+                    this._offsets.Where(x => this._newPartitions.Contains(x.Key))
                         .Select(x => new TopicPartitionOffset(x.Key, x.Value)));
             }
 
             // pause consumer for new partitions with special offset
-            this.OnPause(this.Offsets
+            this.OnPause(this._offsets
                 .Where(x => this._newPartitions.Contains(x.Key) && x.Value == ExternalOffset.Paused)
                 .Select(x => x.Key).ToArray());
         }
@@ -537,7 +553,7 @@ internal sealed class SubscriptionTopicWrapper<TKey, TValue> : IDisposable
     public void Seek(TopicPartitionOffset tpo)
     {
         this.Consumer.Seek(tpo);
-        this.Offsets[tpo.TopicPartition] = tpo.Offset;
+        this._offsets[tpo.TopicPartition] = tpo.Offset;
     }
 
     public void ThrowIfNeeded()

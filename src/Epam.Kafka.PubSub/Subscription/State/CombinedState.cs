@@ -36,7 +36,7 @@ internal class CombinedState<TOffsetsStorage> : InternalKafkaState
 
             foreach (TopicPartitionOffset item in state)
             {
-                if (topic.Offsets.TryGetValue(item.TopicPartition, out Offset previous))
+                if (topic.TryGetOffset(item.TopicPartition, out Offset previous))
                 {
                     // don't reset paused offset
                     if (previous != item.Offset)
