@@ -4,6 +4,7 @@ using Confluent.Kafka;
 
 using Epam.Kafka.PubSub.Subscription.Options;
 using Epam.Kafka.PubSub.Subscription.Pipeline;
+using Epam.Kafka.PubSub.Subscription.State;
 using Epam.Kafka.PubSub.Utils;
 
 using Microsoft.Extensions.Logging;
@@ -21,6 +22,8 @@ internal sealed class SubscriptionTopicWrapper<TKey, TValue> : IDisposable
     private readonly HashSet<TopicPartition> _paused = new();
 
     private readonly int _consumeTimeoutMs;
+
+    private readonly HashSet<TopicPartition> _newPartitions = new();
 
     public SubscriptionTopicWrapper(IKafkaFactory kafkaFactory,
         SubscriptionMonitor monitor,
@@ -65,8 +68,6 @@ internal sealed class SubscriptionTopicWrapper<TKey, TValue> : IDisposable
         });
     }
 
-    public bool Rebalanced { get; set; }
-
     public SubscriptionMonitor Monitor { get; }
     public SubscriptionOptions Options { get; }
     public ILogger Logger { get; }
@@ -75,6 +76,7 @@ internal sealed class SubscriptionTopicWrapper<TKey, TValue> : IDisposable
 
     public IConsumer<TKey, TValue> Consumer { get; }
     public string ConsumerGroup { get; }
+    public bool UnassignedBeforeRead { get; private set; }
 
     public Func<IReadOnlyCollection<TopicPartition>, IReadOnlyCollection<TopicPartitionOffset>>? ExternalState { get; set; }
 
@@ -173,7 +175,13 @@ internal sealed class SubscriptionTopicWrapper<TKey, TValue> : IDisposable
         {
             using ActivityWrapper wrapper = activitySpan.CreateSpan("read");
 
-            this.ReadToBuffer(cancellationToken);
+            this.ReadToBuffer(activitySpan, cancellationToken);
+
+            // try to read again because new partitions were assigned, so we can have messages 
+            if (this._buffer.Count == 0 && this._newPartitions.Count > 0)
+            {
+                this.ReadToBuffer(activitySpan, cancellationToken);
+            }
 
             wrapper.SetResult(this._buffer.Count);
         }
@@ -279,10 +287,12 @@ internal sealed class SubscriptionTopicWrapper<TKey, TValue> : IDisposable
     {
         builder.SetPartitionsAssignedHandler((consumer, list) =>
         {
-            this.Rebalanced = true;
-
             var result = new List<TopicPartitionOffset>(list.Count);
-            result.AddRange(list.Select(x => new TopicPartitionOffset(x, Offset.Unset)));
+            result.AddRange(list.Select(x =>
+            {
+                this._newPartitions.Add(x);
+                return new TopicPartitionOffset(x, Offset.Unset);
+            }));
 
             this.OnPartitionsAssigned(consumer, result);
 
@@ -297,8 +307,6 @@ internal sealed class SubscriptionTopicWrapper<TKey, TValue> : IDisposable
 
     private void OnPartitionsLost(IConsumer<TKey, TValue> c, List<TopicPartitionOffset> list)
     {
-        this.Rebalanced = true;
-
         if (list.Count > 0)
         {
             this.Logger.PartitionsLost(this.Monitor.Name, c.MemberId, list);
@@ -317,8 +325,6 @@ internal sealed class SubscriptionTopicWrapper<TKey, TValue> : IDisposable
 
     private void OnPartitionsRevoked(IConsumer<TKey, TValue> c, List<TopicPartitionOffset> list)
     {
-        this.Rebalanced = true;
-
         if (list.Count > 0)
         {
             this.Logger.PartitionsRevoked(this.Monitor.Name, c.MemberId, list);
@@ -437,8 +443,12 @@ internal sealed class SubscriptionTopicWrapper<TKey, TValue> : IDisposable
         }
     }
 
-    private void ReadToBuffer(CancellationToken cancellationToken)
+    private void ReadToBuffer(ActivityWrapper span, CancellationToken cancellationToken)
     {
+        this.UnassignedBeforeRead = this.Consumer.Assignment.Count == 0;
+
+        this._newPartitions.Clear();
+
         int batchSize = this.Options.BatchSize;
 
         try
@@ -485,6 +495,8 @@ internal sealed class SubscriptionTopicWrapper<TKey, TValue> : IDisposable
             // unable to return at least something, so only throw
             if (this._buffer.Count == 0)
             {
+                this.HandleNewPartitions(span);
+
                 throw;
             }
 
@@ -498,6 +510,27 @@ internal sealed class SubscriptionTopicWrapper<TKey, TValue> : IDisposable
             exception.DoNotRetryBatch();
 
             throw;
+        }
+
+        this.HandleNewPartitions(span);
+    }
+
+    private void HandleNewPartitions(ActivityWrapper span)
+    {
+        if (this._newPartitions.Count > 0)
+        {
+            // commit offset for new partitions in case of combined state
+            if (this.Options.StateType != typeof(InternalKafkaState))
+            {
+                this.CommitOffsetIfNeeded(span,
+                    this.Offsets.Where(x => this._newPartitions.Contains(x.Key))
+                        .Select(x => new TopicPartitionOffset(x.Key, x.Value)));
+            }
+
+            // pause consumer for new partitions with special offset
+            this.OnPause(this.Offsets
+                .Where(x => this._newPartitions.Contains(x.Key) && x.Value == ExternalOffset.Paused)
+                .Select(x => x.Key).ToArray());
         }
     }
 

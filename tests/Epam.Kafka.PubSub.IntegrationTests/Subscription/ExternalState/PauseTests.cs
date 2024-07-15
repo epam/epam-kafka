@@ -10,7 +10,6 @@ using Epam.Kafka.Tests.Common;
 
 using Microsoft.Extensions.DependencyInjection;
 
-using System;
 using Shouldly;
 using Xunit;
 using Xunit.Abstractions;

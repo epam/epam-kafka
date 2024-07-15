@@ -68,7 +68,7 @@ public class SerializationErrorTests : TestWithServices
         // iteration 2
         observer.AssertStart();
         observer.AssertAssign();
-        observer.AssertRead();
+        observer.AssertRead(null, true);
         observer.AssertStop<ConsumeException>("Value deserialization error");
 
         // iteration 3
@@ -83,7 +83,7 @@ public class SerializationErrorTests : TestWithServices
         // iteration 5
         observer.AssertStart();
         observer.AssertAssign();
-        observer.AssertRead();
+        observer.AssertRead(null, true);
         observer.AssertStop<ConsumeException>("Value deserialization error");
     }
 
@@ -132,7 +132,7 @@ public class SerializationErrorTests : TestWithServices
         // iteration 2 process deserialized items before error
         observer.AssertStart();
         observer.AssertAssign();
-        observer.AssertRead(1);
+        observer.AssertRead(1, true);
         observer.AssertProcess();
         observer.AssertCommitExternal();
         observer.AssertCommitKafka();

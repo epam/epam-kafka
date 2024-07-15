@@ -20,56 +20,19 @@ internal abstract class BatchState
 
         topic.ClearIfNotAssigned();
 
-        bool unassignedBeforeRead;
-
         using (var span = activitySpan.CreateSpan("assign"))
         {
             this.AssignConsumer(topic, span, cancellationToken);
         }
 
-        do
-        {
-            topic.Rebalanced = false;
-            cancellationToken.ThrowIfCancellationRequested();
+        cancellationToken.ThrowIfCancellationRequested();
 
-            unassignedBeforeRead = topic.Consumer.Assignment.Count == 0;
+        batch = topic.GetBatch(activitySpan, cancellationToken);
 
-            try
-            {
-                batch = topic.GetBatch(activitySpan, cancellationToken);
+        // try to throw handler assign exception after read to be able to do it after potential re-balance in same batch.
+        topic.ThrowIfNeeded();
 
-                // try to throw handler assign exception after read to be able to do it after potential re-balance in same batch.
-                topic.ThrowIfNeeded();
-            }
-            catch (Exception exception)
-            {
-                if (exception.RetryBatchAllowed() && topic.Rebalanced)
-                {
-                    var toPause = topic.Offsets.Where(x => x.Value == ExternalOffset.Paused).Select(x => x.Key).ToArray();
-
-                    topic.OnPause(toPause);
-                }
-
-                throw;
-            }
-
-            cancellationToken.ThrowIfCancellationRequested();
-
-            if (topic.Rebalanced)
-            {
-                var toPause = topic.Offsets.Where(x => x.Value == ExternalOffset.Paused).Select(x => x.Key).ToArray();
-
-                bool affected = topic.OnPause(toPause);
-
-                if (!affected)
-                {
-                    break;
-                }
-            }
-
-        } while (topic.Rebalanced);
-
-        return unassignedBeforeRead;
+        return topic.UnassignedBeforeRead;
     }
 
     protected abstract void AssignConsumer<TKey, TValue>(SubscriptionTopicWrapper<TKey, TValue> topic,

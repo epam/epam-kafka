@@ -75,7 +75,7 @@ public class ResetTests : TestWithServices, IClassFixture<MockCluster>
         // iteration 2
         observer.AssertStart();
         observer.AssertAssign();
-        observer.AssertRead(5);
+        observer.AssertRead(5, true);
         observer.AssertProcess();
         observer.AssertCommitExternal();
         observer.AssertCommitKafka();
@@ -144,7 +144,7 @@ public class ResetTests : TestWithServices, IClassFixture<MockCluster>
         // iteration 2
         observer.AssertStart();
         observer.AssertAssign();
-        observer.AssertRead(5);
+        observer.AssertRead(5, true);
         observer.AssertProcess();
         observer.AssertCommitExternal();
         observer.AssertCommitKafka();
@@ -224,7 +224,7 @@ public class ResetTests : TestWithServices, IClassFixture<MockCluster>
         // iteration 2
         observer.AssertStart();
         observer.AssertAssign();
-        observer.AssertRead(5);
+        observer.AssertRead(5, true);
         observer.AssertProcess();
         observer.AssertCommitExternal();
         observer.AssertCommitKafka();

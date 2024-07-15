@@ -29,9 +29,15 @@ public static class AssertExtensions
         observer.AssertNextActivity("assign.Stop");
     }
 
-    public static void AssertRead(this TestObserver observer, int? count = null)
+    public static void AssertRead(this TestObserver observer, int? count = null, bool withCommit = false)
     {
         observer.AssertNextActivity("read.Start");
+
+        if (withCommit)
+        {
+            observer.AssertCommitKafka();
+        }
+
         if (count.HasValue)
         {
             observer.AssertNextActivity("read.Stop", count.Value);
