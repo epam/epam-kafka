@@ -435,16 +435,16 @@ internal sealed class SubscriptionTopicWrapper<TKey, TValue> : IDisposable
         config.EnableAutoCommit = false;
         config.EnableAutoOffsetStore = false;
 
-        config.AutoOffsetReset ??= AutoOffsetReset.Earliest;
-        config.IsolationLevel ??= IsolationLevel.ReadCommitted;
-        config.PartitionAssignmentStrategy ??= PartitionAssignmentStrategy.CooperativeSticky;
         if (config.All(x => x.Key != KafkaConfigExtensions.DotnetLoggerCategoryKey))
         {
             config.SetDotnetLoggerCategory(this.Monitor.FullName);
         }
-        // to avoid leaving group in case of long-running processing
-        config.MaxPollIntervalMs ??= (int)TimeSpan.FromMinutes(60).TotalMilliseconds;
 
+        if (this.Options.StateType.Name == typeof(CombinedState<>).Name || this.Options.StateType == typeof(InternalKafkaState))
+        {
+            // to avoid leaving group in case of long-running processing
+            config.MaxPollIntervalMs ??= (int)TimeSpan.FromMinutes(60).TotalMilliseconds;
+        }
     }
 
     public void CommitOffsets(ActivityWrapper activitySpan, IReadOnlyCollection<TopicPartitionOffset> offsets)
