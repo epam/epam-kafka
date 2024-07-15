@@ -84,7 +84,7 @@ public class HandlerErrorTests : TestWithServices
         // iteration 2
         observer.AssertStart();
         observer.AssertAssign();
-        observer.AssertRead(6);
+        observer.AssertRead(6, true);
         observer.AssertProcess();
         observer.AssertStop(exception);
 

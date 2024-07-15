@@ -171,6 +171,10 @@ namespace Epam.Kafka.PubSub.Publication.Pipeline
 }
 namespace Epam.Kafka.PubSub.Subscription
 {
+    public static class ExternalOffset
+    {
+        public static Confluent.Kafka.Offset Paused { get; }
+    }
     public interface IExternalOffsetsStorage
     {
         System.Collections.Generic.IReadOnlyCollection<Confluent.Kafka.TopicPartitionOffset> CommitOrReset(System.Collections.Generic.IReadOnlyCollection<Confluent.Kafka.TopicPartitionOffset> offsets, string? consumerGroup, System.Threading.CancellationToken cancellationToken);

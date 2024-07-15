@@ -69,7 +69,7 @@ internal sealed class DbContextOffsetsStorage<TContext> : IExternalOffsetsStorag
 
             if (local != null)
             {
-                result.Add(new TopicPartitionOffset(item, local.Pause ? Offset.End : local.Offset));
+                result.Add(new TopicPartitionOffset(item, local.Pause ? ExternalOffset.Paused : local.Offset));
             }
             else
             {
@@ -109,9 +109,9 @@ internal sealed class DbContextOffsetsStorage<TContext> : IExternalOffsetsStorag
             KafkaTopicState local = locals.Single(x =>
                 x.Topic == item.Topic && x.Partition == item.Partition && x.ConsumerGroup == consumerGroup);
 
-            if (local.Pause && item.Offset == Offset.End)
+            if (local.Pause && item.Offset == ExternalOffset.Paused)
             {
-                // don't update paused topics with standard Offset.End value
+                // don't update paused topics with standard value.
             }
             else
             {
@@ -176,7 +176,7 @@ internal sealed class DbContextOffsetsStorage<TContext> : IExternalOffsetsStorag
 
             if (local != null)
             {
-                result.Add(new TopicPartitionOffset(item, local.Pause ? Offset.End : local.Offset));
+                result.Add(new TopicPartitionOffset(item, local.Pause ? ExternalOffset.Paused : local.Offset));
             }
             else
             {

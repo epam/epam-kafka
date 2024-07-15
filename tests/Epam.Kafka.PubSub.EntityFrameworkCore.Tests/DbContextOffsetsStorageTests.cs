@@ -25,6 +25,8 @@ namespace Epam.Kafka.PubSub.EntityFrameworkCore.Tests;
 
 public class DbContextOffsetsStorageTests : TestWithContext
 {
+    private const int Paused = -863;
+
     public DbContextOffsetsStorageTests(ITestOutputHelper output) : base(output)
     {
     }
@@ -52,10 +54,10 @@ public class DbContextOffsetsStorageTests : TestWithContext
     }
 
     [Theory]
-    [InlineData(22, true, -1)]
+    [InlineData(22, true, Paused)]
     [InlineData(22, false, 22)]
-    [InlineData(-1, true, -1)]
-    [InlineData(-1, false, -1)]
+    [InlineData(Paused, true, Paused)]
+    [InlineData(Paused, false, Paused)]
     public void GetPausedTopic(int dbOffset, bool paused, int expectedOffset)
     {
         const string topic = "anyTopic";
@@ -77,8 +79,9 @@ public class DbContextOffsetsStorageTests : TestWithContext
 
     [Theory]
     [InlineData(25, false, 25, 25)]
-    [InlineData(25, true, -1, 25)]
-    [InlineData(-1, true, -1, 30)]
+    [InlineData(25, true, Paused, 25)]
+    [InlineData(Paused, true, Paused, 30)]
+    [InlineData(Paused, false, Paused, Paused)]
     public void SetPausedTopic(int reportedOffset, bool paused, int expectedOffsetInResult,
         int expectedOffsetInDatabase)
     {

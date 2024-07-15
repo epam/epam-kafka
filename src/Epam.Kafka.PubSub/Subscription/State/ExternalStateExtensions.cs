@@ -26,6 +26,7 @@ internal static class ExternalStateExtensions
             throw new ArgumentNullException(nameof(offsets));
         }
 
+        var pause = new List<TopicPartition>();
         var reset = new List<TopicPartitionOffset>();
         var committed = new List<TopicPartitionOffset>();
         IReadOnlyCollection<TopicPartitionOffset> newState;
@@ -47,32 +48,48 @@ internal static class ExternalStateExtensions
             }
             else
             {
-                TopicPartitionOffset tpo = new(item.TopicPartition, item.Offset);
-
-                topic.Seek(tpo);
-
-                reset.Add(tpo);
+                PauseOrReset(topic, item, pause, reset);
             }
         }
 
         topic.OnReset(reset);
+
+        topic.OnPause(pause);
 
         topic.CommitOffsetIfNeeded(activitySpan, newState);
 
         return committed;
     }
 
+    public static void PauseOrReset<TKey, TValue>(
+        SubscriptionTopicWrapper<TKey, TValue> topic, 
+        TopicPartitionOffset item, 
+        List<TopicPartition> pause,
+        List<TopicPartitionOffset> reset)
+    {
+        if (item.Offset == ExternalOffset.Paused)
+        {
+            pause.Add(item.TopicPartition);
+        }
+        else
+        {
+            TopicPartitionOffset tpo = new(item.TopicPartition, item.Offset);
+            topic.Seek(tpo);
+            reset.Add(tpo);
+        }
+    }
+
     public static void CommitOffsetIfNeeded<TKey, TValue>(
         this SubscriptionTopicWrapper<TKey, TValue> topic, 
         ActivityWrapper activitySpan,
-        IReadOnlyCollection<TopicPartitionOffset> offsets)
+        IEnumerable<TopicPartitionOffset> offsets)
     {
         if (topic.Options.ExternalStateCommitToKafka)
         {
+            List<TopicPartitionOffset> toCommit = new();
+
             try
             {
-                List<TopicPartitionOffset> toCommit = new();
-
                 foreach (TopicPartitionOffset item in offsets)
                 {
                     if (item.Offset.Value >= 0)
@@ -93,13 +110,18 @@ internal static class ExternalStateExtensions
                             toCommit.Add(new TopicPartitionOffset(item.TopicPartition, w.Low));
                         }
                     }
+                    else if (item.Offset == Offset.End)
+                    {
+                        var w = topic.Consumer.QueryWatermarkOffsets(item.TopicPartition, TimeSpan.FromSeconds(5));
+                        toCommit.Add(new TopicPartitionOffset(item.TopicPartition, w.High));
+                    }
                 }
 
                 topic.CommitOffsets(activitySpan, toCommit);
             }
             catch (KafkaException exception)
             {
-                topic.Logger.KafkaCommitFailed(exception, topic.Monitor.Name, offsets);
+                topic.Logger.KafkaCommitFailed(exception, topic.Monitor.Name, toCommit);
 
                 // ignore exception because external provider is a single point of truth for offsets.
                 // failed commit will trigger offset reset on next batch iteration

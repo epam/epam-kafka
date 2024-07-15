@@ -83,7 +83,7 @@ public class HandlerErrorTests : TestWithServices, IClassFixture<MockCluster>
 
         // iteration 1
         observer.AssertStart();
-        observer.AssertAssign();
+        observer.AssertAssign(true);
         observer.AssertRead(6);
         observer.AssertProcess();
         observer.AssertStop(exception);
@@ -159,7 +159,7 @@ public class HandlerErrorTests : TestWithServices, IClassFixture<MockCluster>
             "Unable to resolve service for type 'Epam.Kafka.PubSub.Tests.Helpers.TestObserver' while attempting");
 
         observer.AssertStart();
-        observer.AssertAssign();
+        observer.AssertAssign(true);
         observer.AssertRead();
         observer.AssertStop(exc);
     }

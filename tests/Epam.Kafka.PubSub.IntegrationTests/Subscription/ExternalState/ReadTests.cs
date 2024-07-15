@@ -68,7 +68,7 @@ public class ReadTests : TestWithServices, IClassFixture<MockCluster>
 
         // iteration 1
         observer.AssertStart();
-        observer.AssertAssign();
+        observer.AssertAssign(true);
         observer.AssertRead(10);
         observer.AssertProcess();
         observer.AssertCommitExternal();
@@ -122,7 +122,7 @@ public class ReadTests : TestWithServices, IClassFixture<MockCluster>
 
         // iteration 1
         observer.AssertStart();
-        observer.AssertAssign();
+        observer.AssertAssign(true);
         observer.AssertRead(5);
         observer.AssertProcess();
         observer.AssertCommitExternal();
@@ -175,7 +175,7 @@ public class ReadTests : TestWithServices, IClassFixture<MockCluster>
         offsets.Verify();
 
         // iteration 1
-        observer.AssertSubNotAssigned();
+        observer.AssertSubEmpty(true);
 
         // iteration 2
         observer.AssertSubEmpty();

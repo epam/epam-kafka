@@ -4,6 +4,7 @@ using Confluent.Kafka;
 
 using Epam.Kafka.PubSub.Subscription.Options;
 using Epam.Kafka.PubSub.Subscription.Pipeline;
+using Epam.Kafka.PubSub.Subscription.State;
 using Epam.Kafka.PubSub.Utils;
 
 using Microsoft.Extensions.Logging;
@@ -18,7 +19,12 @@ internal sealed class SubscriptionTopicWrapper<TKey, TValue> : IDisposable
 
     private readonly AutoOffsetReset? _autoOffsetReset;
 
+    private readonly HashSet<TopicPartition> _paused = new();
+
     private readonly int _consumeTimeoutMs;
+
+    private readonly HashSet<TopicPartition> _newPartitions = new();
+    private readonly Dictionary<TopicPartition, Offset> _offsets = new();
 
     public SubscriptionTopicWrapper(IKafkaFactory kafkaFactory,
         SubscriptionMonitor monitor,
@@ -67,12 +73,28 @@ internal sealed class SubscriptionTopicWrapper<TKey, TValue> : IDisposable
     public SubscriptionOptions Options { get; }
     public ILogger Logger { get; }
 
-    public IDictionary<TopicPartition, Offset> Offsets { get; } = new Dictionary<TopicPartition, Offset>();
-
     public IConsumer<TKey, TValue> Consumer { get; }
     public string ConsumerGroup { get; }
+    public bool UnassignedBeforeRead { get; private set; }
 
     public Func<IReadOnlyCollection<TopicPartition>, IReadOnlyCollection<TopicPartitionOffset>>? ExternalState { get; set; }
+
+    public bool TryGetOffset(TopicPartition tp, out Offset result) => this._offsets.TryGetValue(tp, out result);
+
+    public void OnAssign(IReadOnlyCollection<TopicPartitionOffset> items)
+    {
+        if (items.Count > 0)
+        {
+            this.Consumer.Assign(items);
+
+            foreach (TopicPartitionOffset tpo in items)
+            {
+                this._offsets[tpo.TopicPartition] = tpo.Offset;
+            }
+
+            this.Logger.PartitionsAssigned(this.Monitor.Name, null, items);
+        }
+    }
 
     public void Dispose()
     {
@@ -158,7 +180,7 @@ internal sealed class SubscriptionTopicWrapper<TKey, TValue> : IDisposable
         if (this.Consumer.Assignment.Count == 0 && this.Consumer.Subscription.Count == 0)
         {
             this._buffer.Clear();
-            this.Offsets.Clear();
+            this._offsets.Clear();
         }
     }
 
@@ -169,7 +191,13 @@ internal sealed class SubscriptionTopicWrapper<TKey, TValue> : IDisposable
         {
             using ActivityWrapper wrapper = activitySpan.CreateSpan("read");
 
-            this.ReadToBuffer(cancellationToken);
+            this.ReadToBuffer(activitySpan, cancellationToken);
+
+            // try to read again because new partitions were assigned, so we can have messages 
+            if (this._buffer.Count == 0 && this._newPartitions.Count > 0)
+            {
+                this.ReadToBuffer(activitySpan, cancellationToken);
+            }
 
             wrapper.SetResult(this._buffer.Count);
         }
@@ -189,19 +217,86 @@ internal sealed class SubscriptionTopicWrapper<TKey, TValue> : IDisposable
                 this.CleanupBuffer(x => x.TopicPartition == item.TopicPartition && x.Offset.Value < item.Offset.Value,
                     "OffsetsCommitted");
 
-                this.Offsets[item.TopicPartition] = item.Offset;
+                this._offsets[item.TopicPartition] = item.Offset;
             }
         }
     }
 
-    public void OnReset(IReadOnlyCollection<TopicPartitionOffset> reset)
+    public void OnReset(IReadOnlyCollection<TopicPartitionOffset> items)
     {
-        if (reset.Count > 0)
+        if (items.Count > 0)
         {
-            this.Logger.OffsetsReset(this.Monitor.Name, reset);
+            List<TopicPartitionOffset> reset = new(items.Count);
+            List<TopicPartitionOffset> resume = new(items.Count);
 
-            this.CleanupBuffer(x => reset.Any(v => v.TopicPartition == x.TopicPartition), "partition offset reset");
+            foreach (var tpo in items)
+            {
+                if (this._paused.Remove(tpo.TopicPartition))
+                {
+                    resume.Add(tpo);
+                }
+                else
+                {
+                    reset.Add(tpo);
+                }
+            }
+
+            if (reset.Count > 0)
+            {
+                this.Logger.OffsetsReset(this.Monitor.Name, reset);
+                this.CleanupBuffer(x => reset.Any(v => v.TopicPartition == x.TopicPartition), "partition offset reset");
+            }
+
+            if (resume.Count > 0)
+            {
+                this.Consumer.Resume(resume.Select(x => x.TopicPartition));
+                this.Logger.PartitionsResumed(this.Monitor.Name, resume);
+                this.CleanupBuffer(x => resume.Any(v => v.TopicPartition == x.TopicPartition), "partition offset resume");
+            }
         }
+    }
+
+    public bool OnPause(IReadOnlyCollection<TopicPartition> items)
+    {
+        return items.Count > 0 && this.OnPauseEnumerate(items);
+    }
+
+    private bool OnPauseEnumerate(IEnumerable<TopicPartition> items)
+    {
+        List<TopicPartition> result = new();
+
+        foreach (TopicPartition tp in items)
+        {
+            if (this.Consumer.Assignment.Contains(tp) && !this._paused.Contains(tp))
+            {
+                result.Add(tp);
+            }
+        }
+
+        if (result.Count > 0)
+        {
+            try
+            {
+                this.Consumer.Pause(result);
+            }
+            catch (Exception e)
+            {
+                e.DoNotRetryBatch();
+                throw;
+            }
+
+            foreach (var r in result)
+            {
+                this._paused.Add(r);
+                this._offsets[r] = ExternalOffset.Paused;
+            }
+
+            this.Logger.PartitionsPaused(this.Monitor.Name, result);
+
+            return this.CleanupBuffer(x => result.Any(v => v == x.TopicPartition), "partition paused");
+        }
+
+        return false;
     }
 
     private void ConfigureConsumerBuilder(ConsumerBuilder<TKey, TValue> builder)
@@ -209,7 +304,11 @@ internal sealed class SubscriptionTopicWrapper<TKey, TValue> : IDisposable
         builder.SetPartitionsAssignedHandler((consumer, list) =>
         {
             var result = new List<TopicPartitionOffset>(list.Count);
-            result.AddRange(list.Select(x => new TopicPartitionOffset(x, Offset.Unset)));
+            result.AddRange(list.Select(x =>
+            {
+                this._newPartitions.Add(x);
+                return new TopicPartitionOffset(x, Offset.Unset);
+            }));
 
             this.OnPartitionsAssigned(consumer, result);
 
@@ -234,7 +333,7 @@ internal sealed class SubscriptionTopicWrapper<TKey, TValue> : IDisposable
             {
                 foreach (TopicPartitionOffset partitionOffset in list)
                 {
-                    this.Offsets.Remove(partitionOffset.TopicPartition);
+                    this._offsets.Remove(partitionOffset.TopicPartition);
                 }
             }
         }
@@ -252,7 +351,7 @@ internal sealed class SubscriptionTopicWrapper<TKey, TValue> : IDisposable
             {
                 foreach (TopicPartitionOffset partitionOffset in list)
                 {
-                    this.Offsets.Remove(partitionOffset.TopicPartition);
+                    this._offsets.Remove(partitionOffset.TopicPartition);
                 }
             }
         }
@@ -271,14 +370,16 @@ internal sealed class SubscriptionTopicWrapper<TKey, TValue> : IDisposable
 #pragma warning disable CA1031 // can't throw exceptions in handler callback because it triggers incorrect state in librdkafka and some times leads to app crash. 
                 try
                 {
-                    IReadOnlyCollection<TopicPartitionOffset> state = this.ExternalState.Invoke(tp);
+                    IEnumerable<TopicPartitionOffset> state = this.ExternalState.Invoke(tp);
 
                     foreach (TopicPartitionOffset tpo in state)
                     {
-                        this.Offsets[tpo.TopicPartition] = tpo.Offset;
-                    }
+                        this._offsets[tpo.TopicPartition] = tpo.Offset;
 
-                    list.AddRange(state);
+                        list.Add(tpo.Offset == ExternalOffset.Paused
+                            ? new TopicPartitionOffset(tpo.TopicPartition, Offset.End)
+                            : tpo);
+                    }
                 }
                 catch (Exception exception)
                 {
@@ -307,7 +408,7 @@ internal sealed class SubscriptionTopicWrapper<TKey, TValue> : IDisposable
         }
     }
 
-    private void CleanupBuffer(Predicate<ConsumeResult<TKey, TValue>> predicate, string reason)
+    private bool CleanupBuffer(Predicate<ConsumeResult<TKey, TValue>> predicate, string reason)
     {
         if (predicate == null)
         {
@@ -320,6 +421,8 @@ internal sealed class SubscriptionTopicWrapper<TKey, TValue> : IDisposable
         {
             this.Logger.BufferCleanup(this.Monitor.Name, count, reason);
         }
+
+        return count > 0;
     }
 
     private void ConfigureConsumerConfig(ConsumerConfig config)
@@ -332,16 +435,16 @@ internal sealed class SubscriptionTopicWrapper<TKey, TValue> : IDisposable
         config.EnableAutoCommit = false;
         config.EnableAutoOffsetStore = false;
 
-        config.AutoOffsetReset ??= AutoOffsetReset.Earliest;
-        config.IsolationLevel ??= IsolationLevel.ReadCommitted;
-        config.PartitionAssignmentStrategy ??= PartitionAssignmentStrategy.CooperativeSticky;
         if (config.All(x => x.Key != KafkaConfigExtensions.DotnetLoggerCategoryKey))
         {
             config.SetDotnetLoggerCategory(this.Monitor.FullName);
         }
-        // to avoid leaving group in case of long-running processing
-        config.MaxPollIntervalMs ??= (int)TimeSpan.FromMinutes(60).TotalMilliseconds;
 
+        if (this.Options.StateType.Name == typeof(CombinedState<>).Name || this.Options.StateType == typeof(InternalKafkaState))
+        {
+            // to avoid leaving group in case of long-running processing
+            config.MaxPollIntervalMs ??= (int)TimeSpan.FromMinutes(60).TotalMilliseconds;
+        }
     }
 
     public void CommitOffsets(ActivityWrapper activitySpan, IReadOnlyCollection<TopicPartitionOffset> offsets)
@@ -356,8 +459,12 @@ internal sealed class SubscriptionTopicWrapper<TKey, TValue> : IDisposable
         }
     }
 
-    private void ReadToBuffer(CancellationToken cancellationToken)
+    private void ReadToBuffer(ActivityWrapper span, CancellationToken cancellationToken)
     {
+        this.UnassignedBeforeRead = this.Consumer.Assignment.Count == 0;
+
+        this._newPartitions.Clear();
+
         int batchSize = this.Options.BatchSize;
 
         try
@@ -404,6 +511,8 @@ internal sealed class SubscriptionTopicWrapper<TKey, TValue> : IDisposable
             // unable to return at least something, so only throw
             if (this._buffer.Count == 0)
             {
+                this.HandleNewPartitions(span);
+
                 throw;
             }
 
@@ -418,12 +527,33 @@ internal sealed class SubscriptionTopicWrapper<TKey, TValue> : IDisposable
 
             throw;
         }
+
+        this.HandleNewPartitions(span);
+    }
+
+    private void HandleNewPartitions(ActivityWrapper span)
+    {
+        if (this._newPartitions.Count > 0)
+        {
+            // commit offset for new partitions in case of combined state
+            if (this.Options.StateType != typeof(InternalKafkaState))
+            {
+                this.CommitOffsetIfNeeded(span,
+                    this._offsets.Where(x => this._newPartitions.Contains(x.Key))
+                        .Select(x => new TopicPartitionOffset(x.Key, x.Value)));
+            }
+
+            // pause consumer for new partitions with special offset
+            this.OnPause(this._offsets
+                .Where(x => this._newPartitions.Contains(x.Key) && x.Value == ExternalOffset.Paused)
+                .Select(x => x.Key).ToArray());
+        }
     }
 
     public void Seek(TopicPartitionOffset tpo)
     {
         this.Consumer.Seek(tpo);
-        this.Offsets[tpo.TopicPartition] = tpo.Offset;
+        this._offsets[tpo.TopicPartition] = tpo.Offset;
     }
 
     public void ThrowIfNeeded()

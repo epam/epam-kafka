@@ -21,7 +21,7 @@ public class TestOffsetsStorage : IterationMock<TestOffsetsStorage.ITestExternal
     public TestOffsetsStorage(TestObserver observer, params int[] ignoredPartitions) : base(observer)
     {
         this._ignoredPartitions = ignoredPartitions
-            .Select(x => new TopicPartitionOffset(observer.Test.AnyTopicName, x, Offset.End)).ToArray();
+            .Select(x => new TopicPartitionOffset(observer.Test.AnyTopicName, x, ExternalOffset.Paused)).ToArray();
     }
 
     public TestOffsetsStorage(TestObserver observer) : base(observer)
