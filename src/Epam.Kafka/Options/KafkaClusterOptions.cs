@@ -24,8 +24,12 @@ public sealed class KafkaClusterOptions : IOptions<KafkaClusterOptions>
 
     internal bool UsedByFactory { get; set; }
 
+<<<<<<< HEAD
     internal Action<IClient, string?>? OauthHandler { get; private set; }
     internal bool OauthHandlerThrow { get; private set; }
+=======
+    internal Action<IClient, string>? OauthHandler { get; private set; }
+>>>>>>> Release 2.3 (#38)
     internal IAuthenticationHeaderValueProvider? AuthenticationHeaderValueProvider { get; set; }
 
     KafkaClusterOptions IOptions<KafkaClusterOptions>.Value => this;

@@ -13,7 +13,11 @@ internal static class CompatibilityExtensions
         return queryable;
     }
 
+<<<<<<< HEAD
     public static int SaveChanges(this DbContext context, bool _)
+=======
+    public static int SaveChanges(this DbContext context, bool acceptAllChangesOnSuccess)
+>>>>>>> Release 2.3 (#38)
     {
         return context.SaveChanges();
     }

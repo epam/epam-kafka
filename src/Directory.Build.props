@@ -25,7 +25,11 @@
 		<NeutralLanguage>en</NeutralLanguage>
 		<PackageReleaseNotes>https://github.com/epam/epam-kafka/releases</PackageReleaseNotes>
 		<VersionPrefix>0</VersionPrefix>
+<<<<<<< HEAD
 		<Version>2.4.$(VersionPrefix)</Version>
+=======
+		<Version>2.3.$(VersionPrefix)</Version>
+>>>>>>> Release 2.3 (#38)
 	</PropertyGroup>
 
 	<ItemGroup>

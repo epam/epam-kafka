@@ -40,7 +40,11 @@ internal sealed class ExternalState<TOffsetsStorage> : BatchState
             // existing assignment, check if offset reset
             if (topic.Consumer.Assignment.Contains(item.TopicPartition))
             {
+<<<<<<< HEAD
                 if (topic.TryGetOffset(item.TopicPartition, out Offset tp) && tp != item.Offset)
+=======
+                if (topic.TryGetOffset(item.TopicPartition, out var tp) && tp != item.Offset)
+>>>>>>> Release 2.3 (#38)
                 {
                     ExternalStateExtensions.PauseOrReset(topic, item, pause, reset);
                 }

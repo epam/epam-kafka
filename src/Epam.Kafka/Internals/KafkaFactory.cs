@@ -153,11 +153,21 @@ internal sealed class KafkaFactory : IKafkaFactory, IDisposable
 
         ILogger logger = this._loggerFactory.CreateLogger(LoggerCategoryName);
 
+<<<<<<< HEAD
         ObservableConsumer<TKey, TValue> consumer;
 
         try
         {
             consumer = new ObservableConsumer<TKey, TValue>(builder);
+=======
+        ILogger fl = this._loggerFactory.CreateLogger(LoggerCategoryName);
+
+        try
+        {
+            IConsumer<TKey, TValue> consumer = new ObservableConsumer<TKey, TValue>(builder);
+
+            fl.ConsumerCreateOk(PrepareConfigForLogs(config), typeof(TKey), typeof(TValue));
+>>>>>>> Release 2.3 (#38)
 
             logger.ConsumerCreateOk(PrepareConfigForLogs(config), typeof(TKey), typeof(TValue), oauthSet, logSet);
         }
@@ -212,12 +222,21 @@ internal sealed class KafkaFactory : IKafkaFactory, IDisposable
             }
             catch (InvalidOperationException)
             {
+<<<<<<< HEAD
                 // handler already set
                 if (clusterOptions.OauthHandlerThrow)
                 {
                     throw;
                 }
             } 
+=======
+            } // handler already set
+        }
+
+        try
+        {
+            builder.SetLogHandler((_, m) => this._loggerFactory.CreateLogger(logHandler).KafkaLogHandler(m));
+>>>>>>> Release 2.3 (#38)
         }
 
         ILogger logger = this._loggerFactory.CreateLogger(LoggerCategoryName);
@@ -226,7 +245,13 @@ internal sealed class KafkaFactory : IKafkaFactory, IDisposable
 
         try
         {
+<<<<<<< HEAD
             producer = new(builder);
+=======
+            ObservableProducer<TKey, TValue> producer = new(builder);
+
+            fl.ProducerCreateOk(PrepareConfigForLogs(config), typeof(TKey), typeof(TValue));
+>>>>>>> Release 2.3 (#38)
 
             logger.ProducerCreateOk(PrepareConfigForLogs(config), typeof(TKey), typeof(TValue), oauthSet, logSet);
         }
@@ -246,13 +271,23 @@ internal sealed class KafkaFactory : IKafkaFactory, IDisposable
 
         KafkaClusterOptions clusterOptions = this.GetAndValidateClusterOptions(cluster);
 
+<<<<<<< HEAD
         if (!this._clients.TryGetValue(clusterOptions, out SharedClient? result))
+=======
+        SharedClient? result;
+
+        lock (this._syncObj)
+>>>>>>> Release 2.3 (#38)
         {
             lock (this._syncObj)
             {
+<<<<<<< HEAD
                 if (!this._clients.TryGetValue(clusterOptions, out result))
                 {
                     result = new SharedClient(this, cluster);
+=======
+                result = new SharedClient(this, cluster);
+>>>>>>> Release 2.3 (#38)
 
                     this._clients.Add(clusterOptions, result);
                 }
@@ -334,6 +369,7 @@ internal sealed class KafkaFactory : IKafkaFactory, IDisposable
         ValidateLogicalName(cluster, "cluster");
 
         // save cluster name for further health check
+<<<<<<< HEAD
         // https://learn.microsoft.com/en-us/dotnet/standard/collections/thread-safe/
         // If you're only reading from a shared collection, then you can use the classes in the System.Collections.Generic namespace
         if (!this.UsedClusters.Contains(cluster!))
@@ -343,6 +379,9 @@ internal sealed class KafkaFactory : IKafkaFactory, IDisposable
                 this.UsedClusters.Add(cluster!);
             }
         }
+=======
+        this.UsedClusters.Add(cluster!);
+>>>>>>> Release 2.3 (#38)
 
         try
         {

@@ -101,7 +101,11 @@ internal sealed class SubscriptionBackgroundService<TKey, TValue, THandler> : Pu
         this.Monitor.Batch.Update(BatchStatus.Reading);
 
         bool unassignedBeforeRead = state.GetBatch(
+<<<<<<< HEAD
             topic, activitySpan, out IReadOnlyCollection<ConsumeResult<TKey, TValue>> batch, cancellationToken);
+=======
+            topic, activitySpan, out var batch, cancellationToken);
+>>>>>>> Release 2.3 (#38)
 
         cancellationToken.ThrowIfCancellationRequested();
 

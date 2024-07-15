@@ -83,10 +83,14 @@ internal sealed class SubscriptionTopicWrapper<TKey, TValue> : IDisposable
 
     public Func<IReadOnlyCollection<TopicPartition>, IReadOnlyCollection<TopicPartitionOffset>>? ExternalState { get; set; }
 
+<<<<<<< HEAD
     public bool TryGetOffset(TopicPartition tp, out Offset result)
     {
         return this._offsets.TryGetValue(tp, out result);
     }
+=======
+    public bool TryGetOffset(TopicPartition tp, out Offset result) => this._offsets.TryGetValue(tp, out result);
+>>>>>>> Release 2.3 (#38)
 
     public void OnAssign(IReadOnlyCollection<TopicPartitionOffset> items)
     {
@@ -230,6 +234,7 @@ internal sealed class SubscriptionTopicWrapper<TKey, TValue> : IDisposable
     }
 
     public void OnReset(IReadOnlyCollection<TopicPartitionOffset> items)
+<<<<<<< HEAD
     {
         if (items.Count > 0)
         {
@@ -293,6 +298,81 @@ internal sealed class SubscriptionTopicWrapper<TKey, TValue> : IDisposable
             }
 
             foreach (TopicPartition r in result)
+            {
+                this._paused.Add(r);
+                this._offsets[r] = ExternalOffset.Paused;
+            }
+
+            this.Logger.PartitionsPaused(this.Monitor.Name, result);
+
+            return this.CleanupBuffer(x => result.Any(v => v == x.TopicPartition), "partition paused");
+=======
+    {
+        if (items.Count > 0)
+        {
+            List<TopicPartitionOffset> reset = new(items.Count);
+            List<TopicPartitionOffset> resume = new(items.Count);
+
+            foreach (var tpo in items)
+            {
+                if (this._paused.Remove(tpo.TopicPartition))
+                {
+                    resume.Add(tpo);
+                }
+                else
+                {
+                    reset.Add(tpo);
+                }
+            }
+
+            if (reset.Count > 0)
+            {
+                this.Logger.OffsetsReset(this.Monitor.Name, reset);
+                this.CleanupBuffer(x => reset.Any(v => v.TopicPartition == x.TopicPartition), "partition offset reset");
+            }
+
+            if (resume.Count > 0)
+            {
+                this.Consumer.Resume(resume.Select(x => x.TopicPartition));
+                this.Logger.PartitionsResumed(this.Monitor.Name, resume);
+                this.CleanupBuffer(x => resume.Any(v => v.TopicPartition == x.TopicPartition), "partition offset resume");
+            }
+>>>>>>> Release 2.3 (#38)
+        }
+
+        return false;
+    }
+
+    public bool OnPause(IReadOnlyCollection<TopicPartition> items)
+    {
+        return items.Count > 0 && this.OnPauseEnumerate(items);
+    }
+
+    private bool OnPauseEnumerate(IEnumerable<TopicPartition> items)
+    {
+        List<TopicPartition> result = new();
+
+        foreach (TopicPartition tp in items)
+        {
+            if (this.Consumer.Assignment.Contains(tp) && !this._paused.Contains(tp))
+            {
+                result.Add(tp);
+            }
+        }
+
+        if (result.Count > 0)
+        {
+            try
+            {
+                this.Consumer.Pause(result);
+            }
+            catch (Exception e)
+            {
+                e.DoNotRetryBatch();
+                throw;
+            }
+
+            foreach (var r in result)
             {
                 this._paused.Add(r);
                 this._offsets[r] = ExternalOffset.Paused;

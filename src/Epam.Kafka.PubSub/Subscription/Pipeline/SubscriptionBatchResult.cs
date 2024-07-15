@@ -1,5 +1,10 @@
 ﻿// Copyright © 2024 EPAM Systems
 
+<<<<<<< HEAD
+=======
+using Confluent.Kafka;
+
+>>>>>>> Release 2.3 (#38)
 using Epam.Kafka.PubSub.Common.Pipeline;
 
 namespace Epam.Kafka.PubSub.Subscription.Pipeline;
