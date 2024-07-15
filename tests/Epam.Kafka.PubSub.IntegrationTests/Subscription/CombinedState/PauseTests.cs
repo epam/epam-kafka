@@ -9,6 +9,8 @@ using Epam.Kafka.PubSub.Tests.Helpers;
 using Epam.Kafka.Tests.Common;
 
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Shouldly;
 
 using Xunit;
 using Xunit.Abstractions;
@@ -235,5 +237,59 @@ public class PauseTests : TestWithServices, IClassFixture<MockCluster>
         observer.AssertCommitExternal();
         observer.AssertCommitKafka();
         observer.AssertStop(SubscriptionBatchResult.Processed);
+    }
+    [Fact]
+    public async Task IncrementalUnassignPaused()
+    {
+        TopicPartition tp3 = new(this.AnyTopicName, 3);
+
+        TopicPartition[] tp3s = { tp3 };
+
+        KafkaBuilder kafkaBuilder = this._mockCluster.LaunchMockCluster(this);
+
+        kafkaBuilder.WithConsumerConfig("PauseTest");
+
+        Dictionary<TestEntityKafka, TopicPartitionOffset> m1 = await MockCluster.SeedKafka(this, 5, tp3);
+
+        ConsumerConfig config = new ConsumerConfig
+        {
+            AutoOffsetReset = AutoOffsetReset.Earliest,
+            GroupId = Guid.NewGuid().ToString(),
+            PartitionAssignmentStrategy = PartitionAssignmentStrategy.CooperativeSticky
+        };
+
+        using var consumer = this.KafkaFactory.CreateConsumer<Ignore, Ignore>(config, null,
+            builder =>
+            {
+                builder.SetPartitionsAssignedHandler((_, list) =>
+                    this.Logger.LogInformation("Assigned {Tp}", list));
+
+                builder.SetPartitionsRevokedHandler((_, list) =>
+                    this.Logger.LogInformation("Revoked {Tpo}", list));
+
+                builder.SetPartitionsLostHandler((_, list) =>
+                    this.Logger.LogInformation("Lost {Tpo}", list));
+            });
+
+        consumer.Subscribe(tp3.Topic);
+
+        var v1 = consumer.Consume(5000);
+
+        v1.ShouldNotBeNull().Offset.ShouldBe(m1.ElementAt(0).Value.Offset);
+
+        consumer.Pause(tp3s);
+
+        consumer.Consume(2000).ShouldBeNull();
+
+        consumer.IncrementalUnassign(tp3s);
+
+        consumer.IncrementalAssign(tp3s);
+
+        consumer.Consume(2000).ShouldBeNull();
+        consumer.Consume(2000).ShouldBeNull();
+
+        consumer.Resume(tp3s);
+
+        consumer.Consume(2000).ShouldNotBeNull().Offset.ShouldBe(m1.ElementAt(1).Value.Offset);
     }
 }

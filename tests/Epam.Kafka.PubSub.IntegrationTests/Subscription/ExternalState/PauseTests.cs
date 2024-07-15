@@ -10,6 +10,8 @@ using Epam.Kafka.Tests.Common;
 
 using Microsoft.Extensions.DependencyInjection;
 
+using System;
+using Shouldly;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -227,5 +229,55 @@ public class PauseTests : TestWithServices, IClassFixture<MockCluster>
         observer.AssertCommitExternal();
         observer.AssertCommitKafka();
         observer.AssertStop(SubscriptionBatchResult.Processed);
+    }
+
+    [Fact]
+    public async Task UnassignPaused()
+    {
+        TopicPartition tp3 = new(this.AnyTopicName, 3);
+
+        TopicPartition[] tp3s = { tp3 };
+
+        KafkaBuilder kafkaBuilder = this._mockCluster.LaunchMockCluster(this);
+
+        kafkaBuilder.WithConsumerConfig("PauseTest");
+
+        Dictionary<TestEntityKafka, TopicPartitionOffset> m1 = await MockCluster.SeedKafka(this, 5, tp3);
+
+        ConsumerConfig config = new ConsumerConfig
+        {
+            AutoOffsetReset = AutoOffsetReset.Earliest,
+            GroupId = Guid.NewGuid().ToString()
+        };
+
+        using var consumer = this.KafkaFactory.CreateConsumer<Ignore, Ignore>(config);
+
+        consumer.Assign(tp3);
+
+        var v1 = consumer.Consume(5000);
+
+        v1.ShouldNotBeNull().Offset.ShouldBe(m1.ElementAt(0).Value.Offset);
+
+        // pause call idempotent
+        consumer.Pause(tp3s);
+        consumer.Pause(tp3s);
+
+        consumer.Consume(2000).ShouldBeNull();
+
+        consumer.Unassign();
+
+        consumer.Assign(tp3s);
+
+        consumer.Consume(2000).ShouldBeNull();
+
+        consumer.Consume(2000).ShouldBeNull();
+
+        consumer.Resume(tp3s);
+
+        consumer.Consume(2000).ShouldNotBeNull().Offset.ShouldBe(m1.ElementAt(1).Value.Offset);
+
+        // resume call idempotent
+        consumer.Resume(tp3s);
+        consumer.Resume(tp3s);
     }
 }
