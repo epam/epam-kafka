@@ -1,6 +1,7 @@
 ﻿// Copyright © 2024 EPAM Systems
 
 using Confluent.Kafka;
+using Epam.Kafka.PubSub.Subscription;
 using Epam.Kafka.PubSub.Subscription.Options;
 using Epam.Kafka.PubSub.Subscription.Pipeline;
 using Epam.Kafka.PubSub.Tests.Helpers;
@@ -69,12 +70,12 @@ public class SerializationErrorTests : TestWithServices, IClassFixture<MockClust
     }
 
     [Fact]
-    public async Task SinglePartitionInTheMiddleOfBatch()
+    public async Task PauseAndResumeAtError()
     {
         TopicPartition tp3 = new(this.AnyTopicName, 3);
 
         TestException exc = new();
-        using TestObserver observer = new(this, 2);
+        using TestObserver observer = new(this, 4);
 
         var handler = new TestSubscriptionHandler(observer);
         var offsets = new TestOffsetsStorage(observer);
@@ -91,16 +92,20 @@ public class SerializationErrorTests : TestWithServices, IClassFixture<MockClust
         deserializer.WithSuccess(1, m1.Keys.ElementAt(0));
         deserializer.WithError(1, exc, m1.Keys.ElementAt(1));
         deserializer.WithError(2, exc, m1.Keys.ElementAt(1));
+        deserializer.WithError(4, exc, m1.Keys.ElementAt(1));
 
         handler.WithSuccess(1, m1.Take(1));
 
-        TopicPartitionOffset unset = new (tp3, Offset.Unset);
-        TopicPartitionOffset autoReset = new (tp3, 0);
-        TopicPartitionOffset offset1 = new (tp3, 1);
+        TopicPartitionOffset unset = new(tp3, Offset.Unset);
+        TopicPartitionOffset autoReset = new(tp3, 0);
+        TopicPartitionOffset error = new(tp3, 1);
+        TopicPartitionOffset paused = new(tp3, ExternalOffset.Paused);
 
         offsets.WithGet(1, unset);
         offsets.WithSet(1, autoReset);
-        offsets.WithSetAndGetForNextIteration(1, offset1);
+        offsets.WithSetAndGetForNextIteration(1, error);
+        offsets.WithGet(3, paused);
+        offsets.WithGet(4, error);
 
         await this.RunBackgroundServices();
 
@@ -119,6 +124,15 @@ public class SerializationErrorTests : TestWithServices, IClassFixture<MockClust
         // iteration 2
         observer.AssertStart();
         observer.AssertAssign();
+        observer.AssertRead();
+        observer.AssertStop<ConsumeException>("Value deserialization error");
+
+        // iteration 3
+        observer.AssertSubPaused();
+
+        // iteration 4
+        observer.AssertStart();
+        observer.AssertAssign(true);
         observer.AssertRead();
         observer.AssertStop<ConsumeException>("Value deserialization error");
     }

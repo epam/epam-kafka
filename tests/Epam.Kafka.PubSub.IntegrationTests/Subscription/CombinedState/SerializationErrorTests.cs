@@ -2,6 +2,7 @@
 
 using Confluent.Kafka;
 
+using Epam.Kafka.PubSub.Subscription;
 using Epam.Kafka.PubSub.Subscription.Pipeline;
 using Epam.Kafka.PubSub.Tests.Helpers;
 using Epam.Kafka.Tests.Common;
@@ -88,12 +89,12 @@ public class SerializationErrorTests : TestWithServices
     }
 
     [Fact]
-    public async Task SinglePartitionInTheMiddleOfBatch()
+    public async Task PauseAndResumeAtError()
     {
         TopicPartition tp3 = new(this.AnyTopicName, 3);
 
         TestException exc = new();
-        using TestObserver observer = new(this, 3);
+        using TestObserver observer = new(this, 5);
 
         var handler = new TestSubscriptionHandler(observer);
         var offsets = new TestOffsetsStorage(observer, 0, 1, 2);
@@ -115,11 +116,14 @@ public class SerializationErrorTests : TestWithServices
 
         TopicPartitionOffset unset = new(tp3, Offset.Unset);
         TopicPartitionOffset autoReset = new(tp3, 0);
-        TopicPartitionOffset offset1 = new(tp3, 1);
+        TopicPartitionOffset error = new(tp3, 1);
+        TopicPartitionOffset paused = new(tp3, ExternalOffset.Paused);
 
         offsets.WithGet(2, unset);
         offsets.WithSet(2, autoReset);
-        offsets.WithSetAndGetForNextIteration(2, offset1);
+        offsets.WithSetAndGetForNextIteration(2, error);
+        offsets.WithGet(4, paused);
+        offsets.WithGet(5, error);
 
         await this.RunBackgroundServices();
 
@@ -141,6 +145,15 @@ public class SerializationErrorTests : TestWithServices
         // iteration 3
         observer.AssertStart();
         observer.AssertAssign();
+        observer.AssertRead();
+        observer.AssertStop<ConsumeException>("Value deserialization error");
+
+        // iteration 4
+        observer.AssertSubPaused();
+
+        // iteration 5
+        observer.AssertStart();
+        observer.AssertAssign(true);
         observer.AssertRead();
         observer.AssertStop<ConsumeException>("Value deserialization error");
     }
