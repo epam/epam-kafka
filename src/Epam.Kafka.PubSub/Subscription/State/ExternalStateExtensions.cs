@@ -80,7 +80,7 @@ internal static class ExternalStateExtensions
     }
 
     public static void CommitOffsetIfNeeded<TKey, TValue>(
-        this SubscriptionTopicWrapper<TKey, TValue> topic, 
+        this SubscriptionTopicWrapper<TKey, TValue> topic,
         ActivityWrapper activitySpan,
         IEnumerable<TopicPartitionOffset> offsets)
     {
@@ -98,7 +98,7 @@ internal static class ExternalStateExtensions
                     }
                     else if (item.Offset == Offset.Beginning)
                     {
-                        var w = topic.Consumer.GetWatermarkOffsets(item.TopicPartition);
+                        WatermarkOffsets w = topic.Consumer.GetWatermarkOffsets(item.TopicPartition);
 
                         if (w.Low == Offset.Unset)
                         {

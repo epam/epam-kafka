@@ -37,7 +37,7 @@ internal class PubSubSummaryHealthCheck : IHealthCheck
 
         HashSet<HealthStatus> result = new();
 
-        if (context.Registration.Name == Name || context.Registration.Name == SubscriptionMonitor.Prefix)
+        if (context.Registration.Name is Name or SubscriptionMonitor.Prefix)
         {
             foreach (KeyValuePair<string, SubscriptionMonitor> sub in this._monitors.Subscriptions)
             {
@@ -49,7 +49,7 @@ internal class PubSubSummaryHealthCheck : IHealthCheck
             }
         }
 
-        if (context.Registration.Name == Name || context.Registration.Name == PublicationMonitor.Prefix)
+        if (context.Registration.Name is Name or PublicationMonitor.Prefix)
         {
             foreach (KeyValuePair<string, PublicationMonitor> pub in this._monitors.Publications)
             {

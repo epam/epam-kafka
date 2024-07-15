@@ -20,7 +20,7 @@ internal abstract class BatchState
 
         topic.ClearIfNotAssigned();
 
-        using (var span = activitySpan.CreateSpan("assign"))
+        using (ActivityWrapper span = activitySpan.CreateSpan("assign"))
         {
             this.AssignConsumer(topic, span, cancellationToken);
         }

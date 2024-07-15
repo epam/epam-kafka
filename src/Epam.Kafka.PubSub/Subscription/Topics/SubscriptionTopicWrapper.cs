@@ -451,7 +451,7 @@ internal sealed class SubscriptionTopicWrapper<TKey, TValue> : IDisposable
     {
         if (offsets.Count > 0)
         {
-            using var span = activitySpan.CreateSpan("commit_kafka");
+            using ActivityWrapper span = activitySpan.CreateSpan("commit_kafka");
             // commit to kafka also
             this.Consumer.Commit(offsets);
 
