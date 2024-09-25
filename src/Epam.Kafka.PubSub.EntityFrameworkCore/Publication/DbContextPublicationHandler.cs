@@ -61,7 +61,7 @@ public abstract class
     protected override IEnumerable<TEntity> GetEntities(int count, bool transaction,
         CancellationToken cancellationToken)
     {
-        return this.OrderBy(this.GetTable().AsTracking().Where(this.IsQueued)).Take(count);
+        return this.OrderBy(this.GetTable().AsTracking().Where(this.IsQueued)).Take(count).ToArray();
     }
 
     /// <summary>
