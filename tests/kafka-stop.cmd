@@ -1,1 +1,1 @@
-docker-compose -p kfk -f docker-compose.yml down
+docker compose -p kfk -f docker-compose.yml down
