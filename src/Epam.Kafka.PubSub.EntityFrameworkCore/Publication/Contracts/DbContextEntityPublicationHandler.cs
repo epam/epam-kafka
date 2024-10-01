@@ -33,6 +33,13 @@ public abstract class
     where TEntity : class, IKafkaPublicationEntity
     where TContext : DbContext
 {
+    private static readonly KafkaPublicationState[] QueuedStates = new[]
+    {
+        KafkaPublicationState.Queued,
+        KafkaPublicationState.Error,
+        KafkaPublicationState.Delivered
+    };
+
     /// <inheritdoc />
     protected DbContextEntityPublicationHandler(TContext context, ILogger logger) : base(context, logger)
     {
@@ -44,11 +51,18 @@ public abstract class
     /// </summary>
     protected TimeSpan ErrorRetryTimeout { get; set; } = TimeSpan.FromMinutes(5);
 
+    /// <summary>
     /// <inheritdoc />
+    /// </summary>
+    /// <remarks>
+    /// Default implementation: <see cref="IKafkaPublicationEntity.KafkaPubNbf"/> less than or equal to <see cref="DateTime.UtcNow"/> AND
+    /// <see cref="IKafkaPublicationEntity.KafkaPubState"/> one of the (
+    /// <see cref="KafkaPublicationState.Queued"/>, 
+    /// <see cref="KafkaPublicationState.Error"/>, 
+    /// <see cref="KafkaPublicationState.Delivered"/>)</remarks>
+
     protected override Expression<Func<TEntity, bool>> IsQueued { get; } = x =>
-        x.KafkaPubState == KafkaPublicationState.Queued
-        || (x.KafkaPubState == KafkaPublicationState.Error && x.KafkaPubNbf <= DateTime.UtcNow)
-        || (x.KafkaPubState == KafkaPublicationState.Delivered && x.KafkaPubNbf <= DateTime.UtcNow);
+        QueuedStates.Contains(x.KafkaPubState) && x.KafkaPubNbf <= DateTime.UtcNow;
 
     /// <inheritdoc />
     protected override void TransactionCommitted(IReadOnlyCollection<TEntity> entities,
