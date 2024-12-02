@@ -31,7 +31,7 @@ internal abstract class OptionsFromConfiguration<TOptions> : IConfigureNamedOpti
             return;
         }
 
-        IConfigurationSection section = this._configuration.GetSection(this.ParentSectionName).GetSection(name);
+        IConfigurationSection section = this._configuration.GetSection(this.ParentSectionName).GetSection(name!);
 
         if (section.Exists())
         {
