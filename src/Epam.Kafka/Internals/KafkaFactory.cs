@@ -220,15 +220,16 @@ internal sealed class KafkaFactory : IKafkaFactory, IDisposable
 
         KafkaClusterOptions clusterOptions = this.GetAndValidateClusterOptions(cluster);
 
-        SharedClient? result;
-
-        lock (this._syncObj)
+        if (!this._clients.TryGetValue(clusterOptions, out SharedClient? result))
         {
-            if (!this._clients.TryGetValue(clusterOptions, out result))
+            lock (this._syncObj)
             {
-                result = new SharedClient(this, cluster);
+                if (!this._clients.TryGetValue(clusterOptions, out result))
+                {
+                    result = new SharedClient(this, cluster);
 
-                this._clients.Add(clusterOptions, result);
+                    this._clients.Add(clusterOptions, result);
+                }
             }
         }
 
@@ -241,16 +242,31 @@ internal sealed class KafkaFactory : IKafkaFactory, IDisposable
 
         KafkaClusterOptions clusterOptions = this.GetAndValidateClusterOptions(cluster);
 
-        CachedSchemaRegistryClient? result;
-
-        lock (this._syncObj)
+        if (!this._registries.TryGetValue(clusterOptions, out CachedSchemaRegistryClient? result))
         {
-            if (!this._registries.TryGetValue(clusterOptions, out result))
-            {
-                result = new CachedSchemaRegistryClient(clusterOptions.SchemaRegistryConfig,
-                    clusterOptions.AuthenticationHeaderValueProvider);
+            ILogger logger = this._loggerFactory.CreateLogger(LoggerCategoryName);
 
-                this._registries.Add(clusterOptions, result);
+            lock (this._syncObj)
+            {
+                if (!this._registries.TryGetValue(clusterOptions, out result))
+                {
+                    try
+                    {
+                        result = new CachedSchemaRegistryClient(clusterOptions.SchemaRegistryConfig,
+                            clusterOptions.AuthenticationHeaderValueProvider);
+
+                        this._registries.Add(clusterOptions, result);
+
+                        logger.RegistryClientCreateOk(PrepareConfigForLogs(clusterOptions.SchemaRegistryConfig),
+                            clusterOptions.AuthenticationHeaderValueProvider?.GetType());
+                    }
+                    catch (Exception exception)
+                    {
+                        logger.RegistryClientCreateError(exception, clusterOptions.SchemaRegistryConfig,
+                            clusterOptions.AuthenticationHeaderValueProvider?.GetType());
+                        throw;
+                    }
+                }
             }
         }
 
@@ -265,7 +281,7 @@ internal sealed class KafkaFactory : IKafkaFactory, IDisposable
         }
     }
 
-    private static IEnumerable<KeyValuePair<string, string>> PrepareConfigForLogs(Config config)
+    private static IEnumerable<KeyValuePair<string, string>> PrepareConfigForLogs(IEnumerable<KeyValuePair<string, string>> config)
     {
         return config.Select(x => Contains(x, "password") || Contains(x, "secret")
             ? new KeyValuePair<string, string>(x.Key, "*******")
