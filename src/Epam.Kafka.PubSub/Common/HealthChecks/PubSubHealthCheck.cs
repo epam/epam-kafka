@@ -52,7 +52,13 @@ internal abstract class PubSubHealthCheck : IHealthCheck
             default:
                 throw new InvalidOperationException(
                     $"Unknown pipeline status {monitor.Pipeline.Value}. Supported values: " +
-                    string.Join(", ", Enum.GetNames(typeof(PipelineStatus))));
+                    string.Join(", ",
+#if NET6_0_OR_GREATER
+                        Enum.GetNames<PipelineStatus>()
+#else
+                        Enum.GetNames(typeof(PipelineStatus))
+#endif
+                        ));
         }
 
         return Task.FromResult(new HealthCheckResult(

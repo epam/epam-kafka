@@ -1,9 +1,5 @@
 ﻿// Copyright © 2024 EPAM Systems
 
-#if !NET6_0_OR_GREATER
-using Epam.Kafka.Internals;
-#endif
-
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 

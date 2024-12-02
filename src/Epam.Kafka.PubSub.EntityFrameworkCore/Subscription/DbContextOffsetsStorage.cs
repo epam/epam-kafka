@@ -127,6 +127,7 @@ internal sealed class DbContextOffsetsStorage<TContext> : IExternalOffsetsStorag
         {
             cancellationToken.ThrowIfCancellationRequested();
 
+#pragma warning disable IDE0008 // Use explicit type not possible due to #if directives
             foreach (var entry in exception.Entries)
             {
                 if (entry.Entity is KafkaTopicState)
@@ -152,6 +153,7 @@ internal sealed class DbContextOffsetsStorage<TContext> : IExternalOffsetsStorag
                     }
                 }
             }
+#pragma warning restore IDE0008
 
             this._context.SaveChanges(true);
         }

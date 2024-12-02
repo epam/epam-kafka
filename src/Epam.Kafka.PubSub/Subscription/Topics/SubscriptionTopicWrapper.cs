@@ -79,7 +79,10 @@ internal sealed class SubscriptionTopicWrapper<TKey, TValue> : IDisposable
 
     public Func<IReadOnlyCollection<TopicPartition>, IReadOnlyCollection<TopicPartitionOffset>>? ExternalState { get; set; }
 
-    public bool TryGetOffset(TopicPartition tp, out Offset result) => this._offsets.TryGetValue(tp, out result);
+    public bool TryGetOffset(TopicPartition tp, out Offset result)
+    {
+        return this._offsets.TryGetValue(tp, out result);
+    }
 
     public void OnAssign(IReadOnlyCollection<TopicPartitionOffset> items)
     {
@@ -229,7 +232,7 @@ internal sealed class SubscriptionTopicWrapper<TKey, TValue> : IDisposable
             List<TopicPartitionOffset> reset = new(items.Count);
             List<TopicPartitionOffset> resume = new(items.Count);
 
-            foreach (var tpo in items)
+            foreach (TopicPartitionOffset tpo in items)
             {
                 if (this._paused.Remove(tpo.TopicPartition))
                 {
@@ -285,7 +288,7 @@ internal sealed class SubscriptionTopicWrapper<TKey, TValue> : IDisposable
                 throw;
             }
 
-            foreach (var r in result)
+            foreach (TopicPartition r in result)
             {
                 this._paused.Add(r);
                 this._offsets[r] = ExternalOffset.Paused;
@@ -485,6 +488,7 @@ internal sealed class SubscriptionTopicWrapper<TKey, TValue> : IDisposable
         {
             ConsumeResult<byte[], byte[]> record = consumeException.ConsumerRecord;
 
+#pragma warning disable IDE0010 // Add missing cases
             switch (consumeException.Error.Code)
             {
                 case ErrorCode.Local_Fatal:
@@ -507,6 +511,7 @@ internal sealed class SubscriptionTopicWrapper<TKey, TValue> : IDisposable
                         throw;
                     }
             }
+#pragma warning restore IDE0010 // Add missing cases
 
             // unable to return at least something, so only throw
             if (this._buffer.Count == 0)

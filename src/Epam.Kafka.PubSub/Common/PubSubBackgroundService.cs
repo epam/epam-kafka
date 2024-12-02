@@ -59,7 +59,7 @@ internal abstract class PubSubBackgroundService<TOptions, TBatchResult, TMonitor
     {
         await Task.Yield();
 
-        if (this.Options.Enabled == false)
+        if (!this.Options.Enabled)
         {
             this.Monitor.Pipeline.Update(PipelineStatus.Disabled);
             return;

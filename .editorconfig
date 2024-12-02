@@ -62,6 +62,7 @@ dotnet_diagnostic.CA1507.severity = warning
 dotnet_diagnostic.CA1805.severity = warning
 csharp_style_prefer_primary_constructors = false:suggestion
 csharp_style_prefer_readonly_struct_member = true:suggestion
+csharp_prefer_system_threading_lock = true:suggestion
 [*.{cs,vb}]
 #### Naming styles ####
 
@@ -143,6 +144,8 @@ dotnet_style_qualification_for_field = true:suggestion
 dotnet_style_qualification_for_property = true:suggestion
 dotnet_style_qualification_for_method = true:suggestion
 dotnet_style_qualification_for_event = true:suggestion
+csharp_style_unused_value_expression_statement_preference = discard_variable:none
+dotnet_diagnostic.IDE0057.severity = none
 dotnet_diagnostic.CA1051.severity = warning
 dotnet_diagnostic.CA1068.severity = warning
 dotnet_diagnostic.CA1069.severity = error
@@ -178,7 +181,7 @@ dotnet_diagnostic.CA3075.severity = warning
 dotnet_diagnostic.CA2201.severity = warning
 dotnet_diagnostic.CA2219.severity = warning
 dotnet_diagnostic.CA2251.severity = suggestion
-dotnet_style_prefer_collection_expression = false:warning
+dotnet_style_prefer_collection_expression = never:warning
 dotnet_diagnostic.CA1510.severity = none
 dotnet_diagnostic.CA1511.severity = none
 dotnet_diagnostic.CA1512.severity = none
