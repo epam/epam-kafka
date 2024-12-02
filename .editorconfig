@@ -145,6 +145,7 @@ dotnet_style_qualification_for_property = true:suggestion
 dotnet_style_qualification_for_method = true:suggestion
 dotnet_style_qualification_for_event = true:suggestion
 csharp_style_unused_value_expression_statement_preference = discard_variable:none
+dotnet_diagnostic.IDE0055.severity = none
 dotnet_diagnostic.IDE0057.severity = none
 dotnet_diagnostic.CA1051.severity = warning
 dotnet_diagnostic.CA1068.severity = warning

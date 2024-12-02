@@ -5,7 +5,7 @@ using System.Diagnostics;
 using System.Text;
 
 namespace Epam.Kafka.PubSub.Utils;
-#pragma warning disable IDE0055 // StartActivity returns same activity object, so it will be disposed.
+
 #pragma warning disable CA2000 // StartActivity returns same activity object, so it will be disposed.
 internal sealed class ActivityWrapper : IDisposable
 {
@@ -85,4 +85,3 @@ internal sealed class ActivityWrapper : IDisposable
 }
 
 #pragma warning restore CA2000
-#pragma warning restore IDE0055
