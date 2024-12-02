@@ -67,6 +67,10 @@ internal sealed class SubscriptionTopicWrapper<TKey, TValue> : IDisposable
 
             this.ConfigureConsumerBuilder(b);
         });
+
+        // Warmup consumer to avoid potential issues with OAuth handler.
+        // Consumer just created, so not assigned to any partition.
+        this.Consumer.Consume(100);
     }
 
     public SubscriptionMonitor Monitor { get; }
