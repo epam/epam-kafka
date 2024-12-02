@@ -62,8 +62,8 @@ internal static class ExternalStateExtensions
     }
 
     public static void PauseOrReset<TKey, TValue>(
-        SubscriptionTopicWrapper<TKey, TValue> topic, 
-        TopicPartitionOffset item, 
+        SubscriptionTopicWrapper<TKey, TValue> topic,
+        TopicPartitionOffset item,
         List<TopicPartition> pause,
         List<TopicPartitionOffset> reset)
     {
@@ -112,7 +112,7 @@ internal static class ExternalStateExtensions
                     }
                     else if (item.Offset == Offset.End)
                     {
-                        var w = topic.Consumer.QueryWatermarkOffsets(item.TopicPartition, TimeSpan.FromSeconds(5));
+                        WatermarkOffsets w = topic.Consumer.QueryWatermarkOffsets(item.TopicPartition, TimeSpan.FromSeconds(5));
                         toCommit.Add(new TopicPartitionOffset(item.TopicPartition, w.High));
                     }
                 }

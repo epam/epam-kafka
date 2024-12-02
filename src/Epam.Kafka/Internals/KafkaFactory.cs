@@ -121,41 +121,54 @@ internal sealed class KafkaFactory : IKafkaFactory, IDisposable
 
         configure?.Invoke(builder);
 
+        bool oauthSet = false;
+        bool logSet = false;
+
+        try
+        {
+            builder.SetLogHandler((_, m) => this._loggerFactory.CreateLogger(logHandler).KafkaLogHandler(m));
+            logSet = true;
+        }
+        catch (InvalidOperationException)
+        {
+            // handler already set
+        }
+
         if (clusterOptions is { OauthHandler: { }, ClientConfig.SaslMechanism: SaslMechanism.OAuthBearer })
         {
             try
             {
                 builder.SetOAuthBearerTokenRefreshHandler(clusterOptions.OauthHandler.Invoke);
+                oauthSet = true;
             }
             catch (InvalidOperationException)
             {
-            } // handler already set
+                // handler already set
+                if (clusterOptions.OauthHandlerThrow)
+                {
+                    throw;
+                }
+            }
         }
+
+        ILogger logger = this._loggerFactory.CreateLogger(LoggerCategoryName);
+
+        ObservableConsumer<TKey, TValue> consumer;
 
         try
         {
-            builder.SetLogHandler((_, m) => this._loggerFactory.CreateLogger(logHandler).KafkaLogHandler(m));
-        }
-        catch (InvalidOperationException)
-        {
-        } // handler already set
+            consumer = new ObservableConsumer<TKey, TValue>(builder);
 
-        ILogger fl = this._loggerFactory.CreateLogger(LoggerCategoryName);
-
-        try
-        {
-            IConsumer<TKey, TValue> consumer = new ObservableConsumer<TKey, TValue>(builder);
-
-            fl.ConsumerCreateOk(PrepareConfigForLogs(config), typeof(TKey), typeof(TValue));
-
-            return consumer;
+            logger.ConsumerCreateOk(PrepareConfigForLogs(config), typeof(TKey), typeof(TValue), oauthSet, logSet);
         }
         catch (Exception exc)
         {
-            fl.ConsumerCreateError(exc, PrepareConfigForLogs(config), typeof(TKey), typeof(TValue));
+            logger.ConsumerCreateError(exc, PrepareConfigForLogs(config), typeof(TKey), typeof(TValue), oauthSet, logSet);
 
             throw;
         }
+
+        return consumer;
     }
 
     public IProducer<TKey, TValue> CreateProducer<TKey, TValue>(ProducerConfig config, string? cluster = null,
@@ -177,41 +190,54 @@ internal sealed class KafkaFactory : IKafkaFactory, IDisposable
 
         configure?.Invoke(builder);
 
+        bool oauthSet = false;
+        bool logSet = false;
+
+        try
+        {
+            builder.SetLogHandler((_, m) => this._loggerFactory.CreateLogger(logHandler).KafkaLogHandler(m));
+            logSet = true;
+        }
+        catch (InvalidOperationException)
+        {
+            // handler already set
+        }
+
         if (clusterOptions is { OauthHandler: { }, ClientConfig.SaslMechanism: SaslMechanism.OAuthBearer })
         {
             try
             {
                 builder.SetOAuthBearerTokenRefreshHandler(clusterOptions.OauthHandler);
+                oauthSet = true;
             }
             catch (InvalidOperationException)
             {
-            } // handler already set
+                // handler already set
+                if (clusterOptions.OauthHandlerThrow)
+                {
+                    throw;
+                }
+            } 
         }
+
+        ILogger logger = this._loggerFactory.CreateLogger(LoggerCategoryName);
+
+        ObservableProducer<TKey, TValue> producer;
 
         try
         {
-            builder.SetLogHandler((_, m) => this._loggerFactory.CreateLogger(logHandler).KafkaLogHandler(m));
-        }
-        catch (InvalidOperationException)
-        {
-        } // handler already set
+            producer = new(builder);
 
-        ILogger fl = this._loggerFactory.CreateLogger(LoggerCategoryName);
-
-        try
-        {
-            ObservableProducer<TKey, TValue> producer = new(builder);
-
-            fl.ProducerCreateOk(PrepareConfigForLogs(config), typeof(TKey), typeof(TValue));
-
-            return producer;
+            logger.ProducerCreateOk(PrepareConfigForLogs(config), typeof(TKey), typeof(TValue), oauthSet, logSet);
         }
         catch (Exception exc)
         {
-            fl.ProducerCreateError(exc, PrepareConfigForLogs(config), typeof(TKey), typeof(TValue));
+            logger.ProducerCreateError(exc, PrepareConfigForLogs(config), typeof(TKey), typeof(TValue), oauthSet, logSet);
 
             throw;
         }
+        
+        return producer;
     }
 
     public IClient GetOrCreateClient(string? cluster = null)
@@ -220,15 +246,16 @@ internal sealed class KafkaFactory : IKafkaFactory, IDisposable
 
         KafkaClusterOptions clusterOptions = this.GetAndValidateClusterOptions(cluster);
 
-        SharedClient? result;
-
-        lock (this._syncObj)
+        if (!this._clients.TryGetValue(clusterOptions, out SharedClient? result))
         {
-            if (!this._clients.TryGetValue(clusterOptions, out result))
+            lock (this._syncObj)
             {
-                result = new SharedClient(this, cluster);
+                if (!this._clients.TryGetValue(clusterOptions, out result))
+                {
+                    result = new SharedClient(this, cluster);
 
-                this._clients.Add(clusterOptions, result);
+                    this._clients.Add(clusterOptions, result);
+                }
             }
         }
 
@@ -241,16 +268,31 @@ internal sealed class KafkaFactory : IKafkaFactory, IDisposable
 
         KafkaClusterOptions clusterOptions = this.GetAndValidateClusterOptions(cluster);
 
-        CachedSchemaRegistryClient? result;
-
-        lock (this._syncObj)
+        if (!this._registries.TryGetValue(clusterOptions, out CachedSchemaRegistryClient? result))
         {
-            if (!this._registries.TryGetValue(clusterOptions, out result))
-            {
-                result = new CachedSchemaRegistryClient(clusterOptions.SchemaRegistryConfig,
-                    clusterOptions.AuthenticationHeaderValueProvider);
+            ILogger logger = this._loggerFactory.CreateLogger(LoggerCategoryName);
 
-                this._registries.Add(clusterOptions, result);
+            lock (this._syncObj)
+            {
+                if (!this._registries.TryGetValue(clusterOptions, out result))
+                {
+                    try
+                    {
+                        result = new CachedSchemaRegistryClient(clusterOptions.SchemaRegistryConfig,
+                            clusterOptions.AuthenticationHeaderValueProvider);
+
+                        this._registries.Add(clusterOptions, result);
+
+                        logger.RegistryClientCreateOk(PrepareConfigForLogs(clusterOptions.SchemaRegistryConfig),
+                            clusterOptions.AuthenticationHeaderValueProvider?.GetType());
+                    }
+                    catch (Exception exception)
+                    {
+                        logger.RegistryClientCreateError(exception, clusterOptions.SchemaRegistryConfig,
+                            clusterOptions.AuthenticationHeaderValueProvider?.GetType());
+                        throw;
+                    }
+                }
             }
         }
 
@@ -265,7 +307,7 @@ internal sealed class KafkaFactory : IKafkaFactory, IDisposable
         }
     }
 
-    private static IEnumerable<KeyValuePair<string, string>> PrepareConfigForLogs(Config config)
+    private static IEnumerable<KeyValuePair<string, string>> PrepareConfigForLogs(IEnumerable<KeyValuePair<string, string>> config)
     {
         return config.Select(x => Contains(x, "password") || Contains(x, "secret")
             ? new KeyValuePair<string, string>(x.Key, "*******")
@@ -292,7 +334,15 @@ internal sealed class KafkaFactory : IKafkaFactory, IDisposable
         ValidateLogicalName(cluster, "cluster");
 
         // save cluster name for further health check
-        this.UsedClusters.Add(cluster!);
+        // https://learn.microsoft.com/en-us/dotnet/standard/collections/thread-safe/
+        // If you're only reading from a shared collection, then you can use the classes in the System.Collections.Generic namespace
+        if (!this.UsedClusters.Contains(cluster!))
+        {
+            lock (this.UsedClusters)
+            {
+                this.UsedClusters.Add(cluster!);
+            }
+        }
 
         try
         {

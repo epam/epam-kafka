@@ -1,5 +1,8 @@
 ﻿// Copyright © 2024 EPAM Systems
 
+#pragma warning disable IDE0065
+#pragma warning disable IDE0008
+
 #if EF6
 namespace Epam.Kafka.PubSub.EntityFramework6.Subscription.State;
 #else
@@ -46,3 +49,6 @@ public static class KafkaTopicStateExtensions
         return e;
     }
 }
+
+#pragma warning restore IDE0065
+#pragma warning restore IDE0008

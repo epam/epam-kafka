@@ -65,7 +65,7 @@ namespace Epam.Kafka.Options
         public KafkaClusterOptions() { }
         public Confluent.Kafka.ClientConfig ClientConfig { get; set; }
         public Confluent.SchemaRegistry.SchemaRegistryConfig SchemaRegistryConfig { get; set; }
-        public Epam.Kafka.Options.KafkaClusterOptions WithOAuthHandler(System.Func<string, Epam.Kafka.OAuthRefreshResult> createToken) { }
+        public Epam.Kafka.Options.KafkaClusterOptions WithOAuthHandler(System.Func<string?, Epam.Kafka.OAuthRefreshResult> createToken, bool throwIfAlreadySet = false) { }
         public Epam.Kafka.Options.KafkaClusterOptions WithSchemaRegistryAuthenticationHeader(Confluent.SchemaRegistry.IAuthenticationHeaderValueProvider provider) { }
     }
     public sealed class KafkaConsumerOptions : Microsoft.Extensions.Options.IOptions<Epam.Kafka.Options.KafkaConsumerOptions>

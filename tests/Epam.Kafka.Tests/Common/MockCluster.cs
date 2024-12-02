@@ -25,7 +25,7 @@ public sealed class MockCluster
         return AddMockCluster(test, this._mockBootstrapServers);
     }
 
-    public static KafkaBuilder AddMockCluster(TestWithServices test, string? server = null)
+    public static KafkaBuilder AddMockCluster(TestWithServices test, string? server = null, bool oauth = false)
     {
         test.ConfigurationBuilder.AddInMemoryCollection(GetDefaultFactoryConfig());
 
@@ -37,6 +37,15 @@ public sealed class MockCluster
             {
                 options.ClientConfig.AllowAutoCreateTopics = true;
                 options.ClientConfig.BootstrapServers = server;
+            });
+        }
+        
+        if (oauth)
+        {
+            kafkaBuilder.WithClusterConfig(ClusterName).Configure(options =>
+            {
+                options.ClientConfig.SecurityProtocol = SecurityProtocol.SaslPlaintext;
+                options.ClientConfig.SaslMechanism = SaslMechanism.OAuthBearer;
             });
         }
 

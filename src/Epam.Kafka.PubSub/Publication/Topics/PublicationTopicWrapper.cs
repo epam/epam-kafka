@@ -77,6 +77,9 @@ internal class PublicationTopicWrapper<TKey, TValue> : IPublicationTopicWrapper<
                 b.SetValueSerializer(valueSerializer);
             }
         });
+
+        // warmup to avoid potential issues with OAuth handler
+        this.Producer.Poll(TimeSpan.Zero);
     }
 
     private static void ConfigureReports(ProducerConfig config)

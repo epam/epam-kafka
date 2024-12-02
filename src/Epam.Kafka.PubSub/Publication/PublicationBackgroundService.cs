@@ -80,16 +80,22 @@ internal class PublicationBackgroundService<TKey, TValue, THandler> : PubSubBack
 
         bool implicitPreprocessor = ks != null || vs != null || config.TransactionalId != null;
 
+        IPublicationTopicWrapper<TKey, TValue> result;
+
         if (this.Options.SerializationPreprocessor ?? implicitPreprocessor)
         {
-            return new PublicationSerializeKeyAndValueTopicWrapper<TKey, TValue>(this.KafkaFactory, this.Monitor,
+             result = new PublicationSerializeKeyAndValueTopicWrapper<TKey, TValue>(this.KafkaFactory, this.Monitor,
                 config, this.Options, this.Logger,
                 ks, vs, this.Options.Partitioner);
         }
+        else
+        {
+            result = new PublicationTopicWrapper<TKey, TValue>(this.KafkaFactory, this.Monitor, config, this.Options,
+                this.Logger,
+                ks, vs, this.Options.Partitioner);
+        }
 
-        return new PublicationTopicWrapper<TKey, TValue>(this.KafkaFactory, this.Monitor, config, this.Options,
-            this.Logger,
-            ks, vs, this.Options.Partitioner);
+        return result;
     }
 
     protected override TimeSpan? GetBatchFinishedTimeout(PublicationBatchResult subBatchResult)
