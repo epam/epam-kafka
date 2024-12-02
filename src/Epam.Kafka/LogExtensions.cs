@@ -58,33 +58,33 @@ public static partial class LogExtensions
         EventId = 201,
         EventName = "ConsumerCreated",
         Level = LogLevel.Information,
-        Message = "Consumer created. KeyType: {KeyType}, ValueType: {ValueType}, Config: {Config}.")]
+        Message = "Consumer created. KeyType: {KeyType}, ValueType: {ValueType}, Default OAuth Handler: {OauthHandler}, Default Log Handler: {LogHandler}, Config: {Config}.")]
     internal static partial void ConsumerCreateOk(this ILogger logger, IEnumerable<KeyValuePair<string, string>> config,
-        Type keyType, Type valueType);
+        Type keyType, Type valueType, bool oauthHandler, bool logHandler);
 
     [LoggerMessage(
         EventId = 501,
         EventName = "ConsumerCreateError",
         Level = LogLevel.Error,
-        Message = "Consumer create error. KeyType: {KeyType}, ValueType: {ValueType}, Config: {Config}.")]
+        Message = "Consumer create error. KeyType: {KeyType}, ValueType: {ValueType}, Default OAuth Handler: {OauthHandler}, Default Log Handler: {LogHandler}, Config: {Config}.")]
     internal static partial void ConsumerCreateError(this ILogger logger, Exception exception,
-        IEnumerable<KeyValuePair<string, string>> config, Type keyType, Type valueType);
+        IEnumerable<KeyValuePair<string, string>> config, Type keyType, Type valueType, bool oauthHandler, bool logHandler);
 
     [LoggerMessage(
         EventId = 202,
         EventName = "ProducerCreated",
         Level = LogLevel.Information,
-        Message = "Producer created. KeyType: {KeyType}, ValueType: {ValueType}, Config: {Config}.")]
+        Message = "Producer created. KeyType: {KeyType}, ValueType: {ValueType}, Default OAuth Handler: {OauthHandler}, Default Log Handler: {LogHandler}, Config: {Config}.")]
     internal static partial void ProducerCreateOk(this ILogger logger, IEnumerable<KeyValuePair<string, string>> config,
-        Type keyType, Type valueType);
+        Type keyType, Type valueType, bool oauthHandler, bool logHandler);
 
     [LoggerMessage(
         EventId = 502,
         EventName = "ProducerCreateError",
         Level = LogLevel.Error,
-        Message = "Producer create error. KeyType: {KeyType}, ValueType: {ValueType}, Config: {Config}.")]
+        Message = "Producer create error. KeyType: {KeyType}, ValueType: {ValueType}, Default OAuth Handler: {OauthHandler}, Default Log Handler: {LogHandler}, Config: {Config}.")]
     internal static partial void ProducerCreateError(this ILogger logger, Exception exception,
-        IEnumerable<KeyValuePair<string, string>> config, Type keyType, Type valueType);
+        IEnumerable<KeyValuePair<string, string>> config, Type keyType, Type valueType, bool oauthHandler, bool logHandler);
 
     [LoggerMessage(
         EventId = 203,
