@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Text;
 
 namespace Epam.Kafka.PubSub.Utils;
+
 #pragma warning disable CA2000 // StartActivity returns same activity object, so it will be disposed.
 internal sealed class ActivityWrapper : IDisposable
 {

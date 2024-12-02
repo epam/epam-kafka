@@ -1,7 +1,5 @@
 ﻿// Copyright © 2024 EPAM Systems
 
-using Confluent.Kafka;
-
 using Epam.Kafka.PubSub.Common.Pipeline;
 
 namespace Epam.Kafka.PubSub.Subscription.Pipeline;

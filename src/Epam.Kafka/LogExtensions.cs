@@ -85,4 +85,19 @@ public static partial class LogExtensions
         Message = "Producer create error. KeyType: {KeyType}, ValueType: {ValueType}, Config: {Config}.")]
     internal static partial void ProducerCreateError(this ILogger logger, Exception exception,
         IEnumerable<KeyValuePair<string, string>> config, Type keyType, Type valueType);
+
+    [LoggerMessage(
+        EventId = 203,
+        EventName = "RegistryClientCreated",
+        Level = LogLevel.Information,
+        Message = "Registry client created. HeaderProviderType: {HeaderProviderType}, Config: {Config}.")]
+    internal static partial void RegistryClientCreateOk(this ILogger logger, IEnumerable<KeyValuePair<string, string>> config, Type? headerProviderType);
+
+    [LoggerMessage(
+        EventId = 503,
+        EventName = "RegistryClientCreateError",
+        Level = LogLevel.Error,
+        Message = "Registry client create error. HeaderProviderType: {HeaderProviderType}, Config: {Config}.")]
+    internal static partial void RegistryClientCreateError(this ILogger logger, Exception exception,
+        IEnumerable<KeyValuePair<string, string>> config, Type? headerProviderType);
 }

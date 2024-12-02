@@ -16,7 +16,7 @@ internal class PublicationOptionsValidate : IValidateOptions<PublicationOptions>
             throw new ArgumentNullException(nameof(options));
         }
 
-        if (options.Enabled == false)
+        if (!options.Enabled)
         {
             return ValidateOptionsResult.Success;
         }

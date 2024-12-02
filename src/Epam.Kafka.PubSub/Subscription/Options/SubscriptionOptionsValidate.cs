@@ -17,7 +17,7 @@ internal class SubscriptionOptionsValidate : IValidateOptions<SubscriptionOption
             throw new ArgumentNullException(nameof(options));
         }
 
-        if (options.Enabled == false)
+        if (!options.Enabled)
         {
             return ValidateOptionsResult.Success;
         }

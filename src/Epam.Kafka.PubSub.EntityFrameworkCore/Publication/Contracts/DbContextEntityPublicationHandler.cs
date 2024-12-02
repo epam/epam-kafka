@@ -84,10 +84,12 @@ public abstract class
         }
         catch (DbUpdateConcurrencyException exception)
         {
+#pragma warning disable IDE0008 // Use explicit type not possible due to #if directives
             foreach (var entry in exception.Entries)
             {
                 this.Logger.PublicationEntityDetached(exception, "Commit", this.FindPrimaryKeyForLogs(entry), typeof(TEntity));
             }
+#pragma warning restore IDE0008
         }
     }
 
