@@ -109,6 +109,82 @@ public class KafkaFactoryTests : TestWithServices
     }
 
     [Fact]
+    public void CreateOauthConsumerCustom()
+    {
+        bool invoked = false;
+
+        var kafkaBuilder = MockCluster.AddMockCluster(this, oauth: true);
+        kafkaBuilder.WithConsumerConfig("any").Configure(x =>
+        {
+            x.ConsumerConfig.GroupId = "any";
+            x.ConsumerConfig.StatisticsIntervalMs = 5;
+        });
+
+        ConsumerConfig config = this.KafkaFactory.CreateConsumerConfig("any");
+
+        var consumer =
+            this.KafkaFactory.CreateConsumer<string, string>(config,
+                configure: b =>
+                    b.SetOAuthBearerTokenRefreshHandler(
+                        (_, _) => { invoked = true; }));
+        
+        Assert.NotNull(consumer);
+
+        consumer.Consume(1000);
+
+        Assert.True(invoked);
+    }
+
+    [Fact]
+    public void CreateOauthConsumerDefault()
+    {
+        bool invoked = false;
+
+        var kafkaBuilder = MockCluster.AddMockCluster(this, oauth: true);
+        kafkaBuilder.WithConsumerConfig("any").Configure(x =>
+        {
+            x.ConsumerConfig.GroupId = "any";
+            x.ConsumerConfig.StatisticsIntervalMs = 5;
+        });
+        kafkaBuilder.WithClusterConfig(MockCluster.ClusterName).Configure(x => x.WithOAuthHandler(_ =>
+        {
+            invoked = true;
+            throw new ArithmeticException();
+        }));
+
+        ConsumerConfig config = this.KafkaFactory.CreateConsumerConfig("any");
+
+        var consumer =
+            this.KafkaFactory.CreateConsumer<string, string>(config);
+
+        Assert.NotNull(consumer);
+
+        consumer.Consume(1000);
+
+        Assert.True(invoked);
+    }
+
+    [Fact]
+    public void CreateOauthConsumerThrow()
+    {
+        var kafkaBuilder = MockCluster.AddMockCluster(this, oauth: true);
+        kafkaBuilder.WithConsumerConfig("any").Configure(x =>
+        {
+            x.ConsumerConfig.GroupId = "any";
+            x.ConsumerConfig.StatisticsIntervalMs = 5;
+        });
+        kafkaBuilder.WithClusterConfig(MockCluster.ClusterName)
+            .Configure(x => x.WithOAuthHandler(_ => throw new ArithmeticException(), true));
+
+        ConsumerConfig config = this.KafkaFactory.CreateConsumerConfig("any");
+
+        Assert.Throws<InvalidOperationException>(() => this.KafkaFactory.CreateConsumer<string, string>(config,
+            configure: b =>
+                b.SetOAuthBearerTokenRefreshHandler(
+                    (_, _) => { })));
+    }
+
+    [Fact]
     public void CreateConfigsWithPlaceholders()
     {
         MockCluster.AddMockCluster(this)

@@ -121,41 +121,54 @@ internal sealed class KafkaFactory : IKafkaFactory, IDisposable
 
         configure?.Invoke(builder);
 
+        bool oauthSet = false;
+        bool logSet = false;
+
+        try
+        {
+            builder.SetLogHandler((_, m) => this._loggerFactory.CreateLogger(logHandler).KafkaLogHandler(m));
+            logSet = true;
+        }
+        catch (InvalidOperationException)
+        {
+            // handler already set
+        }
+
         if (clusterOptions is { OauthHandler: { }, ClientConfig.SaslMechanism: SaslMechanism.OAuthBearer })
         {
             try
             {
                 builder.SetOAuthBearerTokenRefreshHandler(clusterOptions.OauthHandler.Invoke);
+                oauthSet = true;
             }
             catch (InvalidOperationException)
             {
-            } // handler already set
+                // handler already set
+                if (clusterOptions.OauthHandlerThrow)
+                {
+                    throw;
+                }
+            }
         }
+
+        ILogger logger = this._loggerFactory.CreateLogger(LoggerCategoryName);
+
+        ObservableConsumer<TKey, TValue> consumer;
 
         try
         {
-            builder.SetLogHandler((_, m) => this._loggerFactory.CreateLogger(logHandler).KafkaLogHandler(m));
-        }
-        catch (InvalidOperationException)
-        {
-        } // handler already set
+            consumer = new ObservableConsumer<TKey, TValue>(builder);
 
-        ILogger fl = this._loggerFactory.CreateLogger(LoggerCategoryName);
-
-        try
-        {
-            IConsumer<TKey, TValue> consumer = new ObservableConsumer<TKey, TValue>(builder);
-
-            fl.ConsumerCreateOk(PrepareConfigForLogs(config), typeof(TKey), typeof(TValue));
-
-            return consumer;
+            logger.ConsumerCreateOk(PrepareConfigForLogs(config), typeof(TKey), typeof(TValue), oauthSet, logSet);
         }
         catch (Exception exc)
         {
-            fl.ConsumerCreateError(exc, PrepareConfigForLogs(config), typeof(TKey), typeof(TValue));
+            logger.ConsumerCreateError(exc, PrepareConfigForLogs(config), typeof(TKey), typeof(TValue), oauthSet, logSet);
 
             throw;
         }
+
+        return consumer;
     }
 
     public IProducer<TKey, TValue> CreateProducer<TKey, TValue>(ProducerConfig config, string? cluster = null,
@@ -177,41 +190,54 @@ internal sealed class KafkaFactory : IKafkaFactory, IDisposable
 
         configure?.Invoke(builder);
 
+        bool oauthSet = false;
+        bool logSet = false;
+
+        try
+        {
+            builder.SetLogHandler((_, m) => this._loggerFactory.CreateLogger(logHandler).KafkaLogHandler(m));
+            logSet = true;
+        }
+        catch (InvalidOperationException)
+        {
+            // handler already set
+        }
+
         if (clusterOptions is { OauthHandler: { }, ClientConfig.SaslMechanism: SaslMechanism.OAuthBearer })
         {
             try
             {
                 builder.SetOAuthBearerTokenRefreshHandler(clusterOptions.OauthHandler);
+                oauthSet = true;
             }
             catch (InvalidOperationException)
             {
-            } // handler already set
+                // handler already set
+                if (clusterOptions.OauthHandlerThrow)
+                {
+                    throw;
+                }
+            } 
         }
+
+        ILogger logger = this._loggerFactory.CreateLogger(LoggerCategoryName);
+
+        ObservableProducer<TKey, TValue> producer;
 
         try
         {
-            builder.SetLogHandler((_, m) => this._loggerFactory.CreateLogger(logHandler).KafkaLogHandler(m));
-        }
-        catch (InvalidOperationException)
-        {
-        } // handler already set
+            producer = new(builder);
 
-        ILogger fl = this._loggerFactory.CreateLogger(LoggerCategoryName);
-
-        try
-        {
-            ObservableProducer<TKey, TValue> producer = new(builder);
-
-            fl.ProducerCreateOk(PrepareConfigForLogs(config), typeof(TKey), typeof(TValue));
-
-            return producer;
+            logger.ProducerCreateOk(PrepareConfigForLogs(config), typeof(TKey), typeof(TValue), oauthSet, logSet);
         }
         catch (Exception exc)
         {
-            fl.ProducerCreateError(exc, PrepareConfigForLogs(config), typeof(TKey), typeof(TValue));
+            logger.ProducerCreateError(exc, PrepareConfigForLogs(config), typeof(TKey), typeof(TValue), oauthSet, logSet);
 
             throw;
         }
+        
+        return producer;
     }
 
     public IClient GetOrCreateClient(string? cluster = null)

@@ -24,7 +24,8 @@ public sealed class KafkaClusterOptions : IOptions<KafkaClusterOptions>
 
     internal bool UsedByFactory { get; set; }
 
-    internal Action<IClient, string>? OauthHandler { get; private set; }
+    internal Action<IClient, string?>? OauthHandler { get; private set; }
+    internal bool OauthHandlerThrow { get; private set; }
     internal IAuthenticationHeaderValueProvider? AuthenticationHeaderValueProvider { get; set; }
 
     KafkaClusterOptions IOptions<KafkaClusterOptions>.Value => this;
@@ -34,20 +35,23 @@ public sealed class KafkaClusterOptions : IOptions<KafkaClusterOptions>
     ///     It is triggered whenever OAUTHBEARER is the SASL
     ///     mechanism and a token needs to be retrieved.
     /// </summary>
+    /// <remarks>Warning: https://github.com/confluentinc/confluent-kafka-dotnet/issues/2329</remarks>
     /// <param name="createToken">
     ///     Function with following parameters:
     ///     <list type="string">Input: value of configuration property 'sasl.oauthbearer.config'.</list>
     ///     <list type="string">Output: Token refresh result represented by <see cref="OAuthRefreshResult" />.</list>
     /// </param>
+    /// <param name="throwIfAlreadySet">Whether to throw exception if OAuth handler already set.</param>
     /// <returns>The <see cref="KafkaClusterOptions" />.</returns>
     /// <exception cref="ArgumentNullException"></exception>
-    public KafkaClusterOptions WithOAuthHandler(Func<string, OAuthRefreshResult> createToken)
+    public KafkaClusterOptions WithOAuthHandler(Func<string?, OAuthRefreshResult> createToken, bool throwIfAlreadySet = false)
     {
         if (createToken == null)
         {
             throw new ArgumentNullException(nameof(createToken));
         }
 
+        this.OauthHandlerThrow = throwIfAlreadySet;
         this.OauthHandler = (client, s) =>
         {
 #pragma warning disable CA1031 // catch all exceptions and invoke error handler according to kafka client requirements
