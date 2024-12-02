@@ -308,7 +308,15 @@ internal sealed class KafkaFactory : IKafkaFactory, IDisposable
         ValidateLogicalName(cluster, "cluster");
 
         // save cluster name for further health check
-        this.UsedClusters.Add(cluster!);
+        // https://learn.microsoft.com/en-us/dotnet/standard/collections/thread-safe/
+        // If you're only reading from a shared collection, then you can use the classes in the System.Collections.Generic namespace
+        if (!this.UsedClusters.Contains(cluster!))
+        {
+            lock (this.UsedClusters)
+            {
+                this.UsedClusters.Add(cluster!);
+            }
+        }
 
         try
         {
