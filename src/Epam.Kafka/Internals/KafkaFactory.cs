@@ -288,7 +288,7 @@ internal sealed class KafkaFactory : IKafkaFactory, IDisposable
                     }
                     catch (Exception exception)
                     {
-                        logger.RegistryClientCreateError(exception, clusterOptions.SchemaRegistryConfig,
+                        logger.RegistryClientCreateError(exception, PrepareConfigForLogs(clusterOptions.SchemaRegistryConfig),
                             clusterOptions.AuthenticationHeaderValueProvider?.GetType());
                         throw;
                     }
