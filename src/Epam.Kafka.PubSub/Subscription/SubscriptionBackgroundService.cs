@@ -19,10 +19,10 @@ using Polly;
 
 namespace Epam.Kafka.PubSub.Subscription;
 
-internal sealed class SubscriptionBackgroundService<TKey, TValue, THandler> : PubSubBackgroundService<
+internal sealed class SubscriptionBackgroundService<TKey, TValue> : PubSubBackgroundService<
     SubscriptionOptions, SubscriptionBatchResult, SubscriptionMonitor, SubscriptionTopicWrapper<TKey, TValue>>
-    where THandler : ISubscriptionHandler<TKey, TValue>
 {
+    private readonly Type _handlerType;
     private readonly SubscriptionHealthMetrics _healthMeter;
     private readonly SubscriptionStatusMetrics _statusMeter;
 
@@ -31,6 +31,7 @@ internal sealed class SubscriptionBackgroundService<TKey, TValue, THandler> : Pu
         IKafkaFactory kafkaFactory,
         SubscriptionOptions options,
         SubscriptionMonitor monitor,
+        Type handlerType,
         ILoggerFactory? loggerFactory) : base(
         serviceScopeFactory,
         kafkaFactory,
@@ -38,6 +39,12 @@ internal sealed class SubscriptionBackgroundService<TKey, TValue, THandler> : Pu
         monitor,
         loggerFactory)
     {
+        this._handlerType = handlerType ?? throw new ArgumentNullException(nameof(handlerType));
+        if (!typeof(ISubscriptionHandler<TKey, TValue>).IsAssignableFrom(handlerType))
+        {
+            throw new ArgumentException($"Type {typeof(ISubscriptionHandler<TKey, TValue>)} not assignable from {handlerType}", nameof(handlerType));
+        }
+
         this._statusMeter = new(this.Monitor);
         this._healthMeter = new(this.Options, this.Monitor);
     }
@@ -166,7 +173,7 @@ internal sealed class SubscriptionBackgroundService<TKey, TValue, THandler> : Pu
         ActivityWrapper activitySpan,
         CancellationToken cancellationToken)
     {
-        THandler handler = ResolveRequiredService<THandler>(sp);
+        ISubscriptionHandler<TKey, TValue> handler = ResolveRequiredService<ISubscriptionHandler<TKey, TValue>>(sp, this._handlerType);
 
         ISyncPolicy handlerPolicy = this.Monitor.Context.GetHandlerPolicy(this.Options);
 

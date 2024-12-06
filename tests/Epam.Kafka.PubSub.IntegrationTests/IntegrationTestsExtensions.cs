@@ -10,7 +10,7 @@ namespace Epam.Kafka.PubSub.IntegrationTests;
 
 public static class IntegrationTestsExtensions
 {
-    public static SubscriptionBuilder<string, TestEntityKafka, TestSubscriptionHandler> CreateDefaultSubscription(
+    public static SubscriptionBuilder<string, TestEntityKafka> CreateDefaultSubscription(
         this TestObserver observer, MockCluster mockCluster, 
         AutoOffsetReset autoOffsetReset = AutoOffsetReset.Earliest, 
         PartitionAssignmentStrategy assignmentStrategy = PartitionAssignmentStrategy.CooperativeSticky)

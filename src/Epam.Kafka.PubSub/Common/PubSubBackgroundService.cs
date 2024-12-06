@@ -195,10 +195,9 @@ internal abstract class PubSubBackgroundService<TOptions, TBatchResult, TMonitor
 
     protected abstract TTopic CreateTopicWrapper();
 
-    protected static T ResolveRequiredService<T>(IServiceProvider sp, Type? type = null)
+    protected static T ResolveRequiredService<T>(IServiceProvider sp, Type type)
         where T : notnull
     {
-        type ??= typeof(T);
         try
         {
             return (T)sp.GetRequiredService(type);
