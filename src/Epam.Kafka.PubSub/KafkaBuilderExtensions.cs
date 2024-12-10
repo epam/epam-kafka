@@ -35,9 +35,9 @@ public static class KafkaBuilderExtensions
     /// <typeparam name="TKey">The message key type.</typeparam>
     /// <typeparam name="TValue">The message value type.</typeparam>
     /// <typeparam name="THandler">The <see cref="ISubscriptionHandler{TKey,TValue}" /> implementation type.</typeparam>
-    /// <returns>The <see cref="SubscriptionBuilder{TKey,TValue,THandler}" /> to configure subscription behaviour.</returns>
+    /// <returns>The <see cref="SubscriptionBuilder{TKey,TValue}" /> to configure subscription behaviour.</returns>
     /// <exception cref="ArgumentNullException"></exception>
-    public static SubscriptionBuilder<TKey, TValue, THandler> AddSubscription<TKey, TValue, THandler>(
+    public static SubscriptionBuilder<TKey, TValue> AddSubscription<TKey, TValue, THandler>(
         this KafkaBuilder builder,
         string name,
         ServiceLifetime handlerLifetime = ServiceLifetime.Transient)
@@ -55,9 +55,11 @@ public static class KafkaBuilderExtensions
 
         builder.GetOrCreateContext().AddSubscription(name);
 
-        TryRegisterHandler(builder.Services, typeof(THandler), handlerLifetime);
+        Type handlerType = typeof(THandler);
 
-        return new SubscriptionBuilder<TKey, TValue, THandler>(builder, name);
+        TryRegisterHandler(builder.Services, handlerType, handlerLifetime);
+
+        return new SubscriptionBuilder<TKey, TValue>(builder, name, handlerType);
     }
 
     /// <summary>
@@ -73,9 +75,9 @@ public static class KafkaBuilderExtensions
     /// <typeparam name="TKey">The message key type.</typeparam>
     /// <typeparam name="TValue">The message value type.</typeparam>
     /// <typeparam name="THandler">The <see cref="IPublicationHandler{TKey,TValue}" /> implementation type.</typeparam>
-    /// <returns>The <see cref="PublicationBuilder{TKey,TValue,THandler}" /> to configure publication behaviour.</returns>
+    /// <returns>The <see cref="PublicationBuilder{TKey,TValue}" /> to configure publication behaviour.</returns>
     /// <exception cref="ArgumentNullException"></exception>
-    public static PublicationBuilder<TKey, TValue, THandler> AddPublication<TKey, TValue, THandler>(
+    public static PublicationBuilder<TKey, TValue> AddPublication<TKey, TValue, THandler>(
         this KafkaBuilder builder,
         string name,
         ServiceLifetime handlerLifetime = ServiceLifetime.Transient)
@@ -93,9 +95,11 @@ public static class KafkaBuilderExtensions
 
         builder.GetOrCreateContext().AddPublication(name);
 
-        TryRegisterHandler(builder.Services, typeof(THandler), handlerLifetime);
+        Type handlerType = typeof(THandler);
 
-        return new PublicationBuilder<TKey, TValue, THandler>(builder, name);
+        TryRegisterHandler(builder.Services, handlerType, handlerLifetime);
+
+        return new PublicationBuilder<TKey, TValue>(builder, name, handlerType);
     }
 
     /// <summary>
