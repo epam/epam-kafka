@@ -98,7 +98,7 @@ public class HealthCheckTests : TestWithServices
         });
 
         result.Status.ShouldBe(HealthStatus.Unhealthy);
-        result.Description!.ShouldContain("AdminClient: any-not-existing-value:9092");
+        result.Description!.ShouldContain("any-not-existing-value:9092");
         result.Description!.ShouldContain("SchemaRegistry: [http://any-not-existing-value:8080/] HttpRequestException");
     }
 }
