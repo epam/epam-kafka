@@ -195,28 +195,6 @@ internal abstract class PubSubBackgroundService<TOptions, TBatchResult, TMonitor
 
     protected abstract TTopic CreateTopicWrapper();
 
-    protected static T ResolveRequiredService<T>(IServiceProvider sp, Type type)
-        where T : notnull
-    {
-        try
-        {
-            return (T)sp.GetRequiredService(type);
-        }
-        catch (Exception e)
-        {
-            if (e.Source == "Microsoft.Extensions.DependencyInjection")
-            {
-                e.DoNotRetryPipeline();
-            }
-            else
-            {
-                e.DoNotRetryBatch();
-            }
-
-            throw;
-        }
-    }
-
     private void BatchFinishedTimeout(TBatchResult subBatchResult, CancellationToken stoppingToken)
     {
         TimeSpan? timeout = null;

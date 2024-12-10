@@ -103,7 +103,7 @@ internal sealed class SubscriptionBackgroundService<TKey, TValue> : PubSubBackgr
         ActivityWrapper activitySpan,
         CancellationToken cancellationToken)
     {
-        BatchState state = ResolveRequiredService<BatchState>(sp, this.Options.StateType);
+        BatchState state = sp.ResolveRequiredService<BatchState>(this.Options.StateType);
 
         this.Monitor.Batch.Update(BatchStatus.Reading);
 
@@ -173,7 +173,8 @@ internal sealed class SubscriptionBackgroundService<TKey, TValue> : PubSubBackgr
         ActivityWrapper activitySpan,
         CancellationToken cancellationToken)
     {
-        ISubscriptionHandler<TKey, TValue> handler = ResolveRequiredService<ISubscriptionHandler<TKey, TValue>>(sp, this._handlerType);
+        ISubscriptionHandler<TKey, TValue> handler =
+            sp.ResolveRequiredService<ISubscriptionHandler<TKey, TValue>>(this._handlerType);
 
         ISyncPolicy handlerPolicy = this.Monitor.Context.GetHandlerPolicy(this.Options);
 

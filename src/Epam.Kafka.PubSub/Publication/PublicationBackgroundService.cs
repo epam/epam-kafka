@@ -152,13 +152,13 @@ internal class PublicationBackgroundService<TKey, TValue> : PubSubBackgroundServ
                 }
             }
 
+            this.Monitor.Result.Update(
+                allItemsProcessed ? PublicationBatchResult.Processed : PublicationBatchResult.ProcessedPartial);
+
             this.Logger.BatchHandlerExecuted(items.Count,
                 reports.Select(x => x.Value).GroupBy(x => $"{x.TopicPartition} {x.Status} {x.Error}")
                     .Select(g => new KeyValuePair<string, int>(g.Key, g.Count())),
                 allItemsProcessed ? LogLevel.Information : LogLevel.Warning);
-
-            this.Monitor.Result.Update(
-                allItemsProcessed ? PublicationBatchResult.Processed : PublicationBatchResult.ProcessedPartial);
         }
         else
         {
@@ -216,7 +216,8 @@ internal class PublicationBackgroundService<TKey, TValue> : PubSubBackgroundServ
         ActivityWrapper activitySpan,
         CancellationToken cancellationToken)
     {
-        IPublicationHandler<TKey, TValue> state = ResolveRequiredService<IPublicationHandler<TKey, TValue>>(sp, this._handlerType);
+        IPublicationHandler<TKey, TValue> handler =
+            sp.ResolveRequiredService<IPublicationHandler<TKey, TValue>>(this._handlerType);
 
         ISyncPolicy handlerPolicy = this.Monitor.Context.GetHandlerPolicy(this.Options);
 
@@ -227,7 +228,7 @@ internal class PublicationBackgroundService<TKey, TValue> : PubSubBackgroundServ
 
         try
         {
-            handlerPolicy.Execute(ct => this.ExecuteBatchInternal(state, topic, activitySpan, ct),
+            handlerPolicy.Execute(ct => this.ExecuteBatchInternal(handler, topic, activitySpan, ct),
                 cancellationToken);
         }
         catch (Exception e1)
