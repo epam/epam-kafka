@@ -45,7 +45,7 @@ public sealed class PublicationOptions : PubSubOptions, IOptions<PublicationOpti
     ///     to handle error earlier) is enabled.
     ///     If null (default) it will be enabled implicitly if transactional producer or custom serializer is used.
     /// </summary>
-    public bool? SerializationPreprocessor { get; set; } = true;
+    public bool? SerializationPreprocessor { get; set; }
 
     PublicationOptions IOptions<PublicationOptions>.Value => this;
 }

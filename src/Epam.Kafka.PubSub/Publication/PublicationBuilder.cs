@@ -18,11 +18,11 @@ namespace Epam.Kafka.PubSub.Publication;
 
 /// <inheritdoc />
 public sealed class
-    PublicationBuilder<TKey, TValue, THandler> : PubSubBuilder<PublicationBuilder<TKey, TValue, THandler>,
+    PublicationBuilder<TKey, TValue> : PubSubBuilder<PublicationBuilder<TKey, TValue>,
         PublicationOptions>
-    where THandler : IPublicationHandler<TKey, TValue>
 {
-    internal PublicationBuilder(KafkaBuilder builder, string name) : base(builder, name, typeof(TKey), typeof(TValue))
+    internal PublicationBuilder(KafkaBuilder builder, string name, Type handlerType) 
+        : base(builder, handlerType, name, typeof(TKey), typeof(TValue))
     {
     }
 
@@ -30,9 +30,9 @@ public sealed class
     ///     Set factory for creation of key serializer for producer.
     /// </summary>
     /// <param name="configure">Factory to create serializer for kafka message key of type <typeparamref name="TKey" /></param>
-    /// <returns>The <see cref="PublicationBuilder{TKey,TValue,THandler}" />.</returns>
+    /// <returns>The <see cref="PublicationBuilder{TKey,TValue}" />.</returns>
     /// <exception cref="ArgumentNullException"></exception>
-    public PublicationBuilder<TKey, TValue, THandler> WithKeySerializer(
+    public PublicationBuilder<TKey, TValue> WithKeySerializer(
         Func<Lazy<ISchemaRegistryClient>, ISerializer<TKey>> configure)
     {
         if (configure == null)
@@ -51,9 +51,9 @@ public sealed class
     /// <param name="configure">
     ///     Factory to create serializer for kafka message value of type <typeparamref name="TValue" />
     /// </param>
-    /// <returns>The <see cref="PublicationBuilder{TKey,TValue,THandler}" />.</returns>
+    /// <returns>The <see cref="PublicationBuilder{TKey,TValue}" />.</returns>
     /// <exception cref="ArgumentNullException"></exception>
-    public PublicationBuilder<TKey, TValue, THandler> WithValueSerializer(
+    public PublicationBuilder<TKey, TValue> WithValueSerializer(
         Func<Lazy<ISchemaRegistryClient>, ISerializer<TValue>> configure)
     {
         if (configure == null)
@@ -70,9 +70,9 @@ public sealed class
     ///     Configure <see cref="ProducerPartitioner" />.
     /// </summary>
     /// <param name="configure">The configuration action.</param>
-    /// <returns>The <see cref="PublicationBuilder{TKey,TValue,THandler}" />.</returns>
+    /// <returns>The <see cref="PublicationBuilder{TKey,TValue}" />.</returns>
     /// <exception cref="ArgumentNullException"></exception>
-    public PublicationBuilder<TKey, TValue, THandler> WithPartitioner(Action<ProducerPartitioner> configure)
+    public PublicationBuilder<TKey, TValue> WithPartitioner(Action<ProducerPartitioner> configure)
     {
         if (configure == null)
         {
@@ -86,11 +86,12 @@ public sealed class
 
     internal override IHostedService CreateInstance(IServiceProvider sp, PublicationOptions options)
     {
-        return new PublicationBackgroundService<TKey, TValue, THandler>(
+        return new PublicationBackgroundService<TKey, TValue>(
             sp.GetRequiredService<IServiceScopeFactory>(),
             sp.GetRequiredService<IKafkaFactory>(),
             options,
             sp.GetRequiredService<PubSubContext>().Publications[this.Key],
+            this.HandlerType,
             sp.GetService<ILoggerFactory>());
     }
 
@@ -109,8 +110,8 @@ public sealed class
     ///         cref="HealthChecksBuilderAddCheckExtensions.AddCheck{T}(IHealthChecksBuilder,string,HealthStatus?,IEnumerable{string})" />
     ///     to register the health check.
     /// </remarks>
-    /// <returns>The <see cref="PublicationBuilder{TKey,TValue,THandler}" /></returns>
-    public PublicationBuilder<TKey, TValue, THandler> WithHealthChecks(
+    /// <returns>The <see cref="PublicationBuilder{TKey,TValue}" /></returns>
+    public PublicationBuilder<TKey, TValue> WithHealthChecks(
         IEnumerable<string>? tags = null,
         HealthStatus? failureStatus = null)
     {

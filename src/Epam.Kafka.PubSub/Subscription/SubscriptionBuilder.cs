@@ -23,13 +23,11 @@ namespace Epam.Kafka.PubSub.Subscription;
 /// </summary>
 /// <typeparam name="TKey">The kafka message key type.</typeparam>
 /// <typeparam name="TValue">The kafka message value type.</typeparam>
-/// <typeparam name="THandler">The type of <see cref="ISubscriptionHandler{TKey,TValue}" /> implementation.</typeparam>
 public sealed class
-    SubscriptionBuilder<TKey, TValue, THandler> : PubSubBuilder<SubscriptionBuilder<TKey, TValue, THandler>,
-        SubscriptionOptions>
-    where THandler : ISubscriptionHandler<TKey, TValue>
+    SubscriptionBuilder<TKey, TValue> : PubSubBuilder<SubscriptionBuilder<TKey, TValue>, SubscriptionOptions>
 {
-    internal SubscriptionBuilder(KafkaBuilder builder, string name) : base(builder, name, typeof(TKey), typeof(TValue))
+    internal SubscriptionBuilder(KafkaBuilder builder, string name, Type handlerType) 
+        : base(builder, handlerType, name, typeof(TKey), typeof(TValue))
     {
         this.Builder.Services.TryAddSingleton<InternalKafkaState>();
         this.Builder.Services.TryAddTransient(typeof(ExternalState<>));
@@ -42,9 +40,9 @@ public sealed class
     /// <param name="configure">
     ///     Factory to create deserializer for kafka message key of type <typeparamref name="TKey" />
     /// </param>
-    /// <returns>The <see cref="SubscriptionBuilder{TKey,TValue,THandler}" />.</returns>
+    /// <returns>The <see cref="SubscriptionBuilder{TKey,TValue}" />.</returns>
     /// <exception cref="ArgumentNullException"></exception>
-    public SubscriptionBuilder<TKey, TValue, THandler> WithKeyDeserializer(
+    public SubscriptionBuilder<TKey, TValue> WithKeyDeserializer(
         Func<Lazy<ISchemaRegistryClient>, IDeserializer<TKey>> configure)
     {
         if (configure == null)
@@ -63,9 +61,9 @@ public sealed class
     /// <param name="configure">
     ///     Factory to create deserializer for kafka message value of type <typeparamref name="TValue" />
     /// </param>
-    /// <returns>The <see cref="SubscriptionBuilder{TKey,TValue,THandler}" />.</returns>
+    /// <returns>The <see cref="SubscriptionBuilder{TKey,TValue}" />.</returns>
     /// <exception cref="ArgumentNullException"></exception>
-    public SubscriptionBuilder<TKey, TValue, THandler> WithValueDeserializer(
+    public SubscriptionBuilder<TKey, TValue> WithValueDeserializer(
         Func<Lazy<ISchemaRegistryClient>, IDeserializer<TValue>> configure)
     {
         if (configure == null)
@@ -80,11 +78,12 @@ public sealed class
 
     internal override IHostedService CreateInstance(IServiceProvider sp, SubscriptionOptions options)
     {
-        return new SubscriptionBackgroundService<TKey, TValue, THandler>(
+        return new SubscriptionBackgroundService<TKey, TValue>(
             sp.GetRequiredService<IServiceScopeFactory>(),
             sp.GetRequiredService<IKafkaFactory>(),
             options,
             sp.GetRequiredService<PubSubContext>().Subscriptions[this.Key],
+            this.HandlerType,
             sp.GetService<ILoggerFactory>());
     }
 
@@ -99,9 +98,9 @@ public sealed class
     ///     </remarks>
     /// </summary>
     /// <typeparam name="TOffsetsStorage">The <see cref="IExternalOffsetsStorage" /> implementation type.</typeparam>
-    /// <returns>The <see cref="SubscriptionBuilder{TKey,TValue,THandler}" />.</returns>
+    /// <returns>The <see cref="SubscriptionBuilder{TKey,TValue}" />.</returns>
     /// <exception cref="InvalidOperationException"></exception>
-    public SubscriptionBuilder<TKey, TValue, THandler> WithAssignAndExternalOffsets<TOffsetsStorage>()
+    public SubscriptionBuilder<TKey, TValue> WithAssignAndExternalOffsets<TOffsetsStorage>()
         where TOffsetsStorage : IExternalOffsetsStorage
     {
         if (this.Builder.Services.All(x => x.ServiceType != typeof(TOffsetsStorage)))
@@ -122,9 +121,9 @@ public sealed class
     ///         <inheritdoc cref="WithAssignAndExternalOffsets{TOffsetsStorage}" />
     ///     </remarks>
     /// </summary>
-    /// <returns>The <see cref="SubscriptionBuilder{TKey,TValue,THandler}" />.</returns>
+    /// <returns>The <see cref="SubscriptionBuilder{TKey,TValue}" />.</returns>
     /// <exception cref="InvalidOperationException"></exception>
-    public SubscriptionBuilder<TKey, TValue, THandler> WithAssignAndExternalOffsets()
+    public SubscriptionBuilder<TKey, TValue> WithAssignAndExternalOffsets()
     {
         return this.WithAssignAndExternalOffsets<IExternalOffsetsStorage>();
     }
@@ -143,9 +142,9 @@ public sealed class
     ///     </remarks>
     /// </summary>
     /// <typeparam name="TOffsetsStorage">The <see cref="IExternalOffsetsStorage" /> implementation type.</typeparam>
-    /// <returns>The <see cref="SubscriptionBuilder{TKey,TValue,THandler}" />.</returns>
+    /// <returns>The <see cref="SubscriptionBuilder{TKey,TValue}" />.</returns>
     /// <exception cref="InvalidOperationException"></exception>
-    public SubscriptionBuilder<TKey, TValue, THandler> WithSubscribeAndExternalOffsets<TOffsetsStorage>()
+    public SubscriptionBuilder<TKey, TValue> WithSubscribeAndExternalOffsets<TOffsetsStorage>()
         where TOffsetsStorage : IExternalOffsetsStorage
     {
         if (this.Builder.Services.All(x => x.ServiceType != typeof(TOffsetsStorage)))
@@ -167,9 +166,9 @@ public sealed class
     ///         <inheritdoc cref="WithSubscribeAndExternalOffsets{TOffsetsStorage}" />
     ///     </remarks>
     /// </summary>
-    /// <returns>The <see cref="SubscriptionBuilder{TKey,TValue,THandler}" />.</returns>
+    /// <returns>The <see cref="SubscriptionBuilder{TKey,TValue}" />.</returns>
     /// <exception cref="InvalidOperationException"></exception>
-    public SubscriptionBuilder<TKey, TValue, THandler> WithSubscribeAndExternalOffsets()
+    public SubscriptionBuilder<TKey, TValue> WithSubscribeAndExternalOffsets()
     {
         return this.WithSubscribeAndExternalOffsets<IExternalOffsetsStorage>();
     }
@@ -189,8 +188,8 @@ public sealed class
     ///         cref="HealthChecksBuilderAddCheckExtensions.AddCheck{T}(IHealthChecksBuilder,string,HealthStatus?,IEnumerable{string})" />
     ///     to register the health check.
     /// </remarks>
-    /// <returns>The <see cref="SubscriptionBuilder{TKey,TValue,THandler}" /></returns>
-    public SubscriptionBuilder<TKey, TValue, THandler> WithHealthChecks(
+    /// <returns>The <see cref="SubscriptionBuilder{TKey,TValue}" /></returns>
+    public SubscriptionBuilder<TKey, TValue> WithHealthChecks(
         IEnumerable<string>? tags = null,
         HealthStatus? failureStatus = null)
     {

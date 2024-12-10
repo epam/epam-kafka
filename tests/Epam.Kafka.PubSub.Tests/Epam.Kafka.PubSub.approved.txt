@@ -73,6 +73,7 @@ namespace Epam.Kafka.PubSub.Common
         where TOptions : Epam.Kafka.PubSub.Common.Options.PubSubOptions
     {
         public Epam.Kafka.KafkaBuilder Builder { get; }
+        public System.Type HandlerType { get; }
         public string Key { get; }
         public TBuilder WaitFor(System.Func<System.IServiceProvider, System.Threading.Tasks.Task> waitFor) { }
         public TBuilder WithOptions(System.Action<TOptions> configure) { }
@@ -91,9 +92,9 @@ namespace Epam.Kafka.PubSub
 {
     public static class KafkaBuilderExtensions
     {
-        public static Epam.Kafka.PubSub.Publication.PublicationBuilder<TKey, TValue, THandler> AddPublication<TKey, TValue, THandler>(this Epam.Kafka.KafkaBuilder builder, string name, Microsoft.Extensions.DependencyInjection.ServiceLifetime handlerLifetime = 2)
+        public static Epam.Kafka.PubSub.Publication.PublicationBuilder<TKey, TValue> AddPublication<TKey, TValue, THandler>(this Epam.Kafka.KafkaBuilder builder, string name, Microsoft.Extensions.DependencyInjection.ServiceLifetime handlerLifetime = 2)
             where THandler : Epam.Kafka.PubSub.Publication.IPublicationHandler<TKey, TValue> { }
-        public static Epam.Kafka.PubSub.Subscription.SubscriptionBuilder<TKey, TValue, THandler> AddSubscription<TKey, TValue, THandler>(this Epam.Kafka.KafkaBuilder builder, string name, Microsoft.Extensions.DependencyInjection.ServiceLifetime handlerLifetime = 2)
+        public static Epam.Kafka.PubSub.Subscription.SubscriptionBuilder<TKey, TValue> AddSubscription<TKey, TValue, THandler>(this Epam.Kafka.KafkaBuilder builder, string name, Microsoft.Extensions.DependencyInjection.ServiceLifetime handlerLifetime = 2)
             where THandler : Epam.Kafka.PubSub.Subscription.ISubscriptionHandler<TKey, TValue> { }
         public static Epam.Kafka.KafkaBuilder WithPubSubSummaryHealthCheck(this Epam.Kafka.KafkaBuilder builder, System.Collections.Generic.IEnumerable<string>? tags = null, Microsoft.Extensions.Diagnostics.HealthChecks.HealthStatus? failureStatus = default) { }
         public static Epam.Kafka.KafkaBuilder WithPublicationSummaryHealthCheck(this Epam.Kafka.KafkaBuilder builder, System.Collections.Generic.IEnumerable<string>? tags = null, Microsoft.Extensions.Diagnostics.HealthChecks.HealthStatus? failureStatus = default) { }
@@ -116,13 +117,12 @@ namespace Epam.Kafka.PubSub.Publication
         void ReportResults(System.Collections.Generic.IDictionary<Epam.Kafka.PubSub.Publication.TopicMessage<TKey, TValue>, Epam.Kafka.PubSub.Publication.DeliveryReport> reports, System.DateTimeOffset? transactionEnd, System.Threading.CancellationToken cancellationToken);
         void TransactionCommitted(System.Threading.CancellationToken cancellationToken);
     }
-    public sealed class PublicationBuilder<TKey, TValue, THandler> : Epam.Kafka.PubSub.Common.PubSubBuilder<Epam.Kafka.PubSub.Publication.PublicationBuilder<TKey, TValue, THandler>, Epam.Kafka.PubSub.Publication.Options.PublicationOptions>
-        where THandler : Epam.Kafka.PubSub.Publication.IPublicationHandler<TKey, TValue>
+    public sealed class PublicationBuilder<TKey, TValue> : Epam.Kafka.PubSub.Common.PubSubBuilder<Epam.Kafka.PubSub.Publication.PublicationBuilder<TKey, TValue>, Epam.Kafka.PubSub.Publication.Options.PublicationOptions>
     {
-        public Epam.Kafka.PubSub.Publication.PublicationBuilder<TKey, TValue, THandler> WithHealthChecks(System.Collections.Generic.IEnumerable<string>? tags = null, Microsoft.Extensions.Diagnostics.HealthChecks.HealthStatus? failureStatus = default) { }
-        public Epam.Kafka.PubSub.Publication.PublicationBuilder<TKey, TValue, THandler> WithKeySerializer(System.Func<System.Lazy<Confluent.SchemaRegistry.ISchemaRegistryClient>, Confluent.Kafka.ISerializer<TKey>> configure) { }
-        public Epam.Kafka.PubSub.Publication.PublicationBuilder<TKey, TValue, THandler> WithPartitioner(System.Action<Epam.Kafka.ProducerPartitioner> configure) { }
-        public Epam.Kafka.PubSub.Publication.PublicationBuilder<TKey, TValue, THandler> WithValueSerializer(System.Func<System.Lazy<Confluent.SchemaRegistry.ISchemaRegistryClient>, Confluent.Kafka.ISerializer<TValue>> configure) { }
+        public Epam.Kafka.PubSub.Publication.PublicationBuilder<TKey, TValue> WithHealthChecks(System.Collections.Generic.IEnumerable<string>? tags = null, Microsoft.Extensions.Diagnostics.HealthChecks.HealthStatus? failureStatus = default) { }
+        public Epam.Kafka.PubSub.Publication.PublicationBuilder<TKey, TValue> WithKeySerializer(System.Func<System.Lazy<Confluent.SchemaRegistry.ISchemaRegistryClient>, Confluent.Kafka.ISerializer<TKey>> configure) { }
+        public Epam.Kafka.PubSub.Publication.PublicationBuilder<TKey, TValue> WithPartitioner(System.Action<Epam.Kafka.ProducerPartitioner> configure) { }
+        public Epam.Kafka.PubSub.Publication.PublicationBuilder<TKey, TValue> WithValueSerializer(System.Func<System.Lazy<Confluent.SchemaRegistry.ISchemaRegistryClient>, Confluent.Kafka.ISerializer<TValue>> configure) { }
     }
     public abstract class PublicationHandler<TKey, TValue, TEntity> : Epam.Kafka.PubSub.Publication.IPublicationHandler<TKey, TValue>
         where TEntity :  notnull
@@ -184,18 +184,17 @@ namespace Epam.Kafka.PubSub.Subscription
     {
         void Execute(System.Collections.Generic.IReadOnlyCollection<Confluent.Kafka.ConsumeResult<TKey, TValue>> items, System.Threading.CancellationToken cancellationToken);
     }
-    public sealed class SubscriptionBuilder<TKey, TValue, THandler> : Epam.Kafka.PubSub.Common.PubSubBuilder<Epam.Kafka.PubSub.Subscription.SubscriptionBuilder<TKey, TValue, THandler>, Epam.Kafka.PubSub.Subscription.Options.SubscriptionOptions>
-        where THandler : Epam.Kafka.PubSub.Subscription.ISubscriptionHandler<TKey, TValue>
+    public sealed class SubscriptionBuilder<TKey, TValue> : Epam.Kafka.PubSub.Common.PubSubBuilder<Epam.Kafka.PubSub.Subscription.SubscriptionBuilder<TKey, TValue>, Epam.Kafka.PubSub.Subscription.Options.SubscriptionOptions>
     {
-        public Epam.Kafka.PubSub.Subscription.SubscriptionBuilder<TKey, TValue, THandler> WithAssignAndExternalOffsets() { }
-        public Epam.Kafka.PubSub.Subscription.SubscriptionBuilder<TKey, TValue, THandler> WithAssignAndExternalOffsets<TOffsetsStorage>()
+        public Epam.Kafka.PubSub.Subscription.SubscriptionBuilder<TKey, TValue> WithAssignAndExternalOffsets() { }
+        public Epam.Kafka.PubSub.Subscription.SubscriptionBuilder<TKey, TValue> WithAssignAndExternalOffsets<TOffsetsStorage>()
             where TOffsetsStorage : Epam.Kafka.PubSub.Subscription.IExternalOffsetsStorage { }
-        public Epam.Kafka.PubSub.Subscription.SubscriptionBuilder<TKey, TValue, THandler> WithHealthChecks(System.Collections.Generic.IEnumerable<string>? tags = null, Microsoft.Extensions.Diagnostics.HealthChecks.HealthStatus? failureStatus = default) { }
-        public Epam.Kafka.PubSub.Subscription.SubscriptionBuilder<TKey, TValue, THandler> WithKeyDeserializer(System.Func<System.Lazy<Confluent.SchemaRegistry.ISchemaRegistryClient>, Confluent.Kafka.IDeserializer<TKey>> configure) { }
-        public Epam.Kafka.PubSub.Subscription.SubscriptionBuilder<TKey, TValue, THandler> WithSubscribeAndExternalOffsets() { }
-        public Epam.Kafka.PubSub.Subscription.SubscriptionBuilder<TKey, TValue, THandler> WithSubscribeAndExternalOffsets<TOffsetsStorage>()
+        public Epam.Kafka.PubSub.Subscription.SubscriptionBuilder<TKey, TValue> WithHealthChecks(System.Collections.Generic.IEnumerable<string>? tags = null, Microsoft.Extensions.Diagnostics.HealthChecks.HealthStatus? failureStatus = default) { }
+        public Epam.Kafka.PubSub.Subscription.SubscriptionBuilder<TKey, TValue> WithKeyDeserializer(System.Func<System.Lazy<Confluent.SchemaRegistry.ISchemaRegistryClient>, Confluent.Kafka.IDeserializer<TKey>> configure) { }
+        public Epam.Kafka.PubSub.Subscription.SubscriptionBuilder<TKey, TValue> WithSubscribeAndExternalOffsets() { }
+        public Epam.Kafka.PubSub.Subscription.SubscriptionBuilder<TKey, TValue> WithSubscribeAndExternalOffsets<TOffsetsStorage>()
             where TOffsetsStorage : Epam.Kafka.PubSub.Subscription.IExternalOffsetsStorage { }
-        public Epam.Kafka.PubSub.Subscription.SubscriptionBuilder<TKey, TValue, THandler> WithValueDeserializer(System.Func<System.Lazy<Confluent.SchemaRegistry.ISchemaRegistryClient>, Confluent.Kafka.IDeserializer<TValue>> configure) { }
+        public Epam.Kafka.PubSub.Subscription.SubscriptionBuilder<TKey, TValue> WithValueDeserializer(System.Func<System.Lazy<Confluent.SchemaRegistry.ISchemaRegistryClient>, Confluent.Kafka.IDeserializer<TValue>> configure) { }
     }
     public abstract class SubscriptionHandler<TKey, TValue> : Epam.Kafka.PubSub.Subscription.ISubscriptionHandler<TKey, TValue>
         where TKey :  notnull
