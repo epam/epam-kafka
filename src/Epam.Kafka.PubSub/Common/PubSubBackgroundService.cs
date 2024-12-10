@@ -42,7 +42,7 @@ internal abstract class PubSubBackgroundService<TOptions, TBatchResult, TMonitor
     }
 
     protected IKafkaFactory KafkaFactory { get; }
-    protected TMonitor Monitor { get; }
+    protected internal TMonitor Monitor { get; }
     protected ILogger Logger { get; }
     protected int? AdaptiveBatchSize { get; set; }
 
@@ -193,29 +193,7 @@ internal abstract class PubSubBackgroundService<TOptions, TBatchResult, TMonitor
         this.Monitor.Batch.Update(BatchStatus.None);
     }
 
-    protected abstract TTopic CreateTopicWrapper();
-
-    protected static T ResolveRequiredService<T>(IServiceProvider sp, Type type)
-        where T : notnull
-    {
-        try
-        {
-            return (T)sp.GetRequiredService(type);
-        }
-        catch (Exception e)
-        {
-            if (e.Source == "Microsoft.Extensions.DependencyInjection")
-            {
-                e.DoNotRetryPipeline();
-            }
-            else
-            {
-                e.DoNotRetryBatch();
-            }
-
-            throw;
-        }
-    }
+    protected internal abstract TTopic CreateTopicWrapper();
 
     private void BatchFinishedTimeout(TBatchResult subBatchResult, CancellationToken stoppingToken)
     {

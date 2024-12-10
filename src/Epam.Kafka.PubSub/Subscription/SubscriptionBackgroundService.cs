@@ -3,6 +3,7 @@
 using Confluent.Kafka;
 using Confluent.SchemaRegistry;
 
+using Epam.Kafka.PubSub.Bridge;
 using Epam.Kafka.PubSub.Common;
 using Epam.Kafka.PubSub.Common.Pipeline;
 using Epam.Kafka.PubSub.Subscription.Metrics;
@@ -21,6 +22,7 @@ namespace Epam.Kafka.PubSub.Subscription;
 
 internal sealed class SubscriptionBackgroundService<TKey, TValue> : PubSubBackgroundService<
     SubscriptionOptions, SubscriptionBatchResult, SubscriptionMonitor, SubscriptionTopicWrapper<TKey, TValue>>
+    where TKey : notnull
 {
     private readonly Type _handlerType;
     private readonly SubscriptionHealthMetrics _healthMeter;
@@ -57,7 +59,7 @@ internal sealed class SubscriptionBackgroundService<TKey, TValue> : PubSubBackgr
         this._healthMeter.Dispose();
     }
 
-    protected override SubscriptionTopicWrapper<TKey, TValue> CreateTopicWrapper()
+    protected internal override SubscriptionTopicWrapper<TKey, TValue> CreateTopicWrapper()
     {
         var registry = new Lazy<ISchemaRegistryClient>(() =>
             this.KafkaFactory.GetOrCreateSchemaRegistryClient(this.Options.Cluster));
@@ -103,7 +105,7 @@ internal sealed class SubscriptionBackgroundService<TKey, TValue> : PubSubBackgr
         ActivityWrapper activitySpan,
         CancellationToken cancellationToken)
     {
-        BatchState state = ResolveRequiredService<BatchState>(sp, this.Options.StateType);
+        BatchState state = sp.ResolveRequiredService<BatchState>(this.Options.StateType);
 
         this.Monitor.Batch.Update(BatchStatus.Reading);
 
@@ -130,7 +132,7 @@ internal sealed class SubscriptionBackgroundService<TKey, TValue> : PubSubBackgr
                 from.Select(x => new TopicPartitionOffset(x.Key, x.Value)),
                 to.Select(x => new TopicPartitionOffset(x.Key, x.Value)));
 
-            this.CreateAndExecuteHandler(sp, batch, activitySpan, cancellationToken);
+            this.CreateAndExecuteHandler(sp, batch, activitySpan, topic, cancellationToken);
 
             this.Monitor.Batch.Update(BatchStatus.Commiting);
 
@@ -167,13 +169,14 @@ internal sealed class SubscriptionBackgroundService<TKey, TValue> : PubSubBackgr
         }
     }
 
-    private void CreateAndExecuteHandler(
-        IServiceProvider sp,
+    private void CreateAndExecuteHandler(IServiceProvider sp,
         IReadOnlyCollection<ConsumeResult<TKey, TValue>> batch,
         ActivityWrapper activitySpan,
+        SubscriptionTopicWrapper<TKey, TValue> topic,
         CancellationToken cancellationToken)
     {
-        ISubscriptionHandler<TKey, TValue> handler = ResolveRequiredService<ISubscriptionHandler<TKey, TValue>>(sp, this._handlerType);
+        ISubscriptionHandler<TKey, TValue> handler =
+            sp.ResolveRequiredService<ISubscriptionHandler<TKey, TValue>>(this._handlerType);
 
         ISyncPolicy handlerPolicy = this.Monitor.Context.GetHandlerPolicy(this.Options);
 
@@ -181,14 +184,24 @@ internal sealed class SubscriptionBackgroundService<TKey, TValue> : PubSubBackgr
         {
             this.Monitor.Batch.Update(BatchStatus.Queued);
         }
-
+        
         handlerPolicy.Execute(ct =>
         {
             this.Monitor.Batch.Update(BatchStatus.Running);
 
             using (activitySpan.CreateSpan("process"))
             {
-                handler.Execute(batch, ct);
+                if (handler is ISubscriptionForPublicationHandler<TKey, TValue> sh)
+                {
+                    sh.Execute(batch, sp, topic.Monitor, activitySpan,
+                        this.Options.StateType == typeof(InternalKafkaState)
+                            ? topic.Consumer.ConsumerGroupMetadata
+                            : null, cancellationToken);
+                }
+                else
+                {
+                    handler.Execute(batch, ct);
+                }
             }
         }, cancellationToken);
     }

@@ -1,5 +1,8 @@
 ﻿// Copyright © 2024 EPAM Systems
 
+using Confluent.Kafka;
+
+using Epam.Kafka.PubSub.Bridge;
 using Epam.Kafka.PubSub.Common;
 using Epam.Kafka.PubSub.Common.HealthChecks;
 using Epam.Kafka.PubSub.Publication;
@@ -42,6 +45,7 @@ public static class KafkaBuilderExtensions
         string name,
         ServiceLifetime handlerLifetime = ServiceLifetime.Transient)
         where THandler : ISubscriptionHandler<TKey, TValue>
+        where TKey : notnull
     {
         if (builder == null)
         {
@@ -100,6 +104,60 @@ public static class KafkaBuilderExtensions
         TryRegisterHandler(builder.Services, handlerType, handlerLifetime);
 
         return new PublicationBuilder<TKey, TValue>(builder, name, handlerType);
+    }
+
+    /// <summary>
+    ///     Add two background services.
+    ///     First one will consume messages from kafka and pass them to second service,
+    ///     which will convert them using provided <see cref="IConvertHandler{TPubKey, TPubValue,TEntity}"/> and produce new messages to kafka.
+    /// </summary>
+    /// <param name="builder">The <see cref="KafkaBuilder" />.</param>
+    /// <param name="name">The name to identity subscription and publication.</param>
+    /// <param name="handlerLifetime">
+    ///     The <see cref="ServiceLifetime" /> for <see cref="IConvertHandler{TPubKey, TPubValue,TEntity}" />
+    ///     implementation. Default <c>ServiceLifetime.Transient</c>
+    /// </param>
+    /// <exception cref="ArgumentNullException"></exception>
+    public static Tuple<SubscriptionBuilder<TSubKey, TSubValue>, PublicationBuilder<TPubKey, TPubValue>> AddPublicationFromSubscription<TSubKey, TSubValue, TPubKey, TPubValue, TConverter>(
+        this KafkaBuilder builder,
+        string name,
+        ServiceLifetime handlerLifetime = ServiceLifetime.Transient)
+        where TConverter : IConvertHandler<TPubKey, TPubValue, ConsumeResult<TSubKey, TSubValue>>
+        where TPubKey : notnull
+        where TSubKey : notnull
+    {
+        if (builder == null)
+        {
+            throw new ArgumentNullException(nameof(builder));
+        }
+
+        if (name == null)
+        {
+            throw new ArgumentNullException(nameof(name));
+        }
+
+        builder.GetOrCreateContext().AddPublication(name);
+
+        Type handlerType = typeof(TConverter);
+        TryRegisterHandler(builder.Services, handlerType, handlerLifetime);
+
+        SubscriptionBuilder<TSubKey, TSubValue> sb =
+            builder
+                .AddSubscription<TSubKey, TSubValue, BridgeHandler<TSubKey, TSubValue, TPubKey, TPubValue, TConverter>>(
+                    name, ServiceLifetime.Singleton);
+
+        // intentionally set incorrect handler type because it should never be executed
+        PublicationBuilder<TPubKey, TPubValue> pb =
+            new PublicationBuilder<TPubKey, TPubValue>(builder, name, typeof(object))
+                .WithOptions(
+                    x =>
+                    {
+                        x.Enabled = false;
+                        x.FromSubscription = true;
+                        x.SerializationPreprocessor = true;
+                    });
+
+        return new Tuple<SubscriptionBuilder<TSubKey, TSubValue>, PublicationBuilder<TPubKey, TPubValue>>(sb, pb);
     }
 
     /// <summary>

@@ -16,7 +16,7 @@ internal class PublicationOptionsValidate : IValidateOptions<PublicationOptions>
             throw new ArgumentNullException(nameof(options));
         }
 
-        if (!options.Enabled)
+        if (!options.Enabled && !options.FromSubscription)
         {
             return ValidateOptionsResult.Success;
         }
@@ -26,6 +26,12 @@ internal class PublicationOptionsValidate : IValidateOptions<PublicationOptions>
         result ??= options.ValidateString(x => x.DefaultTopic, regex: RegexHelper.TopicNameRegex);
 
         result ??= ValidateSerializers(options);
+
+        if (options.FromSubscription)
+        {
+            result ??= options.ValidateEqual(x => x.Enabled, false);
+            result ??= options.ValidateEqual(x => x.SerializationPreprocessor, true);
+        }
 
         if (result != null)
         {

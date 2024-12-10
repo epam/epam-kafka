@@ -70,4 +70,30 @@ internal static class PubSubOptionsValidate
 
         return null;
     }
+
+    public static string? ValidateEqual<TOptions, TValue>(this TOptions options, Expression<Func<TOptions, TValue>> member,
+        TValue expected)
+        where TOptions : PubSubOptions
+    {
+        string? name = (member.Body as MemberExpression)?.Member.Name;
+
+        TValue value = member.Compile().Invoke(options);
+
+        if (expected != null)
+        {
+            if (!expected.Equals(value))
+            {
+                return $"{name} should be equal to '{expected}'.";
+            }
+        }
+        else
+        {
+            if (value != null)
+            {
+                return $"{name} should be equal to '{expected}'.";
+            }
+        }
+        
+        return null;
+    }
 }

@@ -33,11 +33,11 @@ public static class TestExtensions
 
     public static Task RunBackgroundServices(this TestWithServices test)
     {
-        return Task.WhenAny(test.ServiceProvider.GetServices<IHostedService>().OfType<BackgroundService>().Select(x =>
+        return Task.WhenAll(test.ServiceProvider.GetServices<IHostedService>().OfType<BackgroundService>().Select(x =>
         {
             x.StartAsync(test.Ctc.Token);
             return x.ExecuteTask!;
-        })).Result;
+        }));
     }
 
     public static TopicMessage<string, TestEntityKafka> ToMessage(this TestEntityKafka entity, string? topicName = null)

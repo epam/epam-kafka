@@ -42,11 +42,6 @@ internal class PublicationBackgroundService<TKey, TValue> : PubSubBackgroundServ
     {
         this._handlerType = handlerType ?? throw new ArgumentNullException(nameof(handlerType));
 
-        if (!typeof(IPublicationHandler<TKey, TValue>).IsAssignableFrom(handlerType))
-        {
-            throw new ArgumentException($"Type {typeof(IPublicationHandler<TKey, TValue>)} not assignable from {handlerType}", nameof(handlerType));
-        }
-
         this._statusMeter = new(this.Monitor);
         this._healthMeter = new(this.Options, this.Monitor);
     }
@@ -59,7 +54,7 @@ internal class PublicationBackgroundService<TKey, TValue> : PubSubBackgroundServ
         this._healthMeter.Dispose();
     }
 
-    protected override IPublicationTopicWrapper<TKey, TValue> CreateTopicWrapper()
+    protected internal override IPublicationTopicWrapper<TKey, TValue> CreateTopicWrapper()
     {
         var registry = new Lazy<ISchemaRegistryClient>(() =>
             this.KafkaFactory.GetOrCreateSchemaRegistryClient(this.Options.Cluster));
@@ -92,7 +87,7 @@ internal class PublicationBackgroundService<TKey, TValue> : PubSubBackgroundServ
             ? new PublicationSerializeKeyAndValueTopicWrapper<TKey, TValue>(this.KafkaFactory, this.Monitor,
                 config, this.Options, this.Logger,
                 ks, vs, this.Options.Partitioner)
-            : new PublicationTopicWrapper<TKey, TValue>(this.KafkaFactory, this.Monitor, 
+            : new PublicationTopicWrapper<TKey, TValue>(this.KafkaFactory, this.Monitor,
                 config, this.Options, this.Logger,
                 ks, vs, this.Options.Partitioner);
 
@@ -104,7 +99,7 @@ internal class PublicationBackgroundService<TKey, TValue> : PubSubBackgroundServ
         return null;
     }
 
-    private void ExecuteBatchInternal(
+    internal void ExecuteBatchInternal(
         IPublicationHandler<TKey, TValue> state,
         IPublicationTopicWrapper<TKey, TValue> topicWrapper,
         ActivityWrapper activitySpan,
@@ -152,13 +147,13 @@ internal class PublicationBackgroundService<TKey, TValue> : PubSubBackgroundServ
                 }
             }
 
+            this.Monitor.Result.Update(
+                allItemsProcessed ? PublicationBatchResult.Processed : PublicationBatchResult.ProcessedPartial);
+
             this.Logger.BatchHandlerExecuted(items.Count,
                 reports.Select(x => x.Value).GroupBy(x => $"{x.TopicPartition} {x.Status} {x.Error}")
                     .Select(g => new KeyValuePair<string, int>(g.Key, g.Count())),
                 allItemsProcessed ? LogLevel.Information : LogLevel.Warning);
-
-            this.Monitor.Result.Update(
-                allItemsProcessed ? PublicationBatchResult.Processed : PublicationBatchResult.ProcessedPartial);
         }
         else
         {
@@ -216,7 +211,8 @@ internal class PublicationBackgroundService<TKey, TValue> : PubSubBackgroundServ
         ActivityWrapper activitySpan,
         CancellationToken cancellationToken)
     {
-        IPublicationHandler<TKey, TValue> state = ResolveRequiredService<IPublicationHandler<TKey, TValue>>(sp, this._handlerType);
+        IPublicationHandler<TKey, TValue> handler =
+            sp.ResolveRequiredService<IPublicationHandler<TKey, TValue>>(this._handlerType);
 
         ISyncPolicy handlerPolicy = this.Monitor.Context.GetHandlerPolicy(this.Options);
 
@@ -227,7 +223,7 @@ internal class PublicationBackgroundService<TKey, TValue> : PubSubBackgroundServ
 
         try
         {
-            handlerPolicy.Execute(ct => this.ExecuteBatchInternal(state, topic, activitySpan, ct),
+            handlerPolicy.Execute(ct => this.ExecuteBatchInternal(handler, topic, activitySpan, ct),
                 cancellationToken);
         }
         catch (Exception e1)
