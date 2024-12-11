@@ -10,6 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Polly;
 
 using System.Collections.Concurrent;
+using Epam.Kafka.PubSub.Common.Pipeline;
 
 namespace Epam.Kafka.PubSub.Common;
 
@@ -34,7 +35,7 @@ public sealed class PubSubContext
     private readonly Dictionary<string, PublicationMonitor> _publications = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, SubscriptionMonitor> _subscriptions = new(StringComparer.OrdinalIgnoreCase);
 
-    internal ConcurrentDictionary<string, PublicationMonitor> TransactionIds { get; } = new();
+    internal ConcurrentDictionary<string, PipelineMonitor> TransactionIds { get; } = new();
 
     internal PubSubContext()
     {

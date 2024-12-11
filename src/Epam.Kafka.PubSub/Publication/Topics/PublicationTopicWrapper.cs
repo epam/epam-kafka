@@ -2,13 +2,12 @@
 
 using Confluent.Kafka;
 
-using Epam.Kafka.PubSub.Publication.Options;
-using Epam.Kafka.PubSub.Publication.Pipeline;
 using Epam.Kafka.PubSub.Utils;
 
 using Microsoft.Extensions.Logging;
 
 using System.Diagnostics;
+using Epam.Kafka.PubSub.Common.Pipeline;
 
 namespace Epam.Kafka.PubSub.Publication.Topics;
 
@@ -19,17 +18,15 @@ internal class PublicationTopicWrapper<TKey, TValue> : IPublicationTopicWrapper<
 
     public PublicationTopicWrapper(
         IKafkaFactory kafkaFactory,
-        PublicationMonitor monitor,
+        PipelineMonitor monitor,
         ProducerConfig config,
-        PublicationOptions options,
+        IPublicationTopicWrapperOptions options,
         ILogger logger,
         ISerializer<TKey>? keySerializer,
-        ISerializer<TValue>? valueSerializer,
-        ProducerPartitioner? partitioner)
+        ISerializer<TValue>? valueSerializer)
     {
         this.Monitor = monitor ?? throw new ArgumentNullException(nameof(monitor));
         this.Logger = logger ?? throw new ArgumentNullException(nameof(logger));
-
         this.Options = options ?? throw new ArgumentNullException(nameof(options));
 
         this.RequireTransaction = config.TransactionalId != null;
@@ -65,7 +62,7 @@ internal class PublicationTopicWrapper<TKey, TValue> : IPublicationTopicWrapper<
 
         this.Producer = kafkaFactory.CreateProducer<TKey, TValue>(config, this.Options.Cluster, b =>
         {
-            partitioner?.Apply(b);
+            options.GetPartitioner().Apply(b);
 
             if (keySerializer != null)
             {
@@ -113,10 +110,10 @@ internal class PublicationTopicWrapper<TKey, TValue> : IPublicationTopicWrapper<
         config.DeliveryReportFields = config.DeliveryReportFields.ToLowerInvariant();
     }
 
-    private PublicationMonitor Monitor { get; }
+    private PipelineMonitor Monitor { get; }
     private ILogger Logger { get; }
     private TimeSpan MinRemaining { get; }
-    private PublicationOptions Options { get; }
+    private IPublicationTopicWrapperOptions Options { get; }
     private IProducer<TKey, TValue> Producer { get; }
     public bool RequireTransaction { get; }
     public DateTimeOffset? TransactionEnd { get; private set; }

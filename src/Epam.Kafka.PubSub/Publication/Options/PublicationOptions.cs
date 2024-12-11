@@ -4,7 +4,7 @@ using Confluent.Kafka;
 using Confluent.SchemaRegistry;
 
 using Epam.Kafka.PubSub.Common.Options;
-
+using Epam.Kafka.PubSub.Publication.Topics;
 using Microsoft.Extensions.Options;
 
 namespace Epam.Kafka.PubSub.Publication.Options;
@@ -12,10 +12,13 @@ namespace Epam.Kafka.PubSub.Publication.Options;
 /// <summary>
 ///     Options to configure publication service.
 /// </summary>
-public sealed class PublicationOptions : PubSubOptions, IOptions<PublicationOptions>
+public sealed class PublicationOptions : PubSubOptions, IOptions<PublicationOptions>, IPublicationTopicWrapperOptions
 {
+    // can't be public property due to configuration source generation
     internal readonly ProducerPartitioner Partitioner = new();
+    
     internal Func<Lazy<ISchemaRegistryClient>, object>? KeySerializer;
+
     internal Func<Lazy<ISchemaRegistryClient>, object>? ValueSerializer;
 
     /// <summary>
@@ -36,7 +39,7 @@ public sealed class PublicationOptions : PubSubOptions, IOptions<PublicationOpti
     public string? DefaultTopic { get; set; }
 
     /// <summary>
-    ///     The logical name for <see cref="IProducer{TKey,TValue}" /> to create it using <see cref="IKafkaFactory" />
+    ///     The logical name for <see cref="IProducer{TKey,TValue}" /> to create it using <see cref="Epam.Kafka.IKafkaFactory" />
     /// </summary>
     public string? Producer { get; set; }
 
@@ -48,4 +51,18 @@ public sealed class PublicationOptions : PubSubOptions, IOptions<PublicationOpti
     public bool? SerializationPreprocessor { get; set; }
 
     PublicationOptions IOptions<PublicationOptions>.Value => this;
+    object? IPublicationTopicWrapperOptions.CreateKeySerializer(Lazy<ISchemaRegistryClient> lazySchemaRegistryClient)
+    {
+        return this.KeySerializer?.Invoke(lazySchemaRegistryClient);
+    }
+
+    object? IPublicationTopicWrapperOptions.CreateValueSerializer(Lazy<ISchemaRegistryClient> lazySchemaRegistryClient)
+    {
+        return this.ValueSerializer?.Invoke(lazySchemaRegistryClient);
+    }
+
+    ProducerPartitioner IPublicationTopicWrapperOptions.GetPartitioner()
+    {
+        return this.Partitioner;
+    }
 }

@@ -2,13 +2,12 @@
 
 using Confluent.Kafka;
 
-using Epam.Kafka.PubSub.Publication.Options;
-using Epam.Kafka.PubSub.Publication.Pipeline;
 using Epam.Kafka.PubSub.Utils;
 
 using Microsoft.Extensions.Logging;
 
 using System.Diagnostics;
+using Epam.Kafka.PubSub.Common.Pipeline;
 
 namespace Epam.Kafka.PubSub.Publication.Topics;
 
@@ -16,18 +15,17 @@ internal class PublicationSerializeKeyAndValueTopicWrapper<TKey, TValue> : IPubl
 {
     private readonly PublicationTopicWrapper<byte[], byte[]> _inner;
     private readonly ISerializer<TKey> _keySerializer;
-    private readonly PublicationOptions _options;
+    private readonly IPublicationTopicWrapperOptions _options;
     private readonly ISerializer<TValue> _valueSerializer;
 
     public PublicationSerializeKeyAndValueTopicWrapper(
         IKafkaFactory kafkaFactory,
-        PublicationMonitor monitor,
+        PipelineMonitor monitor,
         ProducerConfig config,
-        PublicationOptions options,
+        IPublicationTopicWrapperOptions options,
         ILogger logger,
         ISerializer<TKey>? keySerializer,
-        ISerializer<TValue>? valueSerializer,
-        ProducerPartitioner? partitioner)
+        ISerializer<TValue>? valueSerializer)
     {
         this._options = options ?? throw new ArgumentNullException(nameof(options));
 
@@ -43,8 +41,7 @@ internal class PublicationSerializeKeyAndValueTopicWrapper<TKey, TValue> : IPubl
                                     : throw new ArgumentNullException(nameof(keySerializer),
                                         $"Null serializer for value of type {typeof(TValue)}"));
 
-        this._inner = new PublicationTopicWrapper<byte[], byte[]>(kafkaFactory, monitor, config, options, logger, null,
-            null, partitioner);
+        this._inner = new PublicationTopicWrapper<byte[], byte[]>(kafkaFactory, monitor, config, options, logger, null, null);
     }
 
     public bool RequireTransaction => this._inner.RequireTransaction;

@@ -1,10 +1,13 @@
 ﻿// Copyright © 2024 EPAM Systems
 
+using Confluent.Kafka;
+
 using Epam.Kafka.PubSub.Publication.Pipeline;
 using Epam.Kafka.PubSub.Subscription.Pipeline;
 
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
+using System.Collections.Concurrent;
 using System.Diagnostics.Metrics;
 
 namespace Epam.Kafka.PubSub.Common.Pipeline;
@@ -73,4 +76,22 @@ public abstract class PipelineMonitor
     public int PipelineRetryIteration { get; internal set; }
 
     internal IReadOnlyDictionary<string, string> NamePlaceholder { get; }
+
+    internal bool TryRegisterTransactionId(ProducerConfig config, out string? existingName)
+    {
+        if (config == null) throw new ArgumentNullException(nameof(config));
+
+        existingName = null;
+        ConcurrentDictionary<string, PipelineMonitor> ids = this.Context.TransactionIds;
+        string id = config.TransactionalId!;
+
+        bool result = ids.TryAdd(id, this) || ids.TryUpdate(id, this, this);
+
+        if (!result)
+        {
+            existingName = ids[id].Name;
+        }
+
+        return result;
+    }
 }
