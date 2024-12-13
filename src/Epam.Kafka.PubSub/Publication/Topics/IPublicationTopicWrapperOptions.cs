@@ -13,5 +13,4 @@ internal interface IPublicationTopicWrapperOptions
     string? Producer { get; }
     string? Cluster { get; }
     bool? SerializationPreprocessor { get; }
-    TimeSpan HandlerTimeout { get; }
 }

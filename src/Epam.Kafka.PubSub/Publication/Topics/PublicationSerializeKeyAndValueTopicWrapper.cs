@@ -66,6 +66,7 @@ internal class PublicationSerializeKeyAndValueTopicWrapper<TKey, TValue> : IPubl
         IReadOnlyCollection<TopicMessage<TKey, TValue>> items,
         ActivityWrapper activitySpan,
         Stopwatch stopwatch,
+        TimeSpan handlerTimeout,
         CancellationToken cancellationToken)
     {
         Dictionary<TopicMessage<byte[], byte[]>, TopicMessage<TKey, TValue>> serialized = new(items.Count);
@@ -121,7 +122,7 @@ internal class PublicationSerializeKeyAndValueTopicWrapper<TKey, TValue> : IPubl
         if (serialized.Count > 0 && result.Count == 0)
         {
             IDictionary<TopicMessage<byte[], byte[]>, DeliveryReport> innerResult =
-                this._inner.Produce(serialized.Keys, activitySpan, stopwatch, cancellationToken);
+                this._inner.Produce(serialized.Keys, activitySpan, stopwatch, handlerTimeout, cancellationToken);
 
             foreach (KeyValuePair<TopicMessage<byte[], byte[]>, DeliveryReport> report in innerResult)
             {

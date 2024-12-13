@@ -1,10 +1,13 @@
 ﻿// Copyright © 2024 EPAM Systems
 
+using Confluent.Kafka;
+
 using Epam.Kafka.PubSub.Common;
 using Epam.Kafka.PubSub.Common.HealthChecks;
 using Epam.Kafka.PubSub.Publication;
 using Epam.Kafka.PubSub.Publication.Options;
 using Epam.Kafka.PubSub.Publication.Pipeline;
+using Epam.Kafka.PubSub.Replication;
 using Epam.Kafka.PubSub.Subscription;
 using Epam.Kafka.PubSub.Subscription.Options;
 using Epam.Kafka.PubSub.Subscription.Pipeline;
@@ -27,10 +30,10 @@ public static class KafkaBuilderExtensions
     ///     <see cref="ISubscriptionHandler{TKey,TValue}.Execute" /> to process them.
     /// </summary>
     /// <param name="builder">The <see cref="KafkaBuilder" />.</param>
-    /// <param name="name">The name to identity subscription.</param>
+    /// <param name="name">The name to identify subscription.</param>
     /// <param name="handlerLifetime">
     ///     The <see cref="ServiceLifetime" /> for <see cref="ISubscriptionHandler{TKey,TValue}" />
-    ///     implementation. Default <c>ServiceLifetime.Transient</c>
+    ///     implementation. Default <c><see cref="ServiceLifetime.Transient"/></c>
     /// </param>
     /// <typeparam name="TKey">The message key type.</typeparam>
     /// <typeparam name="TValue">The message value type.</typeparam>
@@ -67,10 +70,10 @@ public static class KafkaBuilderExtensions
     ///     get messages and manage their state.
     /// </summary>
     /// <param name="builder">The <see cref="KafkaBuilder" />.</param>
-    /// <param name="name">The name to identity publication.</param>
+    /// <param name="name">The name to identify publication.</param>
     /// <param name="handlerLifetime">
     ///     The <see cref="ServiceLifetime" /> for <see cref="IPublicationHandler{TKey,TValue}" />
-    ///     implementation. Default <c>ServiceLifetime.Transient</c>
+    ///     implementation. Default <c><see cref="ServiceLifetime.Transient"/></c>
     /// </param>
     /// <typeparam name="TKey">The message key type.</typeparam>
     /// <typeparam name="TValue">The message value type.</typeparam>
@@ -100,6 +103,50 @@ public static class KafkaBuilderExtensions
         TryRegisterHandler(builder.Services, handlerType, handlerLifetime);
 
         return new PublicationBuilder<TKey, TValue>(builder, name, handlerType);
+    }
+
+    /// <summary>
+    ///     Add subscription that will consume messages from kafka, then invoke
+    ///     <see cref="IConvertHandler{TKey,TValue,TEntity}.Convert" /> to convert them,
+    ///    and finally publish result of conversion to kafka.
+    /// </summary>
+    /// <param name="builder">The <see cref="KafkaBuilder" />.</param>
+    /// <param name="name">The name to identify subscription.</param>
+    /// <param name="handlerLifetime">
+    ///     The <see cref="ServiceLifetime" /> for <see cref="IConvertHandler{TKey,TValue,TEntity}" />
+    ///     implementation. Default <c><see cref="ServiceLifetime.Transient"/></c>
+    /// </param>
+    /// <typeparam name="TSubKey">The input message key type.</typeparam>
+    /// <typeparam name="TSubValue">The message value type.</typeparam>
+    /// <typeparam name="TPubKey">The output message key type.</typeparam>
+    /// <typeparam name="TPubValue">The output message value type.</typeparam>
+    /// <typeparam name="THandler">The <see cref="IConvertHandler{TKey,TValue,TEntity}" /> implementation type.</typeparam>
+    /// <returns>The <see cref="ReplicationBuilder{TSubKey,TSubValue,TPubKey,TPubValue}" /> to configure subscription and publication behaviour.</returns>
+    /// <exception cref="ArgumentNullException"></exception>
+    public static ReplicationBuilder<TSubKey, TSubValue, TPubKey, TPubValue> AddReplication<TSubKey, TSubValue, TPubKey, TPubValue, THandler>(
+        this KafkaBuilder builder,
+        string name,
+        ServiceLifetime handlerLifetime = ServiceLifetime.Transient)
+        where THandler : IConvertHandler<TPubKey, TPubValue, ConsumeResult<TSubKey, TSubValue>>
+    {
+        if (builder == null)
+        {
+            throw new ArgumentNullException(nameof(builder));
+        }
+
+        if (name == null)
+        {
+            throw new ArgumentNullException(nameof(name));
+        }
+
+        SubscriptionBuilder<TSubKey, TSubValue> sub = builder
+            .AddSubscription<TSubKey, TSubValue, ReplicationHandler<TSubKey, TSubValue, TPubKey, TPubValue>>(name);
+
+        Type handlerType = typeof(THandler);
+
+        TryRegisterHandler(builder.Services, handlerType, handlerLifetime);
+
+        return new ReplicationBuilder<TSubKey, TSubValue, TPubKey, TPubValue>(sub);
     }
 
     /// <summary>

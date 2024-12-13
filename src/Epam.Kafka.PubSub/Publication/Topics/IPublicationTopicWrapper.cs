@@ -17,5 +17,6 @@ internal interface IPublicationTopicWrapper<TKey, TValue> : IDisposable
         IReadOnlyCollection<TopicMessage<TKey, TValue>> items,
         ActivityWrapper activitySpan,
         Stopwatch stopwatch,
+        TimeSpan handlerTimeout,
         CancellationToken cancellationToken);
 }

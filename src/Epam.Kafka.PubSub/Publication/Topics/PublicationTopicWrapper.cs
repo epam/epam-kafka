@@ -170,6 +170,7 @@ internal class PublicationTopicWrapper<TKey, TValue> : IPublicationTopicWrapper<
         IReadOnlyCollection<TopicMessage<TKey, TValue>> items,
         ActivityWrapper activitySpan,
         Stopwatch stopwatch,
+        TimeSpan handlerTimeout,
         CancellationToken cancellationToken)
     {
         this.BeginTransactionIfNeeded(activitySpan);
@@ -178,7 +179,7 @@ internal class PublicationTopicWrapper<TKey, TValue> : IPublicationTopicWrapper<
 
         Dictionary<TopicMessage<TKey, TValue>, DeliveryReport> result = new(items.Count);
 
-        TimeSpan remaining = this.Options.HandlerTimeout - stopwatch.Elapsed;
+        TimeSpan remaining = handlerTimeout - stopwatch.Elapsed;
 
         if (remaining < this.MinRemaining)
         {

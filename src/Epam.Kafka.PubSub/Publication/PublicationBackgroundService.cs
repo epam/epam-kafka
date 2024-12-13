@@ -88,7 +88,7 @@ internal class PublicationBackgroundService<TKey, TValue> : PubSubBackgroundServ
             this.Monitor.Batch.Update(BatchStatus.Running);
 
             IDictionary<TopicMessage<TKey, TValue>, DeliveryReport> reports =
-                topicWrapper.Produce(items, activitySpan, stopwatch, cancellationToken);
+                topicWrapper.Produce(items, activitySpan, stopwatch, this.Options.HandlerTimeout, cancellationToken);
 
             this.Monitor.Batch.Update(BatchStatus.Commiting);
 
