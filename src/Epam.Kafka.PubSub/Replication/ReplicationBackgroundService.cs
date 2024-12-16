@@ -38,9 +38,14 @@ internal sealed class ReplicationBackgroundService<TSubKey, TSubValue, TPubKey, 
         ActivityWrapper activitySpan,
         SubscriptionTopicWrapper<TSubKey, TSubValue> topic)
     {
-        //TODO: handle exceptions for handler creation like in sub service
         IConvertHandler<TPubKey, TPubValue, ConsumeResult<TSubKey, TSubValue>> convertHandler =
             sp.ResolveRequiredService<IConvertHandler<TPubKey, TPubValue, ConsumeResult<TSubKey, TSubValue>>>(this._options.ConvertHandlerType!);
+
+        // recreate publisher if needed
+        if (this._pubTopic?.Disposed ?? false)
+        {
+            this._pubTopic = null;
+        }
 
         this._pubTopic ??=
             this.KafkaFactory.CreatePublicationTopicWrapper<TPubKey, TPubValue>(null!, this.Monitor, this.Logger);
@@ -52,6 +57,9 @@ internal sealed class ReplicationBackgroundService<TSubKey, TSubValue, TPubKey, 
     {
         base.Dispose();
 
-        this._pubTopic?.Dispose();
+        if (this._pubTopic is { Disposed: false })
+        {
+            this._pubTopic.Dispose();
+        }
     }
 }

@@ -20,7 +20,7 @@ public abstract class ConvertHandler<TKey, TValue, TEntity> : IConvertHandler<TK
     }
 
     /// <summary>
-    /// 
+    /// Invoked by <see cref="Convert"/> method to convert single entity.
     /// </summary>
     /// <param name="entity"></param>
     /// <returns></returns>

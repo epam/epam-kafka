@@ -10,12 +10,12 @@ namespace Epam.Kafka.PubSub.Replication;
 /// <typeparam name="TKey"></typeparam>
 /// <typeparam name="TValue"></typeparam>
 /// <typeparam name="TEntity"></typeparam>
-public interface IConvertHandler<TKey,TValue, in TEntity>
+public interface IConvertHandler<TKey, TValue, in TEntity>
 {
     /// <summary>
     /// 
     /// </summary>
     /// <param name="entities"></param>
     /// <returns></returns>
-    IReadOnlyCollection<TopicMessage<TKey, TValue>> Convert(IReadOnlyCollection<TEntity>  entities);
+    IReadOnlyCollection<TopicMessage<TKey, TValue>> Convert(IReadOnlyCollection<TEntity> entities);
 }

@@ -8,6 +8,7 @@ namespace Epam.Kafka.PubSub.Publication.Topics;
 
 internal interface IPublicationTopicWrapper<TKey, TValue> : IDisposable
 {
+    bool Disposed { get; }
     bool RequireTransaction { get; }
     DateTimeOffset? TransactionEnd { get; }
     void CommitTransactionIfNeeded(ActivityWrapper apm);

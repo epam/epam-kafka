@@ -115,6 +115,9 @@ internal class PublicationTopicWrapper<TKey, TValue> : IPublicationTopicWrapper<
     private TimeSpan MinRemaining { get; }
     private IPublicationTopicWrapperOptions Options { get; }
     private IProducer<TKey, TValue> Producer { get; }
+
+    public bool Disposed { get; private set; }
+
     public bool RequireTransaction { get; }
     public DateTimeOffset? TransactionEnd { get; private set; }
 
@@ -228,6 +231,8 @@ internal class PublicationTopicWrapper<TKey, TValue> : IPublicationTopicWrapper<
 
     public void Dispose()
     {
+        this.Disposed = true;
+
         this.Logger.ProducerClosing(this.Monitor.Name, this.Producer.Name);
 
 #pragma warning disable CA1031 // Do not catch general exception types

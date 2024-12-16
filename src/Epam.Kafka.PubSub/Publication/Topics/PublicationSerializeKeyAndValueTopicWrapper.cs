@@ -44,6 +44,8 @@ internal class PublicationSerializeKeyAndValueTopicWrapper<TKey, TValue> : IPubl
         this._inner = new PublicationTopicWrapper<byte[], byte[]>(kafkaFactory, monitor, config, options, logger, null, null);
     }
 
+    public bool Disposed => this._inner.Disposed;
+
     public bool RequireTransaction => this._inner.RequireTransaction;
     public DateTimeOffset? TransactionEnd => this._inner.TransactionEnd;
 
