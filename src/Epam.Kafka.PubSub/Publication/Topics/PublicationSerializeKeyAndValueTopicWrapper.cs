@@ -79,7 +79,7 @@ internal class PublicationSerializeKeyAndValueTopicWrapper<TKey, TValue> : IPubl
         {
             foreach (TopicMessage<TKey, TValue> item in items)
             {
-                item.Topic ??= this._options.DefaultTopic;
+                item.Topic ??= this._options.GetDefaultTopic();
 
                 Headers headers = item.Headers ?? new();
 

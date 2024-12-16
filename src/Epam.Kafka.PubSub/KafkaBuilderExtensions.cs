@@ -1,6 +1,7 @@
 ﻿// Copyright © 2024 EPAM Systems
 
 using Confluent.Kafka;
+using Confluent.SchemaRegistry;
 
 using Epam.Kafka.PubSub.Common;
 using Epam.Kafka.PubSub.Common.HealthChecks;
@@ -116,17 +117,23 @@ public static class KafkaBuilderExtensions
     ///     The <see cref="ServiceLifetime" /> for <see cref="IConvertHandler{TKey,TValue,TEntity}" />
     ///     implementation. Default <c><see cref="ServiceLifetime.Transient"/></c>
     /// </param>
+    /// <param name="keySerializer">The output message key serializer factory</param>
+    /// <param name="valueSerializer">The output message value serializer factory</param>
+    /// <param name="partitioner">The output message partitioner configuration</param>
     /// <typeparam name="TSubKey">The input message key type.</typeparam>
-    /// <typeparam name="TSubValue">The message value type.</typeparam>
+    /// <typeparam name="TSubValue">The input message value type.</typeparam>
     /// <typeparam name="TPubKey">The output message key type.</typeparam>
     /// <typeparam name="TPubValue">The output message value type.</typeparam>
     /// <typeparam name="THandler">The <see cref="IConvertHandler{TKey,TValue,TEntity}" /> implementation type.</typeparam>
-    /// <returns>The <see cref="ReplicationBuilder{TSubKey,TSubValue,TPubKey,TPubValue}" /> to configure subscription and publication behaviour.</returns>
+    /// <returns><inheritdoc cref="AddSubscription{TKey,TValue,THandler}"/></returns>
     /// <exception cref="ArgumentNullException"></exception>
-    public static ReplicationBuilder<TSubKey, TSubValue, TPubKey, TPubValue> AddReplication<TSubKey, TSubValue, TPubKey, TPubValue, THandler>(
+    public static SubscriptionBuilder<TSubKey,TSubValue> AddReplication<TSubKey, TSubValue, TPubKey, TPubValue, THandler>(
         this KafkaBuilder builder,
         string name,
-        ServiceLifetime handlerLifetime = ServiceLifetime.Transient)
+        ServiceLifetime handlerLifetime = ServiceLifetime.Transient,
+        Func<Lazy<ISchemaRegistryClient>, ISerializer<TPubKey>>? keySerializer = null,
+        Func<Lazy<ISchemaRegistryClient>, ISerializer<TPubValue>>? valueSerializer = null,
+        Action<ProducerPartitioner>? partitioner = null)
         where THandler : IConvertHandler<TPubKey, TPubValue, ConsumeResult<TSubKey, TSubValue>>
     {
         if (builder == null)
@@ -139,14 +146,20 @@ public static class KafkaBuilderExtensions
             throw new ArgumentNullException(nameof(name));
         }
 
-        SubscriptionBuilder<TSubKey, TSubValue> sub = builder
-            .AddSubscription<TSubKey, TSubValue, ReplicationHandler<TSubKey, TSubValue, TPubKey, TPubValue>>(name);
+        builder.GetOrCreateContext().AddReplication(name);
 
         Type handlerType = typeof(THandler);
 
         TryRegisterHandler(builder.Services, handlerType, handlerLifetime);
 
-        return new ReplicationBuilder<TSubKey, TSubValue, TPubKey, TPubValue>(sub);
+        return new ReplicationBuilder<TSubKey, TSubValue, TPubKey, TPubValue>(builder, name)
+            .WithOptions(x =>
+            {
+                x.Replication.ConvertHandlerType = handlerType;
+                x.Replication.KeySerializer = keySerializer;
+                x.Replication.ValueSerializer = valueSerializer;
+                partitioner?.Invoke(x.Replication.Partitioner);
+            });
     }
 
     /// <summary>

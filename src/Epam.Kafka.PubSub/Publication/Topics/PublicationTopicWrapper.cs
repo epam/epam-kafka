@@ -60,7 +60,7 @@ internal class PublicationTopicWrapper<TKey, TValue> : IPublicationTopicWrapper<
 
         ConfigureReports(config);
 
-        this.Producer = kafkaFactory.CreateProducer<TKey, TValue>(config, this.Options.Cluster, b =>
+        this.Producer = kafkaFactory.CreateProducer<TKey, TValue>(config, this.Options.GetCluster(), b =>
         {
             options.GetPartitioner().Apply(b);
 
@@ -200,7 +200,7 @@ internal class PublicationTopicWrapper<TKey, TValue> : IPublicationTopicWrapper<
 
                 try
                 {
-                    this.Producer.Produce(item.Topic ?? this.Options.DefaultTopic, item,
+                    this.Producer.Produce(item.Topic ?? this.Options.GetDefaultTopic(), item,
                         x => result.Add(item, DeliveryReport.FromGenericReport(x)));
                 }
                 catch (ProduceException<TKey, TValue> pe)

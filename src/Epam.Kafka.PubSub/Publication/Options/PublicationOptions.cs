@@ -65,4 +65,24 @@ public sealed class PublicationOptions : PubSubOptions, IOptions<PublicationOpti
     {
         return this.Partitioner;
     }
+
+    string? IPublicationTopicWrapperOptions.GetDefaultTopic()
+    {
+        return this.DefaultTopic;
+    }
+
+    string? IPublicationTopicWrapperOptions.GetProducer()
+    {
+        return this.Producer;
+    }
+
+    string? IPublicationTopicWrapperOptions.GetCluster()
+    {
+        return this.Cluster;
+    }
+
+    bool? IPublicationTopicWrapperOptions.GetSerializationPreprocessor()
+    {
+        return this.SerializationPreprocessor;
+    }
 }

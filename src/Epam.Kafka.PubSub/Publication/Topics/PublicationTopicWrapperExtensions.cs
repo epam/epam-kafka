@@ -2,8 +2,10 @@
 
 using Confluent.Kafka;
 using Confluent.SchemaRegistry;
+
 using Epam.Kafka.PubSub.Common.Pipeline;
 using Epam.Kafka.PubSub.Utils;
+
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -13,7 +15,7 @@ internal static class PublicationTopicWrapperExtensions
 {
     public static IPublicationTopicWrapper<TKey, TValue> CreatePublicationTopicWrapper<TKey, TValue>(
         this IKafkaFactory kafkaFactory,
-        IPublicationTopicWrapperOptions options, 
+        IPublicationTopicWrapperOptions options,
         PipelineMonitor monitor, ILogger? logger = null)
     {
         if (kafkaFactory == null) throw new ArgumentNullException(nameof(kafkaFactory));
@@ -21,7 +23,7 @@ internal static class PublicationTopicWrapperExtensions
         logger ??= NullLogger.Instance;
 
         var registry = new Lazy<ISchemaRegistryClient>(() =>
-            kafkaFactory.GetOrCreateSchemaRegistryClient(options.Cluster));
+            kafkaFactory.GetOrCreateSchemaRegistryClient(options.GetCluster()));
 
         ISerializer<TKey>? ks;
         ISerializer<TValue>? vs;
@@ -37,7 +39,7 @@ internal static class PublicationTopicWrapperExtensions
             throw;
         }
 
-        ProducerConfig config = kafkaFactory.CreateProducerConfig(options.Producer);
+        ProducerConfig config = kafkaFactory.CreateProducerConfig(options.GetProducer());
 
         config = config.Clone(monitor.NamePlaceholder);
         if (config.All(x => x.Key != KafkaConfigExtensions.DotnetLoggerCategoryKey))
@@ -47,7 +49,7 @@ internal static class PublicationTopicWrapperExtensions
 
         bool implicitPreprocessor = ks != null || vs != null || config.TransactionalId != null;
 
-        IPublicationTopicWrapper<TKey, TValue> result = options.SerializationPreprocessor ?? implicitPreprocessor
+        IPublicationTopicWrapper<TKey, TValue> result = options.GetSerializationPreprocessor() ?? implicitPreprocessor
             ? new PublicationSerializeKeyAndValueTopicWrapper<TKey, TValue>(kafkaFactory, monitor,
                 config, options, logger,
                 ks, vs)

@@ -17,20 +17,17 @@ namespace Epam.Kafka.PubSub.Replication;
 
 internal sealed class ReplicationBackgroundService<TSubKey, TSubValue, TPubKey, TPubValue> : SubscriptionBackgroundService<TSubKey, TSubValue>
 {
-    private readonly ReplicationOptions _options;
     private IPublicationTopicWrapper<TPubKey, TPubValue>? _pubTopic;
 
     public ReplicationBackgroundService(
         IServiceScopeFactory serviceScopeFactory,
         IKafkaFactory kafkaFactory,
-        ReplicationOptions options,
-        SubscriptionOptions subOptions,
+        SubscriptionOptions options,
         SubscriptionMonitor monitor,
         ILoggerFactory? loggerFactory) : base(
-        serviceScopeFactory, kafkaFactory, subOptions, monitor,
+        serviceScopeFactory, kafkaFactory, options, monitor,
         typeof(ReplicationHandler<TSubKey, TSubValue, TPubKey, TPubValue>), loggerFactory)
     {
-        this._options = options ?? throw new ArgumentNullException(nameof(options));
     }
 
     protected override ISubscriptionHandler<TSubKey, TSubValue> CreateHandler(
@@ -39,7 +36,7 @@ internal sealed class ReplicationBackgroundService<TSubKey, TSubValue, TPubKey, 
         SubscriptionTopicWrapper<TSubKey, TSubValue> topic)
     {
         IConvertHandler<TPubKey, TPubValue, ConsumeResult<TSubKey, TSubValue>> convertHandler =
-            sp.ResolveRequiredService<IConvertHandler<TPubKey, TPubValue, ConsumeResult<TSubKey, TSubValue>>>(this._options.ConvertHandlerType!);
+            sp.ResolveRequiredService<IConvertHandler<TPubKey, TPubValue, ConsumeResult<TSubKey, TSubValue>>>(this.Options.Replication.ConvertHandlerType!);
 
         // recreate publisher if needed
         if (this._pubTopic?.Disposed ?? false)
@@ -48,7 +45,7 @@ internal sealed class ReplicationBackgroundService<TSubKey, TSubValue, TPubKey, 
         }
 
         this._pubTopic ??=
-            this.KafkaFactory.CreatePublicationTopicWrapper<TPubKey, TPubValue>(null!, this.Monitor, this.Logger);
+            this.KafkaFactory.CreatePublicationTopicWrapper<TPubKey, TPubValue>(this.Options, this.Monitor, this.Logger);
 
         return new ReplicationHandler<TSubKey, TSubValue, TPubKey, TPubValue>(activitySpan, topic, this._pubTopic, convertHandler);
     }

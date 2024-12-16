@@ -9,8 +9,8 @@ internal interface IPublicationTopicWrapperOptions
     object? CreateKeySerializer(Lazy<ISchemaRegistryClient> lazySchemaRegistryClient);
     object? CreateValueSerializer(Lazy<ISchemaRegistryClient> lazySchemaRegistryClient);
     ProducerPartitioner GetPartitioner();
-    string? DefaultTopic { get; }
-    string? Producer { get; }
-    string? Cluster { get; }
-    bool? SerializationPreprocessor { get; }
+    string? GetDefaultTopic();
+    string? GetProducer();
+    string? GetCluster();
+    bool? GetSerializationPreprocessor();
 }
