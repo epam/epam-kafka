@@ -2,13 +2,12 @@
 
 using Confluent.Kafka;
 
-using Epam.Kafka.PubSub.Publication.Options;
-using Epam.Kafka.PubSub.Publication.Pipeline;
 using Epam.Kafka.PubSub.Utils;
 
 using Microsoft.Extensions.Logging;
 
 using System.Diagnostics;
+using Epam.Kafka.PubSub.Common.Pipeline;
 
 namespace Epam.Kafka.PubSub.Publication.Topics;
 
@@ -16,18 +15,17 @@ internal class PublicationSerializeKeyAndValueTopicWrapper<TKey, TValue> : IPubl
 {
     private readonly PublicationTopicWrapper<byte[], byte[]> _inner;
     private readonly ISerializer<TKey> _keySerializer;
-    private readonly PublicationOptions _options;
+    private readonly IPublicationTopicWrapperOptions _options;
     private readonly ISerializer<TValue> _valueSerializer;
 
     public PublicationSerializeKeyAndValueTopicWrapper(
         IKafkaFactory kafkaFactory,
-        PublicationMonitor monitor,
+        PipelineMonitor monitor,
         ProducerConfig config,
-        PublicationOptions options,
+        IPublicationTopicWrapperOptions options,
         ILogger logger,
         ISerializer<TKey>? keySerializer,
-        ISerializer<TValue>? valueSerializer,
-        ProducerPartitioner? partitioner)
+        ISerializer<TValue>? valueSerializer)
     {
         this._options = options ?? throw new ArgumentNullException(nameof(options));
 
@@ -43,9 +41,10 @@ internal class PublicationSerializeKeyAndValueTopicWrapper<TKey, TValue> : IPubl
                                     : throw new ArgumentNullException(nameof(keySerializer),
                                         $"Null serializer for value of type {typeof(TValue)}"));
 
-        this._inner = new PublicationTopicWrapper<byte[], byte[]>(kafkaFactory, monitor, config, options, logger, null,
-            null, partitioner);
+        this._inner = new PublicationTopicWrapper<byte[], byte[]>(kafkaFactory, monitor, config, options, logger, null, null);
     }
+
+    public bool Disposed => this._inner.Disposed;
 
     public bool RequireTransaction => this._inner.RequireTransaction;
     public DateTimeOffset? TransactionEnd => this._inner.TransactionEnd;
@@ -69,6 +68,7 @@ internal class PublicationSerializeKeyAndValueTopicWrapper<TKey, TValue> : IPubl
         IReadOnlyCollection<TopicMessage<TKey, TValue>> items,
         ActivityWrapper activitySpan,
         Stopwatch stopwatch,
+        TimeSpan handlerTimeout,
         CancellationToken cancellationToken)
     {
         Dictionary<TopicMessage<byte[], byte[]>, TopicMessage<TKey, TValue>> serialized = new(items.Count);
@@ -79,7 +79,7 @@ internal class PublicationSerializeKeyAndValueTopicWrapper<TKey, TValue> : IPubl
         {
             foreach (TopicMessage<TKey, TValue> item in items)
             {
-                item.Topic ??= this._options.DefaultTopic;
+                item.Topic ??= this._options.GetDefaultTopic();
 
                 Headers headers = item.Headers ?? new();
 
@@ -124,7 +124,7 @@ internal class PublicationSerializeKeyAndValueTopicWrapper<TKey, TValue> : IPubl
         if (serialized.Count > 0 && result.Count == 0)
         {
             IDictionary<TopicMessage<byte[], byte[]>, DeliveryReport> innerResult =
-                this._inner.Produce(serialized.Keys, activitySpan, stopwatch, cancellationToken);
+                this._inner.Produce(serialized.Keys, activitySpan, stopwatch, handlerTimeout, cancellationToken);
 
             foreach (KeyValuePair<TopicMessage<byte[], byte[]>, DeliveryReport> report in innerResult)
             {

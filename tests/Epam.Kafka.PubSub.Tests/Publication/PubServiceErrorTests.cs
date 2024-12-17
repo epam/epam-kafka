@@ -138,6 +138,7 @@ public class PubServiceErrorTests : TestWithServices, IClassFixture<MockCluster>
             .WithValueSerializer(_ => serializer)
             .WithOptions(options =>
             {
+                options.SerializationPreprocessor = true;
                 options.DefaultTopic = this.AnyTopicName;
                 options.BatchSize = batchSize;
                 if (transaction)

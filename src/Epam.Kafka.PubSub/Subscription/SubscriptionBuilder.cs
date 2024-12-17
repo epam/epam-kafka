@@ -23,7 +23,7 @@ namespace Epam.Kafka.PubSub.Subscription;
 /// </summary>
 /// <typeparam name="TKey">The kafka message key type.</typeparam>
 /// <typeparam name="TValue">The kafka message value type.</typeparam>
-public sealed class
+public class
     SubscriptionBuilder<TKey, TValue> : PubSubBuilder<SubscriptionBuilder<TKey, TValue>, SubscriptionOptions>
 {
     internal SubscriptionBuilder(KafkaBuilder builder, string name, Type handlerType) 

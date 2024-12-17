@@ -19,7 +19,7 @@ using Polly;
 
 namespace Epam.Kafka.PubSub.Subscription;
 
-internal sealed class SubscriptionBackgroundService<TKey, TValue> : PubSubBackgroundService<
+internal class SubscriptionBackgroundService<TKey, TValue> : PubSubBackgroundService<
     SubscriptionOptions, SubscriptionBatchResult, SubscriptionMonitor, SubscriptionTopicWrapper<TKey, TValue>>
 {
     private readonly Type _handlerType;
@@ -130,7 +130,7 @@ internal sealed class SubscriptionBackgroundService<TKey, TValue> : PubSubBackgr
                 from.Select(x => new TopicPartitionOffset(x.Key, x.Value)),
                 to.Select(x => new TopicPartitionOffset(x.Key, x.Value)));
 
-            this.CreateAndExecuteHandler(sp, batch, activitySpan, cancellationToken);
+            this.CreateAndExecuteHandler(sp, topic, batch, activitySpan, cancellationToken);
 
             this.Monitor.Batch.Update(BatchStatus.Commiting);
 
@@ -167,14 +167,13 @@ internal sealed class SubscriptionBackgroundService<TKey, TValue> : PubSubBackgr
         }
     }
 
-    private void CreateAndExecuteHandler(
-        IServiceProvider sp,
+    private void CreateAndExecuteHandler(IServiceProvider sp,
+        SubscriptionTopicWrapper<TKey, TValue> topic,
         IReadOnlyCollection<ConsumeResult<TKey, TValue>> batch,
         ActivityWrapper activitySpan,
         CancellationToken cancellationToken)
     {
-        ISubscriptionHandler<TKey, TValue> handler =
-            sp.ResolveRequiredService<ISubscriptionHandler<TKey, TValue>>(this._handlerType);
+        ISubscriptionHandler<TKey, TValue> handler = this.CreateHandler(sp, activitySpan, topic);
 
         ISyncPolicy handlerPolicy = this.Monitor.Context.GetHandlerPolicy(this.Options);
 
@@ -192,6 +191,14 @@ internal sealed class SubscriptionBackgroundService<TKey, TValue> : PubSubBackgr
                 handler.Execute(batch, ct);
             }
         }, cancellationToken);
+    }
+
+    protected virtual ISubscriptionHandler<TKey, TValue> CreateHandler(IServiceProvider sp, ActivityWrapper activitySpan, SubscriptionTopicWrapper<TKey, TValue> topic)
+    {
+        ISubscriptionHandler<TKey, TValue> handler =
+            sp.ResolveRequiredService<ISubscriptionHandler<TKey, TValue>>(this._handlerType);
+
+        return handler;
     }
 
     private static void PrepareOffsetsToCommit(IEnumerable<ConsumeResult<TKey, TValue>> results,
