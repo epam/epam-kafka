@@ -8,13 +8,13 @@ namespace Epam.Kafka.PubSub.Replication;
 public abstract class ConvertHandler<TKey, TValue, TEntity> : IConvertHandler<TKey, TValue, TEntity>
 {
     /// <inheritdoc />
-    public IReadOnlyCollection<TopicMessage<TKey, TValue>> Convert(IReadOnlyCollection<TEntity> entities)
+    public IReadOnlyCollection<TopicMessage<TKey, TValue>> Convert(IReadOnlyCollection<TEntity> entities, CancellationToken cancellationToken)
     {
         if (entities == null) throw new ArgumentNullException(nameof(entities));
 
         List<TopicMessage<TKey, TValue>> result = new(entities.Count);
 
-        result.AddRange(entities.SelectMany(this.ConvertSingle));
+        result.AddRange(entities.SelectMany(x => this.ConvertSingle(x, cancellationToken)));
 
         return result;
     }
@@ -23,6 +23,7 @@ public abstract class ConvertHandler<TKey, TValue, TEntity> : IConvertHandler<TK
     /// Invoked by <see cref="Convert"/> method to convert single entity.
     /// </summary>
     /// <param name="entity"></param>
+    /// <param name="cancellationToken">The cancellation token</param>
     /// <returns></returns>
-    protected abstract IEnumerable<TopicMessage<TKey, TValue>> ConvertSingle(TEntity entity);
+    protected abstract IEnumerable<TopicMessage<TKey, TValue>> ConvertSingle(TEntity entity, CancellationToken cancellationToken);
 }

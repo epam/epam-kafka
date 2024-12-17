@@ -16,6 +16,7 @@ public interface IConvertHandler<TKey, TValue, in TEntity>
     /// 
     /// </summary>
     /// <param name="entities"></param>
+    /// <param name="cancellationToken">The cancellation token</param>
     /// <returns></returns>
-    IReadOnlyCollection<TopicMessage<TKey, TValue>> Convert(IReadOnlyCollection<TEntity> entities);
+    IReadOnlyCollection<TopicMessage<TKey, TValue>> Convert(IReadOnlyCollection<TEntity> entities, CancellationToken cancellationToken);
 }

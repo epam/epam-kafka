@@ -34,7 +34,7 @@ internal class ReplicationHandler<TSubKey, TSubValue, TPubKey, TPubValue> : ISub
     {
         var stopwatch = Stopwatch.StartNew();
 
-        IReadOnlyCollection<TopicMessage<TPubKey, TPubValue>> converted = this._convertHandler.Convert(items);
+        IReadOnlyCollection<TopicMessage<TPubKey, TPubValue>> converted = this._convertHandler.Convert(items, cancellationToken);
 
         try
         {
