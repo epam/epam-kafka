@@ -28,6 +28,11 @@ Also it is a framework for building pub/sub batch processing applications.
  * Default implementation to publish data from EntityFramework (Core and EF6) context.
  * Support for transactional producers. 
 
+## Samples
+
+ * Dependency injection for Confluent.Kafka consumer, producer, client with named configs and options pattern. 
+
+
 ## Packages
 
  *  [Epam.Kafka](https://www.nuget.org/packages/Epam.Kafka)
