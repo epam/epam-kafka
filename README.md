@@ -30,8 +30,7 @@ Also it is a framework for building pub/sub batch processing applications.
 
 ## Samples
 
- * Dependency injection for Confluent.Kafka consumer, producer, client with named configs and options pattern. 
-
+ * Dependency injection for Confluent.Kafka consumer, producer, client with named configs and options pattern. https://github.com/epam/epam-kafka/tree/develop/sample/ProduceAndConsume
 
 ## Packages
 
