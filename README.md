@@ -40,6 +40,11 @@ Also it is a framework for building pub/sub batch processing applications.
  * Read data from DB using Entity framework core, convert one row to one message, publish message to kafka, and finally update row state in database. https://github.com/epam/epam-kafka/tree/develop/sample/PublishEfCore
  * Read data from DB using Entity framework core, convert one row to multiple messages, publish messages to kafka in single transaction, and finally update row state in database. https://github.com/epam/epam-kafka/tree/develop/sample/PublishEfCoreTransactional
 
+## Samples
+
+ * Dependency injection for Confluent.Kafka consumer, producer, client with named configs and options pattern. 
+
+
 ## Packages
 
  *  [Epam.Kafka](https://www.nuget.org/packages/Epam.Kafka)
