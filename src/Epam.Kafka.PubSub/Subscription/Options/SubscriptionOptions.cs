@@ -4,7 +4,6 @@ using Confluent.Kafka;
 using Confluent.SchemaRegistry;
 
 using Epam.Kafka.PubSub.Common.Options;
-using Epam.Kafka.PubSub.Publication.Topics;
 using Epam.Kafka.PubSub.Replication;
 using Epam.Kafka.PubSub.Subscription.Pipeline;
 using Epam.Kafka.PubSub.Subscription.State;
@@ -16,7 +15,7 @@ namespace Epam.Kafka.PubSub.Subscription.Options;
 /// <summary>
 ///     Options to configure subscription service.
 /// </summary>
-public sealed class SubscriptionOptions : PubSubOptions, IOptions<SubscriptionOptions>, IPublicationTopicWrapperOptions
+public sealed class SubscriptionOptions : PubSubOptions, IOptions<SubscriptionOptions>
 {
     internal Func<Lazy<ISchemaRegistryClient>, object>? KeyDeserializer;
 
@@ -61,38 +60,4 @@ public sealed class SubscriptionOptions : PubSubOptions, IOptions<SubscriptionOp
     public string? Topics { get; set; }
 
     SubscriptionOptions IOptions<SubscriptionOptions>.Value => this;
-    object? IPublicationTopicWrapperOptions.CreateKeySerializer(Lazy<ISchemaRegistryClient> lazySchemaRegistryClient)
-    {
-        return this.Replication.KeySerializer?.Invoke(lazySchemaRegistryClient);
-    }
-
-    object? IPublicationTopicWrapperOptions.CreateValueSerializer(Lazy<ISchemaRegistryClient> lazySchemaRegistryClient)
-    {
-        return this.Replication.ValueSerializer?.Invoke(lazySchemaRegistryClient);
-    }
-
-    ProducerPartitioner IPublicationTopicWrapperOptions.GetPartitioner()
-    {
-        return this.Replication.Partitioner;
-    }
-
-    string? IPublicationTopicWrapperOptions.GetDefaultTopic()
-    {
-        return this.Replication.DefaultTopic;
-    }
-
-    string? IPublicationTopicWrapperOptions.GetProducer()
-    {
-        return this.Replication.Producer;
-    }
-
-    bool? IPublicationTopicWrapperOptions.GetSerializationPreprocessor()
-    {
-        return true;
-    }
-
-    string? IPublicationTopicWrapperOptions.GetCluster()
-    {
-        return this.Replication.Cluster ?? this.Cluster;
-    }
 }

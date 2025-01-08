@@ -6,8 +6,13 @@ namespace Epam.Kafka.PubSub.Publication.Topics;
 
 internal interface IPublicationTopicWrapperOptions
 {
-    object? CreateKeySerializer(Lazy<ISchemaRegistryClient> lazySchemaRegistryClient);
-    object? CreateValueSerializer(Lazy<ISchemaRegistryClient> lazySchemaRegistryClient);
+    Type? GetKeyType();
+    Type? GetValueType();
+
+    Func<Lazy<ISchemaRegistryClient>, object>? GetKeySerializer();
+    Func<Lazy<ISchemaRegistryClient>, object>? GetValueSerializer();
+
+    // can't be public property due to configuration source generation
     ProducerPartitioner GetPartitioner();
     string? GetDefaultTopic();
     string? GetProducer();

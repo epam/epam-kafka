@@ -1,10 +1,9 @@
 ﻿// Copyright © 2024 EPAM Systems
 
 using Confluent.Kafka;
-using Confluent.SchemaRegistry;
 
 using Epam.Kafka.PubSub.Common.Options;
-using Epam.Kafka.PubSub.Publication.Topics;
+
 using Microsoft.Extensions.Options;
 
 namespace Epam.Kafka.PubSub.Publication.Options;
@@ -12,15 +11,8 @@ namespace Epam.Kafka.PubSub.Publication.Options;
 /// <summary>
 ///     Options to configure publication service.
 /// </summary>
-public sealed class PublicationOptions : PubSubOptions, IOptions<PublicationOptions>, IPublicationTopicWrapperOptions
+public sealed partial class PublicationOptions : PubSubOptions, IOptions<PublicationOptions>
 {
-    // can't be public property due to configuration source generation
-    internal readonly ProducerPartitioner Partitioner = new();
-    
-    internal Func<Lazy<ISchemaRegistryClient>, object>? KeySerializer;
-
-    internal Func<Lazy<ISchemaRegistryClient>, object>? ValueSerializer;
-
     /// <summary>
     ///     Initialize the <see cref="PubSubOptions" /> options.
     /// </summary>
@@ -51,38 +43,4 @@ public sealed class PublicationOptions : PubSubOptions, IOptions<PublicationOpti
     public bool? SerializationPreprocessor { get; set; }
 
     PublicationOptions IOptions<PublicationOptions>.Value => this;
-    object? IPublicationTopicWrapperOptions.CreateKeySerializer(Lazy<ISchemaRegistryClient> lazySchemaRegistryClient)
-    {
-        return this.KeySerializer?.Invoke(lazySchemaRegistryClient);
-    }
-
-    object? IPublicationTopicWrapperOptions.CreateValueSerializer(Lazy<ISchemaRegistryClient> lazySchemaRegistryClient)
-    {
-        return this.ValueSerializer?.Invoke(lazySchemaRegistryClient);
-    }
-
-    ProducerPartitioner IPublicationTopicWrapperOptions.GetPartitioner()
-    {
-        return this.Partitioner;
-    }
-
-    string? IPublicationTopicWrapperOptions.GetDefaultTopic()
-    {
-        return this.DefaultTopic;
-    }
-
-    string? IPublicationTopicWrapperOptions.GetProducer()
-    {
-        return this.Producer;
-    }
-
-    string? IPublicationTopicWrapperOptions.GetCluster()
-    {
-        return this.Cluster;
-    }
-
-    bool? IPublicationTopicWrapperOptions.GetSerializationPreprocessor()
-    {
-        return this.SerializationPreprocessor;
-    }
 }

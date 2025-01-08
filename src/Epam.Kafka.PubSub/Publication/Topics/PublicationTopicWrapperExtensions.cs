@@ -30,8 +30,8 @@ internal static class PublicationTopicWrapperExtensions
 
         try
         {
-            ks = (ISerializer<TKey>?)options.CreateKeySerializer(registry);
-            vs = (ISerializer<TValue>?)options.CreateValueSerializer(registry);
+            ks = (ISerializer<TKey>?)options.GetKeySerializer()?.Invoke(registry);
+            vs = (ISerializer<TValue>?)options.GetValueSerializer()?.Invoke(registry);
         }
         catch (Exception exception)
         {

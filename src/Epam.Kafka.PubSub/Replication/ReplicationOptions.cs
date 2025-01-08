@@ -1,7 +1,6 @@
 ﻿// Copyright © 2024 EPAM Systems
 
 using Confluent.Kafka;
-using Confluent.SchemaRegistry;
 
 using Epam.Kafka.PubSub.Publication;
 
@@ -10,16 +9,8 @@ namespace Epam.Kafka.PubSub.Replication;
 /// <summary>
 /// 
 /// </summary>
-public sealed class ReplicationOptions
+public sealed partial class ReplicationOptions
 {
-    internal Type? ConvertHandlerType;
-    // can't be public property due to configuration source generation
-    internal readonly ProducerPartitioner Partitioner = new();
-
-    internal Func<Lazy<ISchemaRegistryClient>, object>? KeySerializer;
-
-    internal Func<Lazy<ISchemaRegistryClient>, object>? ValueSerializer;
-
     /// <summary>
     ///     Topic name for producer. Mandatory setting.
     ///     <remarks>

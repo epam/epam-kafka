@@ -44,8 +44,11 @@ internal sealed class ReplicationBackgroundService<TSubKey, TSubValue, TPubKey, 
             this._pubTopic = null;
         }
 
+        // use same cluster as subscription if not specified explicitly
+        this.Options.Replication.Cluster ??= this.Options.Cluster;
+
         this._pubTopic ??=
-            this.KafkaFactory.CreatePublicationTopicWrapper<TPubKey, TPubValue>(this.Options, this.Monitor, this.Logger);
+            this.KafkaFactory.CreatePublicationTopicWrapper<TPubKey, TPubValue>(this.Options.Replication, this.Monitor, this.Logger);
 
         return new ReplicationHandler<TSubKey, TSubValue, TPubKey, TPubValue>(activitySpan, topic, this._pubTopic, convertHandler);
     }

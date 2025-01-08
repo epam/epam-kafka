@@ -156,6 +156,8 @@ public static class KafkaBuilderExtensions
             .WithOptions(x =>
             {
                 x.Replication.ConvertHandlerType = handlerType;
+                x.Replication.KeyType = typeof(TPubKey);
+                x.Replication.ValueType = typeof(TPubValue);
                 x.Replication.KeySerializer = keySerializer;
                 x.Replication.ValueSerializer = valueSerializer;
                 partitioner?.Invoke(x.Replication.Partitioner);
