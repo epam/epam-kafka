@@ -2,7 +2,7 @@
 
 using Epam.Kafka.PubSub.Publication;
 
-namespace Epam.Kafka.PubSub.Replication;
+namespace Epam.Kafka.PubSub.Subscription.Replication;
 
 /// <summary>
 /// The handler to convert entities to topic messages.

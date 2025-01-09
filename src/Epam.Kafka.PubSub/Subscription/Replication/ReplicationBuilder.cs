@@ -1,14 +1,13 @@
 ﻿// Copyright © 2024 EPAM Systems
 
 using Epam.Kafka.PubSub.Common;
-using Epam.Kafka.PubSub.Subscription;
 using Epam.Kafka.PubSub.Subscription.Options;
 
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
-namespace Epam.Kafka.PubSub.Replication;
+namespace Epam.Kafka.PubSub.Subscription.Replication;
 
 /// <summary>
 ///     Fluent API to configure replication background services behaviour.

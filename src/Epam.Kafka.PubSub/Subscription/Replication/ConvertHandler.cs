@@ -2,7 +2,7 @@
 
 using Epam.Kafka.PubSub.Publication;
 
-namespace Epam.Kafka.PubSub.Replication;
+namespace Epam.Kafka.PubSub.Subscription.Replication;
 
 /// <inheritdoc />
 public abstract class ConvertHandler<TKey, TValue, TEntity> : IConvertHandler<TKey, TValue, TEntity>

@@ -4,7 +4,6 @@ using Confluent.Kafka;
 
 using Epam.Kafka.PubSub.Common;
 using Epam.Kafka.PubSub.Publication.Topics;
-using Epam.Kafka.PubSub.Subscription;
 using Epam.Kafka.PubSub.Subscription.Options;
 using Epam.Kafka.PubSub.Subscription.Pipeline;
 using Epam.Kafka.PubSub.Subscription.Topics;
@@ -13,7 +12,7 @@ using Epam.Kafka.PubSub.Utils;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-namespace Epam.Kafka.PubSub.Replication;
+namespace Epam.Kafka.PubSub.Subscription.Replication;
 
 internal sealed class ReplicationBackgroundService<TSubKey, TSubValue, TPubKey, TPubValue> : SubscriptionBackgroundService<TSubKey, TSubValue>
 {
@@ -40,9 +39,7 @@ internal sealed class ReplicationBackgroundService<TSubKey, TSubValue, TPubKey, 
 
         // recreate publisher if needed
         if (this._pubTopic?.Disposed ?? false)
-        {
             this._pubTopic = null;
-        }
 
         // use same cluster as subscription if not specified explicitly
         this.Options.Replication.Cluster ??= this.Options.Cluster;
@@ -58,8 +55,6 @@ internal sealed class ReplicationBackgroundService<TSubKey, TSubValue, TPubKey, 
         base.Dispose();
 
         if (this._pubTopic is { Disposed: false })
-        {
             this._pubTopic.Dispose();
-        }
     }
 }

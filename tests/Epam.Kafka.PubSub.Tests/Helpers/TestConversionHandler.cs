@@ -3,7 +3,7 @@
 using Confluent.Kafka;
 
 using Epam.Kafka.PubSub.Publication;
-using Epam.Kafka.PubSub.Replication;
+using Epam.Kafka.PubSub.Subscription.Replication;
 using Epam.Kafka.Tests.Common;
 
 using Moq;
