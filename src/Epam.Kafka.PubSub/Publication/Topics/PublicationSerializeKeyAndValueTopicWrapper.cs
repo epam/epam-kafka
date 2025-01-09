@@ -2,12 +2,12 @@
 
 using Confluent.Kafka;
 
+using Epam.Kafka.PubSub.Common.Pipeline;
 using Epam.Kafka.PubSub.Utils;
 
 using Microsoft.Extensions.Logging;
 
 using System.Diagnostics;
-using Epam.Kafka.PubSub.Common.Pipeline;
 
 namespace Epam.Kafka.PubSub.Publication.Topics;
 

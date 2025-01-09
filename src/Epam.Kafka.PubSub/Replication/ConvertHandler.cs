@@ -22,7 +22,7 @@ public abstract class ConvertHandler<TKey, TValue, TEntity> : IConvertHandler<TK
     /// <summary>
     /// Invoked by <see cref="Convert"/> method to convert single entity.
     /// </summary>
-    /// <param name="entity"></param>
+    /// <param name="entity">The entity from which topic messages should be produced</param>
     /// <param name="cancellationToken">The cancellation token</param>
     /// <returns></returns>
     protected abstract IEnumerable<TopicMessage<TKey, TValue>> ConvertSingle(TEntity entity, CancellationToken cancellationToken);

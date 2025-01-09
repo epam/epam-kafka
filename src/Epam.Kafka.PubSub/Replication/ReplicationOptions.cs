@@ -21,12 +21,12 @@ public sealed partial class ReplicationOptions
     public string? DefaultTopic { get; set; }
 
     /// <summary>
-    ///     The logical name for <see cref="IProducer{TKey,TValue}" /> to create it using <see cref="IKafkaFactory" />
+    ///     The logical name for <see cref="ProducerConfig"/> that will be used by <see cref="IKafkaFactory" /> to create <see cref="IProducer{TKey,TValue}" />
     /// </summary>
     public string? Producer { get; set; }
 
     /// <summary>
-    /// 
+    /// The logical name for <see cref="ClientConfig"/> that will be used by <see cref="IKafkaFactory" /> to create <see cref="IProducer{TKey,TValue}" />
     /// </summary>
     public string? Cluster { get; set; }
 }

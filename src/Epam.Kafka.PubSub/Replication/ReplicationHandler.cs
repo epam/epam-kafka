@@ -1,12 +1,14 @@
 ﻿// Copyright © 2024 EPAM Systems
 
 using Confluent.Kafka;
-using Epam.Kafka.PubSub.Publication.Topics;
+
 using Epam.Kafka.PubSub.Publication;
-using Epam.Kafka.PubSub.Utils;
-using System.Diagnostics;
+using Epam.Kafka.PubSub.Publication.Topics;
 using Epam.Kafka.PubSub.Subscription;
 using Epam.Kafka.PubSub.Subscription.Topics;
+using Epam.Kafka.PubSub.Utils;
+
+using System.Diagnostics;
 
 namespace Epam.Kafka.PubSub.Replication;
 

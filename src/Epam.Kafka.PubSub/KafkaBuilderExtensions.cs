@@ -127,7 +127,7 @@ public static class KafkaBuilderExtensions
     /// <typeparam name="THandler">The <see cref="IConvertHandler{TKey,TValue,TEntity}" /> implementation type.</typeparam>
     /// <returns><inheritdoc cref="AddSubscription{TKey,TValue,THandler}"/></returns>
     /// <exception cref="ArgumentNullException"></exception>
-    public static SubscriptionBuilder<TSubKey,TSubValue> AddReplication<TSubKey, TSubValue, TPubKey, TPubValue, THandler>(
+    public static SubscriptionBuilder<TSubKey, TSubValue> AddReplication<TSubKey, TSubValue, TPubKey, TPubValue, THandler>(
         this KafkaBuilder builder,
         string name,
         ServiceLifetime handlerLifetime = ServiceLifetime.Transient,

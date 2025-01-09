@@ -13,7 +13,7 @@ public sealed partial class PublicationOptions : IPublicationTopicWrapperOptions
 {
     // can't be public property due to configuration source generation
     internal readonly ProducerPartitioner Partitioner = new();
-    
+
     internal Func<Lazy<ISchemaRegistryClient>, object>? KeySerializer;
 
     internal Func<Lazy<ISchemaRegistryClient>, object>? ValueSerializer;
