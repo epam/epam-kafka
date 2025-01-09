@@ -8,6 +8,7 @@ using Epam.Kafka.PubSub.Subscription.Topics;
 using Epam.Kafka.PubSub.Utils;
 
 using System.Diagnostics;
+using Epam.Kafka.PubSub.Subscription.State;
 
 namespace Epam.Kafka.PubSub.Subscription.Replication;
 
@@ -37,6 +38,12 @@ internal class ReplicationHandler<TSubKey, TSubValue, TPubKey, TPubValue> : ISub
 
         IReadOnlyCollection<TopicMessage<TPubKey, TPubValue>> converted = this._convertHandler.Convert(items, cancellationToken);
 
+        // nothing to produce, simply return and commit offsets irrespective of transaction usage
+        if (converted.Count == 0)
+        {
+            return;
+        }
+
         try
         {
             IDictionary<TopicMessage<TPubKey, TPubValue>, DeliveryReport> reports =
@@ -54,8 +61,20 @@ internal class ReplicationHandler<TSubKey, TSubValue, TPubKey, TPubValue> : ISub
                 }
             }
 
-            this._pubTopic.CommitTransactionIfNeeded(this._activitySpan);
+            // transaction in same cluster with offsets stored in broker
+            if (this._subTopic.Options.StateType == typeof(InternalKafkaState) 
+                && this._pubTopic.RequireTransaction 
+                && this._subTopic.Options.Cluster == this._subTopic.Options.Replication.Cluster)
+            {
+                items.GetOffsetsRange(out _, out IDictionary<TopicPartition, Offset> to);
 
+                this._pubTopic.SendOffsetsToTransactionIfNeeded(
+                    this._activitySpan,
+                    this._subTopic.Consumer.ConsumerGroupMetadata,
+                    to.PrepareOffsetsToCommit());
+            }
+
+            this._pubTopic.CommitTransactionIfNeeded(this._activitySpan);
         }
 #pragma warning disable CA1031
         catch (Exception e1)

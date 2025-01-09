@@ -62,6 +62,23 @@ public class TestConversionHandler : IterationMock<IConvertHandler<string, TestE
         return this;
     }
 
+    public TestConversionHandler WithEmpty(int iteration, params TestEntityKafka[] entities)
+    {
+        Mock<IConvertHandler<string, TestEntityKafka, ConsumeResult<string, TestEntityKafka>>> mock = this.SetupForIteration(iteration);
+
+        TopicMessage<string, TestEntityKafka>[] messages = entities.Select(x => new TopicMessage<string, TestEntityKafka> { Key = x.Id, Value = x })
+            .ToArray();
+
+        ConsumeResult<string, TestEntityKafka>[] result = messages.Select(x =>
+            new ConsumeResult<string, TestEntityKafka> { Message = x }).ToArray();
+
+        SetupConvert(mock, result)
+            .Returns(Array.Empty<TopicMessage<string, TestEntityKafka>>())
+            .Verifiable(Times.Once, $"Convert entities at {iteration} iteration");
+
+        return this;
+    }
+
     public void WithError(int iteration, Exception exception, params TestEntityKafka[] entities)
     {
         Mock<IConvertHandler<string, TestEntityKafka, ConsumeResult<string, TestEntityKafka>>> mock = this.SetupForIteration(iteration);

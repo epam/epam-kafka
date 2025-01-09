@@ -144,6 +144,29 @@ internal class PublicationTopicWrapper<TKey, TValue> : IPublicationTopicWrapper<
         }
     }
 
+    public void SendOffsetsToTransactionIfNeeded(ActivityWrapper apm,
+        IConsumerGroupMetadata metadata, IReadOnlyCollection<TopicPartitionOffset> offsets)
+    {
+        if (this.RequireTransaction && offsets.Count > 0)
+        {
+            using (ActivityWrapper span = apm.CreateSpan("offsets_transaction"))
+            {
+                try
+                {
+                    this.Producer.SendOffsetsToTransaction(offsets, metadata, TimeSpan.FromSeconds(5));
+                }
+                catch (Exception e)
+                {
+                    span.SetResult(e);
+
+                    throw;
+                }
+            }
+
+            this.Logger.OffsetsSendToTransaction(this.Monitor.Name, offsets);
+        }
+    }
+
     public void AbortTransactionIfNeeded(ActivityWrapper apm)
     {
         if (this.RequireTransaction && this._transactionActive)

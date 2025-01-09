@@ -123,7 +123,8 @@ internal class SubscriptionBackgroundService<TKey, TValue> : PubSubBackgroundSer
 
         if (batch.Count > 0)
         {
-            PrepareOffsetsToCommit(batch, out IDictionary<TopicPartition, Offset>? from,
+            batch.GetOffsetsRange(
+                out IDictionary<TopicPartition, Offset>? from,
                 out IDictionary<TopicPartition, Offset>? to);
 
             this.Logger.SubBatchBegin(this.Monitor.Name, batch.Count,
@@ -134,9 +135,9 @@ internal class SubscriptionBackgroundService<TKey, TValue> : PubSubBackgroundSer
 
             this.Monitor.Batch.Update(BatchStatus.Commiting);
 
-            // offset of processed message + 1
             state.CommitResults(topic, activitySpan,
-                to.Select(x => new TopicPartitionOffset(x.Key, x.Value + 1)).ToList(), cancellationToken);
+                // offset of processed message + 1
+                to.PrepareOffsetsToCommit(), cancellationToken);
 
             this.Monitor.Result.Update(SubscriptionBatchResult.Processed);
         }
@@ -199,35 +200,5 @@ internal class SubscriptionBackgroundService<TKey, TValue> : PubSubBackgroundSer
             sp.ResolveRequiredService<ISubscriptionHandler<TKey, TValue>>(this._handlerType);
 
         return handler;
-    }
-
-    private static void PrepareOffsetsToCommit(IEnumerable<ConsumeResult<TKey, TValue>> results,
-        out IDictionary<TopicPartition, Offset> from, out IDictionary<TopicPartition, Offset> to)
-    {
-        from = new Dictionary<TopicPartition, Offset>();
-        to = new Dictionary<TopicPartition, Offset>();
-
-        foreach (ConsumeResult<TKey, TValue> item in results)
-        {
-            if (!to.TryGetValue(item.TopicPartition, out Offset currentTo))
-            {
-                to.Add(item.TopicPartition, item.Offset);
-            }
-
-            if (!from.TryGetValue(item.TopicPartition, out Offset currentFrom))
-            {
-                from.Add(item.TopicPartition, item.Offset);
-            }
-
-            if (item.Offset.Value > currentTo)
-            {
-                to[item.TopicPartition] = item.Offset;
-            }
-
-            if (item.Offset.Value < currentFrom)
-            {
-                from[item.TopicPartition] = item.Offset;
-            }
-        }
     }
 }

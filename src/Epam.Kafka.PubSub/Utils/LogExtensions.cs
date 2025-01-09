@@ -244,4 +244,12 @@ internal static partial class LogExtensions
         Level = LogLevel.Error,
         Message = "Entity of type {EntityType} convert to message error handled.")]
     public static partial void ConvertError(this ILogger logger, Exception exception, Type entityType);
+
+    [LoggerMessage(
+        EventId = 93,
+        EventName = "OffsetsSendToTransaction",
+        Level = LogLevel.Information,
+        Message = "Offsets send to transaction for '{IndexedKey}'. {TopicPartitionOffsets}")]
+    public static partial void OffsetsSendToTransaction(this ILogger logger, string indexedKey,
+        IEnumerable<TopicPartitionOffset> topicPartitionOffsets);
 }

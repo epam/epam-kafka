@@ -59,6 +59,12 @@ internal class PublicationSerializeKeyAndValueTopicWrapper<TKey, TValue> : IPubl
         this._inner.CommitTransactionIfNeeded(apm);
     }
 
+    public void SendOffsetsToTransactionIfNeeded(ActivityWrapper apm, IConsumerGroupMetadata metadata,
+        IReadOnlyCollection<TopicPartitionOffset> offsets)
+    {
+        this._inner.SendOffsetsToTransactionIfNeeded(apm, metadata, offsets);
+    }
+
     public void AbortTransactionIfNeeded(ActivityWrapper apm)
     {
         this._inner.AbortTransactionIfNeeded(apm);
