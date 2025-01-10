@@ -35,16 +35,7 @@ public class ReplicationTests : TestWithServices, IClassFixture<MockCluster>
 
         KafkaBuilder kafkaBuilder = this._mockCluster.LaunchMockCluster(observer.Test);
 
-        // dedicated unique group for each test to avoid Group re-balance in progress exception on parallel test runs.
-        kafkaBuilder.WithConsumerConfig(MockCluster.DefaultConsumer)
-            .Configure(x =>
-            {
-                x.ConsumerConfig.GroupId = observer.Name;
-                x.ConsumerConfig.SessionTimeoutMs = 10_000;
-                x.ConsumerConfig.AutoOffsetReset = AutoOffsetReset.Earliest;
-                x.ConsumerConfig.SetCancellationDelayMaxMs(2000);
-                x.ConsumerConfig.PartitionAssignmentStrategy = PartitionAssignmentStrategy.CooperativeSticky;
-            });
+        kafkaBuilder.WithDefaultConsumer(observer);
 
         kafkaBuilder
             .AddReplication<string, TestEntityKafka, string, TestEntityKafka, TestConversionHandler>(observer.Name, ServiceLifetime.Scoped,valueSerializer: _ => serializer)
@@ -126,16 +117,7 @@ public class ReplicationTests : TestWithServices, IClassFixture<MockCluster>
 
         KafkaBuilder kafkaBuilder = this._mockCluster.LaunchMockCluster(observer.Test);
 
-        // dedicated unique group for each test to avoid Group re-balance in progress exception on parallel test runs.
-        kafkaBuilder.WithConsumerConfig(MockCluster.DefaultConsumer)
-            .Configure(x =>
-            {
-                x.ConsumerConfig.GroupId = observer.Name;
-                x.ConsumerConfig.SessionTimeoutMs = 10_000;
-                x.ConsumerConfig.AutoOffsetReset = AutoOffsetReset.Earliest;
-                x.ConsumerConfig.SetCancellationDelayMaxMs(2000);
-                x.ConsumerConfig.PartitionAssignmentStrategy = PartitionAssignmentStrategy.CooperativeSticky;
-            });
+        kafkaBuilder.WithDefaultConsumer(observer);
 
         kafkaBuilder
             .AddReplication<string, TestEntityKafka, string, TestEntityKafka, TestConversionHandler>(observer.Name, ServiceLifetime.Scoped, valueSerializer: _ => serializer)
@@ -213,16 +195,7 @@ public class ReplicationTests : TestWithServices, IClassFixture<MockCluster>
 
         KafkaBuilder kafkaBuilder = this._mockCluster.LaunchMockCluster(observer.Test);
 
-        // dedicated unique group for each test to avoid Group re-balance in progress exception on parallel test runs.
-        kafkaBuilder.WithConsumerConfig(MockCluster.DefaultConsumer)
-            .Configure(x =>
-            {
-                x.ConsumerConfig.GroupId = observer.Name;
-                x.ConsumerConfig.SessionTimeoutMs = 10_000;
-                x.ConsumerConfig.AutoOffsetReset = AutoOffsetReset.Earliest;
-                x.ConsumerConfig.SetCancellationDelayMaxMs(2000);
-                x.ConsumerConfig.PartitionAssignmentStrategy = PartitionAssignmentStrategy.CooperativeSticky;
-            });
+        kafkaBuilder.WithDefaultConsumer(observer);
 
         kafkaBuilder.WithProducerConfig(MockCluster.TransactionalProducer)
             .Configure(x =>
@@ -325,16 +298,7 @@ public class ReplicationTests : TestWithServices, IClassFixture<MockCluster>
 
         KafkaBuilder kafkaBuilder = this._mockCluster.LaunchMockCluster(observer.Test);
 
-        // dedicated unique group for each test to avoid Group re-balance in progress exception on parallel test runs.
-        kafkaBuilder.WithConsumerConfig(MockCluster.DefaultConsumer)
-            .Configure(x =>
-            {
-                x.ConsumerConfig.GroupId = observer.Name;
-                x.ConsumerConfig.SessionTimeoutMs = 10_000;
-                x.ConsumerConfig.AutoOffsetReset = AutoOffsetReset.Earliest;
-                x.ConsumerConfig.SetCancellationDelayMaxMs(2000);
-                x.ConsumerConfig.PartitionAssignmentStrategy = PartitionAssignmentStrategy.CooperativeSticky;
-            });
+        kafkaBuilder.WithDefaultConsumer(observer);
 
         const string testMock = "testMock";
         kafkaBuilder.WithClusterConfig(testMock).Configure(options =>
