@@ -94,6 +94,8 @@ namespace Epam.Kafka.PubSub
     {
         public static Epam.Kafka.PubSub.Publication.PublicationBuilder<TKey, TValue> AddPublication<TKey, TValue, THandler>(this Epam.Kafka.KafkaBuilder builder, string name, Microsoft.Extensions.DependencyInjection.ServiceLifetime handlerLifetime = 2)
             where THandler : Epam.Kafka.PubSub.Publication.IPublicationHandler<TKey, TValue> { }
+        public static Epam.Kafka.PubSub.Subscription.SubscriptionBuilder<TSubKey, TSubValue> AddReplication<TSubKey, TSubValue, TPubKey, TPubValue, THandler>(this Epam.Kafka.KafkaBuilder builder, string name, Microsoft.Extensions.DependencyInjection.ServiceLifetime handlerLifetime = 2, System.Func<System.Lazy<Confluent.SchemaRegistry.ISchemaRegistryClient>, Confluent.Kafka.ISerializer<TPubKey>>? keySerializer = null, System.Func<System.Lazy<Confluent.SchemaRegistry.ISchemaRegistryClient>, Confluent.Kafka.ISerializer<TPubValue>>? valueSerializer = null, System.Action<Epam.Kafka.ProducerPartitioner>? partitioner = null)
+            where THandler : Epam.Kafka.PubSub.Subscription.Replication.IConvertHandler<TPubKey, TPubValue, Confluent.Kafka.ConsumeResult<TSubKey, TSubValue>> { }
         public static Epam.Kafka.PubSub.Subscription.SubscriptionBuilder<TKey, TValue> AddSubscription<TKey, TValue, THandler>(this Epam.Kafka.KafkaBuilder builder, string name, Microsoft.Extensions.DependencyInjection.ServiceLifetime handlerLifetime = 2)
             where THandler : Epam.Kafka.PubSub.Subscription.ISubscriptionHandler<TKey, TValue> { }
         public static Epam.Kafka.KafkaBuilder WithPubSubSummaryHealthCheck(this Epam.Kafka.KafkaBuilder builder, System.Collections.Generic.IEnumerable<string>? tags = null, Microsoft.Extensions.Diagnostics.HealthChecks.HealthStatus? failureStatus = default) { }
@@ -184,7 +186,7 @@ namespace Epam.Kafka.PubSub.Subscription
     {
         void Execute(System.Collections.Generic.IReadOnlyCollection<Confluent.Kafka.ConsumeResult<TKey, TValue>> items, System.Threading.CancellationToken cancellationToken);
     }
-    public sealed class SubscriptionBuilder<TKey, TValue> : Epam.Kafka.PubSub.Common.PubSubBuilder<Epam.Kafka.PubSub.Subscription.SubscriptionBuilder<TKey, TValue>, Epam.Kafka.PubSub.Subscription.Options.SubscriptionOptions>
+    public class SubscriptionBuilder<TKey, TValue> : Epam.Kafka.PubSub.Common.PubSubBuilder<Epam.Kafka.PubSub.Subscription.SubscriptionBuilder<TKey, TValue>, Epam.Kafka.PubSub.Subscription.Options.SubscriptionOptions>
     {
         public Epam.Kafka.PubSub.Subscription.SubscriptionBuilder<TKey, TValue> WithAssignAndExternalOffsets() { }
         public Epam.Kafka.PubSub.Subscription.SubscriptionBuilder<TKey, TValue> WithAssignAndExternalOffsets<TOffsetsStorage>()
@@ -217,6 +219,7 @@ namespace Epam.Kafka.PubSub.Subscription.Options
         public System.TimeSpan BatchPausedTimeout { get; set; }
         public string? Consumer { get; set; }
         public bool ExternalStateCommitToKafka { get; set; }
+        public Epam.Kafka.PubSub.Subscription.Replication.ReplicationOptions Replication { get; }
         public string? Topics { get; set; }
     }
     public static class SubscriptionOptionsExtensions
@@ -240,5 +243,25 @@ namespace Epam.Kafka.PubSub.Subscription.Pipeline
     public class SubscriptionMonitor : Epam.Kafka.PubSub.Common.Pipeline.PubSubMonitor<Epam.Kafka.PubSub.Subscription.Pipeline.SubscriptionBatchResult>
     {
         public const string Prefix = "Epam.Kafka.Subscription";
+    }
+}
+namespace Epam.Kafka.PubSub.Subscription.Replication
+{
+    public abstract class ConvertHandler<TKey, TValue, TEntity> : Epam.Kafka.PubSub.Subscription.Replication.IConvertHandler<TKey, TValue, TEntity>
+    {
+        protected ConvertHandler() { }
+        public System.Collections.Generic.IReadOnlyCollection<Epam.Kafka.PubSub.Publication.TopicMessage<TKey, TValue>> Convert(System.Collections.Generic.IReadOnlyCollection<TEntity> entities, System.Threading.CancellationToken cancellationToken) { }
+        protected abstract System.Collections.Generic.IEnumerable<Epam.Kafka.PubSub.Publication.TopicMessage<TKey, TValue>> ConvertSingle(TEntity entity, System.Threading.CancellationToken cancellationToken);
+    }
+    public interface IConvertHandler<TKey, TValue, in TEntity>
+    {
+        System.Collections.Generic.IReadOnlyCollection<Epam.Kafka.PubSub.Publication.TopicMessage<TKey, TValue>> Convert(System.Collections.Generic.IReadOnlyCollection<TEntity> entities, System.Threading.CancellationToken cancellationToken);
+    }
+    public sealed class ReplicationOptions
+    {
+        public ReplicationOptions() { }
+        public string? Cluster { get; set; }
+        public string? DefaultTopic { get; set; }
+        public string? Producer { get; set; }
     }
 }

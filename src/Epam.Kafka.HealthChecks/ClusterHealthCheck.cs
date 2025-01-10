@@ -3,6 +3,7 @@
 using Confluent.Kafka;
 using Confluent.Kafka.Admin;
 using Confluent.SchemaRegistry;
+
 using Epam.Kafka.Internals;
 using Epam.Kafka.Options;
 

@@ -1,6 +1,7 @@
 ﻿// Copyright © 2024 EPAM Systems
 
 using Epam.Kafka.PubSub.Common.Options;
+using Epam.Kafka.PubSub.Publication.Topics;
 using Epam.Kafka.PubSub.Utils;
 
 using Microsoft.Extensions.Options;
@@ -23,9 +24,7 @@ internal class PublicationOptionsValidate : IValidateOptions<PublicationOptions>
 
         string? result = PubSubOptionsValidate.GetFirstFailure(options);
 
-        result ??= options.ValidateString(x => x.DefaultTopic, regex: RegexHelper.TopicNameRegex);
-
-        result ??= ValidateSerializers(options);
+        result ??= ValidateInternal(options);
 
         if (result != null)
         {
@@ -35,18 +34,29 @@ internal class PublicationOptionsValidate : IValidateOptions<PublicationOptions>
         return ValidateOptionsResult.Success;
     }
 
-    private static string? ValidateSerializers(PublicationOptions options)
+    public static string? ValidateInternal(IPublicationTopicWrapperOptions options)
     {
-        if (options.KeyType != null && options.KeySerializer == null &&
-            !SerializationHelper.DefaultSerializers.TryGetValue(options.KeyType, out _))
+        string? result = PubSubOptionsValidate.ValidateString(nameof(PublicationOptions.DefaultTopic), options.GetDefaultTopic(), regex: RegexHelper.TopicNameRegex);
+
+        if (result != null)
         {
-            return $"Custom serializer not set for non default key type {options.KeyType}.";
+            return result;
         }
 
-        if (options.ValueType != null && options.ValueSerializer == null &&
-            !SerializationHelper.DefaultSerializers.TryGetValue(options.ValueType, out _))
+        Type? keyType = options.GetKeyType();
+
+        if (keyType != null && options.GetKeySerializer() == null &&
+            !SerializationHelper.DefaultSerializers.TryGetValue(keyType, out _))
         {
-            return $"Custom serializer not set for non default value type {options.ValueType}.";
+            return $"Custom serializer not set for non default key type {keyType}.";
+        }
+
+        Type? valueType = options.GetValueType();
+
+        if (valueType != null && options.GetValueSerializer() == null &&
+            !SerializationHelper.DefaultSerializers.TryGetValue(valueType, out _))
+        {
+            return $"Custom serializer not set for non default value type {valueType}.";
         }
 
         return null;

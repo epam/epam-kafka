@@ -1,5 +1,8 @@
 ﻿// Copyright © 2024 EPAM Systems
 
+using Confluent.Kafka;
+using Confluent.SchemaRegistry;
+
 using Epam.Kafka.PubSub.Common;
 using Epam.Kafka.PubSub.Common.HealthChecks;
 using Epam.Kafka.PubSub.Publication;
@@ -8,6 +11,7 @@ using Epam.Kafka.PubSub.Publication.Pipeline;
 using Epam.Kafka.PubSub.Subscription;
 using Epam.Kafka.PubSub.Subscription.Options;
 using Epam.Kafka.PubSub.Subscription.Pipeline;
+using Epam.Kafka.PubSub.Subscription.Replication;
 
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -27,10 +31,10 @@ public static class KafkaBuilderExtensions
     ///     <see cref="ISubscriptionHandler{TKey,TValue}.Execute" /> to process them.
     /// </summary>
     /// <param name="builder">The <see cref="KafkaBuilder" />.</param>
-    /// <param name="name">The name to identity subscription.</param>
+    /// <param name="name">The name to identify subscription.</param>
     /// <param name="handlerLifetime">
     ///     The <see cref="ServiceLifetime" /> for <see cref="ISubscriptionHandler{TKey,TValue}" />
-    ///     implementation. Default <c>ServiceLifetime.Transient</c>
+    ///     implementation. Default <c><see cref="ServiceLifetime.Transient"/></c>
     /// </param>
     /// <typeparam name="TKey">The message key type.</typeparam>
     /// <typeparam name="TValue">The message value type.</typeparam>
@@ -67,10 +71,10 @@ public static class KafkaBuilderExtensions
     ///     get messages and manage their state.
     /// </summary>
     /// <param name="builder">The <see cref="KafkaBuilder" />.</param>
-    /// <param name="name">The name to identity publication.</param>
+    /// <param name="name">The name to identify publication.</param>
     /// <param name="handlerLifetime">
     ///     The <see cref="ServiceLifetime" /> for <see cref="IPublicationHandler{TKey,TValue}" />
-    ///     implementation. Default <c>ServiceLifetime.Transient</c>
+    ///     implementation. Default <c><see cref="ServiceLifetime.Transient"/></c>
     /// </param>
     /// <typeparam name="TKey">The message key type.</typeparam>
     /// <typeparam name="TValue">The message value type.</typeparam>
@@ -100,6 +104,64 @@ public static class KafkaBuilderExtensions
         TryRegisterHandler(builder.Services, handlerType, handlerLifetime);
 
         return new PublicationBuilder<TKey, TValue>(builder, name, handlerType);
+    }
+
+    /// <summary>
+    ///     Add subscription that will consume messages from kafka, then invoke
+    ///     <see cref="IConvertHandler{TKey,TValue,TEntity}.Convert" /> to convert them,
+    ///    and finally publish result of conversion to kafka.
+    /// </summary>
+    /// <param name="builder">The <see cref="KafkaBuilder" />.</param>
+    /// <param name="name">The name to identify subscription.</param>
+    /// <param name="handlerLifetime">
+    ///     The <see cref="ServiceLifetime" /> for <see cref="IConvertHandler{TKey,TValue,TEntity}" />
+    ///     implementation. Default <c><see cref="ServiceLifetime.Transient"/></c>
+    /// </param>
+    /// <param name="keySerializer">The output message key serializer factory</param>
+    /// <param name="valueSerializer">The output message value serializer factory</param>
+    /// <param name="partitioner">The output message partitioner configuration</param>
+    /// <typeparam name="TSubKey">The input message key type.</typeparam>
+    /// <typeparam name="TSubValue">The input message value type.</typeparam>
+    /// <typeparam name="TPubKey">The output message key type.</typeparam>
+    /// <typeparam name="TPubValue">The output message value type.</typeparam>
+    /// <typeparam name="THandler">The <see cref="IConvertHandler{TKey,TValue,TEntity}" /> implementation type.</typeparam>
+    /// <returns><inheritdoc cref="AddSubscription{TKey,TValue,THandler}"/></returns>
+    /// <exception cref="ArgumentNullException"></exception>
+    public static SubscriptionBuilder<TSubKey, TSubValue> AddReplication<TSubKey, TSubValue, TPubKey, TPubValue, THandler>(
+        this KafkaBuilder builder,
+        string name,
+        ServiceLifetime handlerLifetime = ServiceLifetime.Transient,
+        Func<Lazy<ISchemaRegistryClient>, ISerializer<TPubKey>>? keySerializer = null,
+        Func<Lazy<ISchemaRegistryClient>, ISerializer<TPubValue>>? valueSerializer = null,
+        Action<ProducerPartitioner>? partitioner = null)
+        where THandler : IConvertHandler<TPubKey, TPubValue, ConsumeResult<TSubKey, TSubValue>>
+    {
+        if (builder == null)
+        {
+            throw new ArgumentNullException(nameof(builder));
+        }
+
+        if (name == null)
+        {
+            throw new ArgumentNullException(nameof(name));
+        }
+
+        builder.GetOrCreateContext().AddReplication(name);
+
+        Type handlerType = typeof(THandler);
+
+        TryRegisterHandler(builder.Services, handlerType, handlerLifetime);
+
+        return new ReplicationBuilder<TSubKey, TSubValue, TPubKey, TPubValue>(builder, name)
+            .WithOptions(x =>
+            {
+                x.Replication.ConvertHandlerType = handlerType;
+                x.Replication.KeyType = typeof(TPubKey);
+                x.Replication.ValueType = typeof(TPubValue);
+                x.Replication.KeySerializer = keySerializer;
+                x.Replication.ValueSerializer = valueSerializer;
+                partitioner?.Invoke(x.Replication.Partitioner);
+            });
     }
 
     /// <summary>

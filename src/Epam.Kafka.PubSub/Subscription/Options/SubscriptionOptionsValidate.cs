@@ -1,10 +1,13 @@
 ﻿// Copyright © 2024 EPAM Systems
 
 using Epam.Kafka.PubSub.Common.Options;
+using Epam.Kafka.PubSub.Publication.Options;
 using Epam.Kafka.PubSub.Subscription.State;
 using Epam.Kafka.PubSub.Utils;
 
 using Microsoft.Extensions.Options;
+
+using ReplicationOptions = Epam.Kafka.PubSub.Subscription.Replication.ReplicationOptions;
 
 namespace Epam.Kafka.PubSub.Subscription.Options;
 
@@ -29,12 +32,27 @@ internal class SubscriptionOptionsValidate : IValidateOptions<SubscriptionOption
 
         result ??= ValidateSerializers(options);
 
+        result ??= ValidateReplication(options.Replication);
+
         if (result != null)
         {
             return ValidateOptionsResult.Fail($"Subscription '{name}' configuration not valid: {result}");
         }
 
         return ValidateOptionsResult.Success;
+    }
+
+    private static string? ValidateReplication(ReplicationOptions options)
+    {
+        string? result = null;
+
+        // replication enabled
+        if (options.ConvertHandlerType != null)
+        {
+            result = PublicationOptionsValidate.ValidateInternal(options);
+        }
+
+        return result;
     }
 
     private static string? ValidateSerializers(SubscriptionOptions options)

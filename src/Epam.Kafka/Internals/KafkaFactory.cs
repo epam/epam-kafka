@@ -217,7 +217,7 @@ internal sealed class KafkaFactory : IKafkaFactory, IDisposable
                 {
                     throw;
                 }
-            } 
+            }
         }
 
         ILogger logger = this._loggerFactory.CreateLogger(LoggerCategoryName);
@@ -236,7 +236,7 @@ internal sealed class KafkaFactory : IKafkaFactory, IDisposable
 
             throw;
         }
-        
+
         return producer;
     }
 

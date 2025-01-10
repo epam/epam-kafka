@@ -9,6 +9,8 @@ using Epam.Kafka.PubSub.Subscription.State;
 
 using Microsoft.Extensions.Options;
 
+using ReplicationOptions = Epam.Kafka.PubSub.Subscription.Replication.ReplicationOptions;
+
 namespace Epam.Kafka.PubSub.Subscription.Options;
 
 /// <summary>
@@ -20,6 +22,11 @@ public sealed class SubscriptionOptions : PubSubOptions, IOptions<SubscriptionOp
 
     internal Type StateType = typeof(InternalKafkaState);
     internal Func<Lazy<ISchemaRegistryClient>, object>? ValueDeserializer;
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public ReplicationOptions Replication { get; } = new();
 
     /// <summary>
     ///     The logical name for <see cref="IConsumer{TKey,TValue}" /> to create it using <see cref="IKafkaFactory" />
