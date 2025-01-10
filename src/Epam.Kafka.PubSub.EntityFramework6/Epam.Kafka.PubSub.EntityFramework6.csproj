@@ -26,12 +26,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="EntityFramework" Version="6.4.4" />
-	</ItemGroup>
-
-	<ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.1'">
-		<!--security scan fixes-->
-		<PackageReference Include="System.Data.SqlClient" Version="4.8.6" />
+		<PackageReference Include="EntityFramework" Version="6.5.1" />
 	</ItemGroup>
 
 	<ItemGroup>
