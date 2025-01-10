@@ -19,7 +19,7 @@ using Polly;
 
 namespace Epam.Kafka.PubSub.Subscription;
 
-internal sealed class SubscriptionBackgroundService<TKey, TValue> : PubSubBackgroundService<
+internal class SubscriptionBackgroundService<TKey, TValue> : PubSubBackgroundService<
     SubscriptionOptions, SubscriptionBatchResult, SubscriptionMonitor, SubscriptionTopicWrapper<TKey, TValue>>
 {
     private readonly Type _handlerType;
@@ -123,20 +123,21 @@ internal sealed class SubscriptionBackgroundService<TKey, TValue> : PubSubBackgr
 
         if (batch.Count > 0)
         {
-            PrepareOffsetsToCommit(batch, out IDictionary<TopicPartition, Offset>? from,
+            batch.GetOffsetsRange(
+                out IDictionary<TopicPartition, Offset>? from,
                 out IDictionary<TopicPartition, Offset>? to);
 
             this.Logger.SubBatchBegin(this.Monitor.Name, batch.Count,
                 from.Select(x => new TopicPartitionOffset(x.Key, x.Value)),
                 to.Select(x => new TopicPartitionOffset(x.Key, x.Value)));
 
-            this.CreateAndExecuteHandler(sp, batch, activitySpan, cancellationToken);
+            this.CreateAndExecuteHandler(sp, topic, batch, activitySpan, cancellationToken);
 
             this.Monitor.Batch.Update(BatchStatus.Commiting);
 
-            // offset of processed message + 1
             state.CommitResults(topic, activitySpan,
-                to.Select(x => new TopicPartitionOffset(x.Key, x.Value + 1)).ToList(), cancellationToken);
+                // offset of processed message + 1
+                to.PrepareOffsetsToCommit(), cancellationToken);
 
             this.Monitor.Result.Update(SubscriptionBatchResult.Processed);
         }
@@ -167,14 +168,13 @@ internal sealed class SubscriptionBackgroundService<TKey, TValue> : PubSubBackgr
         }
     }
 
-    private void CreateAndExecuteHandler(
-        IServiceProvider sp,
+    private void CreateAndExecuteHandler(IServiceProvider sp,
+        SubscriptionTopicWrapper<TKey, TValue> topic,
         IReadOnlyCollection<ConsumeResult<TKey, TValue>> batch,
         ActivityWrapper activitySpan,
         CancellationToken cancellationToken)
     {
-        ISubscriptionHandler<TKey, TValue> handler =
-            sp.ResolveRequiredService<ISubscriptionHandler<TKey, TValue>>(this._handlerType);
+        ISubscriptionHandler<TKey, TValue> handler = this.CreateHandler(sp, activitySpan, topic);
 
         ISyncPolicy handlerPolicy = this.Monitor.Context.GetHandlerPolicy(this.Options);
 
@@ -194,33 +194,11 @@ internal sealed class SubscriptionBackgroundService<TKey, TValue> : PubSubBackgr
         }, cancellationToken);
     }
 
-    private static void PrepareOffsetsToCommit(IEnumerable<ConsumeResult<TKey, TValue>> results,
-        out IDictionary<TopicPartition, Offset> from, out IDictionary<TopicPartition, Offset> to)
+    protected virtual ISubscriptionHandler<TKey, TValue> CreateHandler(IServiceProvider sp, ActivityWrapper activitySpan, SubscriptionTopicWrapper<TKey, TValue> topic)
     {
-        from = new Dictionary<TopicPartition, Offset>();
-        to = new Dictionary<TopicPartition, Offset>();
+        ISubscriptionHandler<TKey, TValue> handler =
+            sp.ResolveRequiredService<ISubscriptionHandler<TKey, TValue>>(this._handlerType);
 
-        foreach (ConsumeResult<TKey, TValue> item in results)
-        {
-            if (!to.TryGetValue(item.TopicPartition, out Offset currentTo))
-            {
-                to.Add(item.TopicPartition, item.Offset);
-            }
-
-            if (!from.TryGetValue(item.TopicPartition, out Offset currentFrom))
-            {
-                from.Add(item.TopicPartition, item.Offset);
-            }
-
-            if (item.Offset.Value > currentTo)
-            {
-                to[item.TopicPartition] = item.Offset;
-            }
-
-            if (item.Offset.Value < currentFrom)
-            {
-                from[item.TopicPartition] = item.Offset;
-            }
-        }
+        return handler;
     }
 }

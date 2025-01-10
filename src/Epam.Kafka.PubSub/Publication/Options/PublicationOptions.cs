@@ -1,7 +1,6 @@
 ﻿// Copyright © 2024 EPAM Systems
 
 using Confluent.Kafka;
-using Confluent.SchemaRegistry;
 
 using Epam.Kafka.PubSub.Common.Options;
 
@@ -12,12 +11,8 @@ namespace Epam.Kafka.PubSub.Publication.Options;
 /// <summary>
 ///     Options to configure publication service.
 /// </summary>
-public sealed class PublicationOptions : PubSubOptions, IOptions<PublicationOptions>
+public sealed partial class PublicationOptions : PubSubOptions, IOptions<PublicationOptions>
 {
-    internal readonly ProducerPartitioner Partitioner = new();
-    internal Func<Lazy<ISchemaRegistryClient>, object>? KeySerializer;
-    internal Func<Lazy<ISchemaRegistryClient>, object>? ValueSerializer;
-
     /// <summary>
     ///     Initialize the <see cref="PubSubOptions" /> options.
     /// </summary>
@@ -36,7 +31,7 @@ public sealed class PublicationOptions : PubSubOptions, IOptions<PublicationOpti
     public string? DefaultTopic { get; set; }
 
     /// <summary>
-    ///     The logical name for <see cref="IProducer{TKey,TValue}" /> to create it using <see cref="IKafkaFactory" />
+    ///     The logical name for <see cref="IProducer{TKey,TValue}" /> to create it using <see cref="Epam.Kafka.IKafkaFactory" />
     /// </summary>
     public string? Producer { get; set; }
 

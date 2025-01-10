@@ -21,7 +21,7 @@ public sealed class
     PublicationBuilder<TKey, TValue> : PubSubBuilder<PublicationBuilder<TKey, TValue>,
         PublicationOptions>
 {
-    internal PublicationBuilder(KafkaBuilder builder, string name, Type handlerType) 
+    internal PublicationBuilder(KafkaBuilder builder, string name, Type handlerType)
         : base(builder, handlerType, name, typeof(TKey), typeof(TValue))
     {
     }

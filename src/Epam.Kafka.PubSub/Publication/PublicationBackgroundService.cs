@@ -1,7 +1,6 @@
 ﻿// Copyright © 2024 EPAM Systems
 
 using Confluent.Kafka;
-using Confluent.SchemaRegistry;
 
 using Epam.Kafka.PubSub.Common;
 using Epam.Kafka.PubSub.Common.Pipeline;
@@ -61,42 +60,7 @@ internal class PublicationBackgroundService<TKey, TValue> : PubSubBackgroundServ
 
     protected override IPublicationTopicWrapper<TKey, TValue> CreateTopicWrapper()
     {
-        var registry = new Lazy<ISchemaRegistryClient>(() =>
-            this.KafkaFactory.GetOrCreateSchemaRegistryClient(this.Options.Cluster));
-
-        ISerializer<TKey>? ks;
-        ISerializer<TValue>? vs;
-
-        try
-        {
-            ks = (ISerializer<TKey>?)this.Options.KeySerializer?.Invoke(registry);
-            vs = (ISerializer<TValue>?)this.Options.ValueSerializer?.Invoke(registry);
-        }
-        catch (Exception exception)
-        {
-            exception.DoNotRetryPipeline();
-            throw;
-        }
-
-        ProducerConfig config = this.KafkaFactory.CreateProducerConfig(this.Options.Producer);
-
-        config = config.Clone(this.Monitor.NamePlaceholder);
-        if (config.All(x => x.Key != KafkaConfigExtensions.DotnetLoggerCategoryKey))
-        {
-            config.SetDotnetLoggerCategory(this.Monitor.FullName);
-        }
-
-        bool implicitPreprocessor = ks != null || vs != null || config.TransactionalId != null;
-
-        IPublicationTopicWrapper<TKey, TValue> result = this.Options.SerializationPreprocessor ?? implicitPreprocessor
-            ? new PublicationSerializeKeyAndValueTopicWrapper<TKey, TValue>(this.KafkaFactory, this.Monitor,
-                config, this.Options, this.Logger,
-                ks, vs, this.Options.Partitioner)
-            : new PublicationTopicWrapper<TKey, TValue>(this.KafkaFactory, this.Monitor, 
-                config, this.Options, this.Logger,
-                ks, vs, this.Options.Partitioner);
-
-        return result;
+        return this.KafkaFactory.CreatePublicationTopicWrapper<TKey, TValue>(this.Options, this.Monitor, this.Logger);
     }
 
     protected override TimeSpan? GetBatchFinishedTimeout(PublicationBatchResult subBatchResult)
@@ -124,7 +88,7 @@ internal class PublicationBackgroundService<TKey, TValue> : PubSubBackgroundServ
             this.Monitor.Batch.Update(BatchStatus.Running);
 
             IDictionary<TopicMessage<TKey, TValue>, DeliveryReport> reports =
-                topicWrapper.Produce(items, activitySpan, stopwatch, cancellationToken);
+                topicWrapper.Produce(items, activitySpan, stopwatch, this.Options.HandlerTimeout, cancellationToken);
 
             this.Monitor.Batch.Update(BatchStatus.Commiting);
 

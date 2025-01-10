@@ -54,10 +54,16 @@ internal static class PubSubOptionsValidate
         bool canBeNullOrWhitespace = false, Regex? regex = null)
         where TOptions : PubSubOptions
     {
-        string? name = (member.Body as MemberExpression)?.Member.Name;
+        string name = (member.Body as MemberExpression)?.Member.Name!;
 
         string? value = member.Compile().Invoke(options);
 
+        return ValidateString(name, value, canBeNullOrWhitespace, regex);
+    }
+
+    public static string? ValidateString(string name, string? value,
+        bool canBeNullOrWhitespace = false, Regex? regex = null)
+    {
         if (!canBeNullOrWhitespace && string.IsNullOrWhiteSpace(value))
         {
             return $"{name} is null or empty.";

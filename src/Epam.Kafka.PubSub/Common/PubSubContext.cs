@@ -1,6 +1,7 @@
 ﻿// Copyright © 2024 EPAM Systems
 
 using Epam.Kafka.PubSub.Common.Options;
+using Epam.Kafka.PubSub.Common.Pipeline;
 using Epam.Kafka.PubSub.Publication.Pipeline;
 using Epam.Kafka.PubSub.Subscription.Pipeline;
 using Epam.Kafka.PubSub.Utils;
@@ -33,8 +34,10 @@ public sealed class PubSubContext
 
     private readonly Dictionary<string, PublicationMonitor> _publications = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, SubscriptionMonitor> _subscriptions = new(StringComparer.OrdinalIgnoreCase);
+    private readonly HashSet<string> _replications = new(StringComparer.OrdinalIgnoreCase);
+    private readonly object _syncObj = new();
 
-    internal ConcurrentDictionary<string, PublicationMonitor> TransactionIds { get; } = new();
+    internal ConcurrentDictionary<string, PipelineMonitor> TransactionIds { get; } = new();
 
     internal PubSubContext()
     {
@@ -50,64 +53,120 @@ public sealed class PubSubContext
     /// </summary>
     public IReadOnlyDictionary<string, PublicationMonitor> Publications => this._publications;
 
+    internal void AddReplication(string name)
+    {
+        lock (this._syncObj)
+        {
+            if (this._replications.Contains(name))
+            {
+                throw new InvalidOperationException($"Replication with name '{name}' already added.");
+            }
+
+            if (this._subscriptions.ContainsKey(name))
+            {
+                throw new InvalidOperationException($"Replication with name '{name}' cannot be added because name already used by Subscription.");
+            }
+
+            if (this._publications.ContainsKey(name))
+            {
+                throw new InvalidOperationException($"Replication with name '{name}' cannot be added because name already used by Publication.");
+            }
+
+            if (!RegexHelper.PunSubNameRegex.IsMatch(name))
+            {
+                throw new InvalidOperationException(
+                    $"Replication name '{name}' not match '{RegexHelper.PunSubNameRegex}'.");
+            }
+
+            try
+            {
+                this.AddSubscription(name);
+            }
+            catch (InvalidOperationException e)
+            {
+                throw new InvalidOperationException(
+                    $"Replication with name '{name}' cannot be added because related subscription cannot be added. See inner exception for details",
+                    e);
+            }
+
+            this._replications.Add(name);
+        }
+    }
+
     internal SubscriptionMonitor AddSubscription(string name)
     {
-        if (this._subscriptions.ContainsKey(name))
+        lock (this._syncObj)
         {
-            throw new InvalidOperationException($"Subscription with name '{name}' already added.");
-        }
+            if (this._replications.Contains(name))
+            {
+                throw new InvalidOperationException($"Subscription with name '{name}' cannot be added because name already used by Replication.");
+            }
 
-        if (!RegexHelper.PunSubNameRegex.IsMatch(name))
-        {
-            throw new InvalidOperationException(
-                $"Subscription name '{name}' not match '{RegexHelper.PunSubNameRegex}'.");
-        }
+            if (this._subscriptions.ContainsKey(name))
+            {
+                throw new InvalidOperationException($"Subscription with name '{name}' already added.");
+            }
 
-        if (this._subscriptions.Count < MaxSubscriptionsCount)
-        {
-            this._subscriptions.Add(name, new SubscriptionMonitor(this, name));
-        }
-        else
-        {
-            throw new InvalidOperationException($"Max subscriptions count of {MaxSubscriptionsCount} exceeded.");
-        }
+            if (!RegexHelper.PunSubNameRegex.IsMatch(name))
+            {
+                throw new InvalidOperationException(
+                    $"Subscription name '{name}' not match '{RegexHelper.PunSubNameRegex}'.");
+            }
 
-        if (!this._bulkheads.IsEmpty)
-        {
-            throw new InvalidOperationException();
-        }
+            if (this._subscriptions.Count < MaxSubscriptionsCount)
+            {
+                this._subscriptions.Add(name, new SubscriptionMonitor(this, name));
+            }
+            else
+            {
+                throw new InvalidOperationException($"Max subscriptions count of {MaxSubscriptionsCount} exceeded.");
+            }
 
-        return this._subscriptions[name];
+            if (!this._bulkheads.IsEmpty)
+            {
+                throw new InvalidOperationException();
+            }
+
+            return this._subscriptions[name];
+        }
     }
 
     internal PublicationMonitor AddPublication(string name)
     {
-        if (this._publications.ContainsKey(name))
+        lock (this._syncObj)
         {
-            throw new InvalidOperationException($"Publication with name '{name}' already added.");
-        }
+            if (this._replications.Contains(name))
+            {
+                throw new InvalidOperationException($"Publication with name '{name}' cannot be added because name already used by Replication.");
+            }
 
-        if (!RegexHelper.PunSubNameRegex.IsMatch(name))
-        {
-            throw new InvalidOperationException(
-                $"Publication name '{name}' not match '{RegexHelper.PunSubNameRegex}'.");
-        }
+            if (this._publications.ContainsKey(name))
+            {
+                throw new InvalidOperationException($"Publication with name '{name}' already added.");
+            }
 
-        if (this._publications.Count < MaxPublicationsCount)
-        {
-            this._publications.Add(name, new PublicationMonitor(this, name));
-        }
-        else
-        {
-            throw new InvalidOperationException($"Max publications count of {MaxPublicationsCount} exceeded.");
-        }
+            if (!RegexHelper.PunSubNameRegex.IsMatch(name))
+            {
+                throw new InvalidOperationException(
+                    $"Publication name '{name}' not match '{RegexHelper.PunSubNameRegex}'.");
+            }
 
-        if (!this._bulkheads.IsEmpty)
-        {
-            throw new InvalidOperationException();
-        }
+            if (this._publications.Count < MaxPublicationsCount)
+            {
+                this._publications.Add(name, new PublicationMonitor(this, name));
+            }
+            else
+            {
+                throw new InvalidOperationException($"Max publications count of {MaxPublicationsCount} exceeded.");
+            }
 
-        return this._publications[name];
+            if (!this._bulkheads.IsEmpty)
+            {
+                throw new InvalidOperationException();
+            }
+
+            return this._publications[name];
+        }
     }
 
     internal ISyncPolicy GetHandlerPolicy(PubSubOptions options)

@@ -93,8 +93,10 @@ public class ReadTests : TestWithServices, IClassFixture<MockCluster>
         this.Services.AddScoped(_ => handler);
         this.Services.AddScoped(_ => offsets);
 
-        observer.CreateDefaultSubscription(this._mockCluster).WithValueDeserializer(_ => deserializer)
-            .WithAssignAndExternalOffsets<TestOffsetsStorage>().WithOptions(x =>
+        observer.CreateDefaultSubscription(this._mockCluster)
+            .WithValueDeserializer(_ => deserializer)
+            .WithAssignAndExternalOffsets<TestOffsetsStorage>()
+            .WithOptions(x =>
             {
                 x.WithTopicPartitions(new TopicPartition(this.AnyTopicName, 1));
                 x.BatchSize = 5;

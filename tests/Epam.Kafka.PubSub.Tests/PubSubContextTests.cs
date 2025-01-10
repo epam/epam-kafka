@@ -9,13 +9,34 @@ using Epam.Kafka.PubSub.Subscription.Options;
 using Moq;
 
 using Polly;
-
+using Shouldly;
 using Xunit;
 
 namespace Epam.Kafka.PubSub.Tests;
 
 public class PubSubContextTests
 {
+    [Fact]
+    public void DuplicateName()
+    {
+        PubSubContext context = new PubSubContext();
+
+        context.AddPublication("v1");
+        Assert.Throws<InvalidOperationException>(() => context.AddPublication("v1")).Message.ShouldContain("already added.");
+        Assert.Throws<InvalidOperationException>(() => context.AddReplication("v1")).Message.ShouldContain("already used by Publication.");
+        context.AddSubscription("v1");
+
+        context.AddSubscription("v2");
+        Assert.Throws<InvalidOperationException>(() => context.AddSubscription("v2")).Message.ShouldContain("already added.");
+        Assert.Throws<InvalidOperationException>(() => context.AddReplication("v2")).Message.ShouldContain("already used by Subscription.");
+        context.AddPublication("v2");
+
+        context.AddReplication("v3");
+        Assert.Throws<InvalidOperationException>(() => context.AddReplication("v3")).Message.ShouldContain("already added.");
+        Assert.Throws<InvalidOperationException>(() => context.AddSubscription("v3")).Message.ShouldContain("already used by Replication.");
+        Assert.Throws<InvalidOperationException>(() => context.AddPublication("v3")).Message.ShouldContain("already used by Replication.");
+    }
+
     [Fact]
     public void Bulkhead()
     {
