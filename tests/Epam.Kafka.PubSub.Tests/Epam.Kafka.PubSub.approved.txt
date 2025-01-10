@@ -171,16 +171,6 @@ namespace Epam.Kafka.PubSub.Publication.Pipeline
         public const string Prefix = "Epam.Kafka.Publication";
     }
 }
-namespace Epam.Kafka.PubSub.Replication
-{
-    public sealed class ReplicationOptions
-    {
-        public ReplicationOptions() { }
-        public string? Cluster { get; set; }
-        public string? DefaultTopic { get; set; }
-        public string? Producer { get; set; }
-    }
-}
 namespace Epam.Kafka.PubSub.Subscription
 {
     public static class ExternalOffset
@@ -229,7 +219,7 @@ namespace Epam.Kafka.PubSub.Subscription.Options
         public System.TimeSpan BatchPausedTimeout { get; set; }
         public string? Consumer { get; set; }
         public bool ExternalStateCommitToKafka { get; set; }
-        public Epam.Kafka.PubSub.Replication.ReplicationOptions Replication { get; }
+        public Epam.Kafka.PubSub.Subscription.Replication.ReplicationOptions Replication { get; }
         public string? Topics { get; set; }
     }
     public static class SubscriptionOptionsExtensions
@@ -266,5 +256,12 @@ namespace Epam.Kafka.PubSub.Subscription.Replication
     public interface IConvertHandler<TKey, TValue, in TEntity>
     {
         System.Collections.Generic.IReadOnlyCollection<Epam.Kafka.PubSub.Publication.TopicMessage<TKey, TValue>> Convert(System.Collections.Generic.IReadOnlyCollection<TEntity> entities, System.Threading.CancellationToken cancellationToken);
+    }
+    public sealed class ReplicationOptions
+    {
+        public ReplicationOptions() { }
+        public string? Cluster { get; set; }
+        public string? DefaultTopic { get; set; }
+        public string? Producer { get; set; }
     }
 }

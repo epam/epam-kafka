@@ -4,11 +4,12 @@ using Confluent.Kafka;
 using Confluent.SchemaRegistry;
 
 using Epam.Kafka.PubSub.Common.Options;
-using Epam.Kafka.PubSub.Replication;
 using Epam.Kafka.PubSub.Subscription.Pipeline;
 using Epam.Kafka.PubSub.Subscription.State;
 
 using Microsoft.Extensions.Options;
+
+using ReplicationOptions = Epam.Kafka.PubSub.Subscription.Replication.ReplicationOptions;
 
 namespace Epam.Kafka.PubSub.Subscription.Options;
 

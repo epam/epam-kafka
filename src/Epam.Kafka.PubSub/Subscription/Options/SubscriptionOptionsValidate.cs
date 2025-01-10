@@ -2,11 +2,12 @@
 
 using Epam.Kafka.PubSub.Common.Options;
 using Epam.Kafka.PubSub.Publication.Options;
-using Epam.Kafka.PubSub.Replication;
 using Epam.Kafka.PubSub.Subscription.State;
 using Epam.Kafka.PubSub.Utils;
 
 using Microsoft.Extensions.Options;
+
+using ReplicationOptions = Epam.Kafka.PubSub.Subscription.Replication.ReplicationOptions;
 
 namespace Epam.Kafka.PubSub.Subscription.Options;
 

@@ -6,9 +6,6 @@ using Epam.Kafka.PubSub.Publication.Topics;
 
 namespace Epam.Kafka.PubSub.Publication.Options;
 
-/// <summary>
-///     Options to configure publication service.
-/// </summary>
 public sealed partial class PublicationOptions : IPublicationTopicWrapperOptions
 {
     // can't be public property due to configuration source generation

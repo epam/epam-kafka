@@ -4,11 +4,7 @@ using Confluent.SchemaRegistry;
 
 using Epam.Kafka.PubSub.Publication.Topics;
 
-namespace Epam.Kafka.PubSub.Replication;
-
-/// <summary>
-/// 
-/// </summary>
+namespace Epam.Kafka.PubSub.Subscription.Replication;
 public sealed partial class ReplicationOptions : IPublicationTopicWrapperOptions
 {
     internal Type? ConvertHandlerType;

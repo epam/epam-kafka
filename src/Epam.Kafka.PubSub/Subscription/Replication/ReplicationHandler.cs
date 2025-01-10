@@ -4,11 +4,11 @@ using Confluent.Kafka;
 
 using Epam.Kafka.PubSub.Publication;
 using Epam.Kafka.PubSub.Publication.Topics;
+using Epam.Kafka.PubSub.Subscription.State;
 using Epam.Kafka.PubSub.Subscription.Topics;
 using Epam.Kafka.PubSub.Utils;
 
 using System.Diagnostics;
-using Epam.Kafka.PubSub.Subscription.State;
 
 namespace Epam.Kafka.PubSub.Subscription.Replication;
 
@@ -62,8 +62,8 @@ internal class ReplicationHandler<TSubKey, TSubValue, TPubKey, TPubValue> : ISub
             }
 
             // transaction in same cluster with offsets stored in broker
-            if (this._subTopic.Options.StateType == typeof(InternalKafkaState) 
-                && this._pubTopic.RequireTransaction 
+            if (this._subTopic.Options.StateType == typeof(InternalKafkaState)
+                && this._pubTopic.RequireTransaction
                 && this._subTopic.Options.Cluster == this._subTopic.Options.Replication.Cluster)
             {
                 items.GetOffsetsRange(out _, out IDictionary<TopicPartition, Offset> to);

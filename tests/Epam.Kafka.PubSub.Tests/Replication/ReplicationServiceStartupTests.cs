@@ -1,7 +1,6 @@
 ﻿// Copyright © 2024 EPAM Systems
 
 using Epam.Kafka.PubSub.Publication.Options;
-using Epam.Kafka.PubSub.Replication;
 using Epam.Kafka.PubSub.Tests.Helpers;
 using Epam.Kafka.Tests.Common;
 
@@ -13,6 +12,7 @@ using Shouldly;
 
 using Xunit;
 using Xunit.Abstractions;
+using ReplicationOptions = Epam.Kafka.PubSub.Subscription.Replication.ReplicationOptions;
 
 namespace Epam.Kafka.PubSub.Tests.Replication;
 
