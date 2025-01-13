@@ -3,9 +3,10 @@
 using Confluent.Kafka;
 
 using Epam.Kafka.PubSub.Common;
+using Epam.Kafka.PubSub.Publication.Pipeline;
 using Epam.Kafka.PubSub.Subscription;
 using Epam.Kafka.PubSub.Subscription.Options;
-
+using Epam.Kafka.PubSub.Subscription.Pipeline;
 using Moq;
 
 using Polly;
@@ -35,6 +36,32 @@ public class PubSubContextTests
         Assert.Throws<InvalidOperationException>(() => context.AddReplication("v3")).Message.ShouldContain("already added.");
         Assert.Throws<InvalidOperationException>(() => context.AddSubscription("v3")).Message.ShouldContain("already used by Replication.");
         Assert.Throws<InvalidOperationException>(() => context.AddPublication("v3")).Message.ShouldContain("already used by Replication.");
+    }
+
+    [Fact]
+    public void DuplicateGroupAndTransactionId()
+    {
+        PubSubContext context = new PubSubContext();
+
+        ConsumerConfig c1 = new ConsumerConfig { GroupId = "qwe1" };
+        ConsumerConfig c2 = new ConsumerConfig { GroupId = "qwe2" };
+
+        ProducerConfig pc1 = new ProducerConfig { TransactionalId = "qwe1" };
+        ProducerConfig pc2 = new ProducerConfig { TransactionalId = "qwe2" };
+
+        SubscriptionMonitor s1 = context.AddSubscription("s1");
+        SubscriptionMonitor s2 = context.AddSubscription("s2");
+
+        PublicationMonitor p1 = context.AddPublication("p1");
+        PublicationMonitor p2 = context.AddPublication("p2");
+
+        s1.TryRegisterGroupId(c1, out _).ShouldBe(true);
+        s2.TryRegisterGroupId(c2, out _).ShouldBe(true);
+        s2.TryRegisterGroupId(c1, out _).ShouldBe(false);
+
+        p1.TryRegisterTransactionId(pc1, out _).ShouldBe(true);
+        p2.TryRegisterTransactionId(pc2, out _).ShouldBe(true);
+        p2.TryRegisterTransactionId(pc1, out _).ShouldBe(false);
     }
 
     [Fact]
