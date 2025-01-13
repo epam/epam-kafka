@@ -94,4 +94,27 @@ public abstract class PipelineMonitor
 
         return result;
     }
+
+    internal bool TryRegisterGroupId(ConsumerConfig config, out string? existingName)
+    {
+        if (config == null) throw new ArgumentNullException(nameof(config));
+
+        existingName = null;
+        bool result = true;
+
+        if (config.GroupId != null)
+        {
+            ConcurrentDictionary<string, PipelineMonitor> ids = this.Context.GroupIds;
+            string id = config.GroupId;
+
+            result = ids.TryAdd(id, this) || ids.TryUpdate(id, this, this);
+
+            if (!result)
+            {
+                existingName = ids[id].Name;
+            }
+        }
+
+        return result;
+    }
 }
