@@ -38,6 +38,7 @@ public sealed class PubSubContext
     private readonly object _syncObj = new();
 
     internal ConcurrentDictionary<string, PipelineMonitor> TransactionIds { get; } = new();
+    internal ConcurrentDictionary<string, PipelineMonitor> GroupIds { get; } = new();
 
     internal PubSubContext()
     {
