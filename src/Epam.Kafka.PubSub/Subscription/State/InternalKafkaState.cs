@@ -18,7 +18,9 @@ internal class InternalKafkaState : BatchState
             throw new ArgumentNullException(nameof(topic));
 
         if (topic.Consumer.Subscription.Count == 0)
+        {
             topic.Consumer.Subscribe(topic.Options.GetTopicNames());
+        }
     }
 
     protected override IReadOnlyCollection<TopicPartitionOffset> CommitState<TKey, TValue>(

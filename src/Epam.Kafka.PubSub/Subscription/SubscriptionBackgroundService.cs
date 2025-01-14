@@ -22,7 +22,6 @@ namespace Epam.Kafka.PubSub.Subscription;
 internal class SubscriptionBackgroundService<TKey, TValue> : PubSubBackgroundService<
     SubscriptionOptions, SubscriptionBatchResult, SubscriptionMonitor, SubscriptionTopicWrapper<TKey, TValue>>
 {
-    private readonly Type _handlerType;
     private readonly SubscriptionHealthMetrics _healthMeter;
     private readonly SubscriptionStatusMetrics _statusMeter;
 
@@ -31,7 +30,6 @@ internal class SubscriptionBackgroundService<TKey, TValue> : PubSubBackgroundSer
         IKafkaFactory kafkaFactory,
         SubscriptionOptions options,
         SubscriptionMonitor monitor,
-        Type handlerType,
         ILoggerFactory? loggerFactory) : base(
         serviceScopeFactory,
         kafkaFactory,
@@ -39,10 +37,11 @@ internal class SubscriptionBackgroundService<TKey, TValue> : PubSubBackgroundSer
         monitor,
         loggerFactory)
     {
-        this._handlerType = handlerType ?? throw new ArgumentNullException(nameof(handlerType));
+        Type handlerType = options.HandlerType ?? throw new ArgumentException("HandlerType is null", nameof(options));
+
         if (!typeof(ISubscriptionHandler<TKey, TValue>).IsAssignableFrom(handlerType))
         {
-            throw new ArgumentException($"Type {typeof(ISubscriptionHandler<TKey, TValue>)} not assignable from {handlerType}", nameof(handlerType));
+            throw new ArgumentException($"HandlerType {handlerType} not assignable to {typeof(ISubscriptionHandler<TKey, TValue>)}", nameof(options));
         }
 
         this._statusMeter = new(this.Monitor);
@@ -197,7 +196,7 @@ internal class SubscriptionBackgroundService<TKey, TValue> : PubSubBackgroundSer
     protected virtual ISubscriptionHandler<TKey, TValue> CreateHandler(IServiceProvider sp, ActivityWrapper activitySpan, SubscriptionTopicWrapper<TKey, TValue> topic)
     {
         ISubscriptionHandler<TKey, TValue> handler =
-            sp.ResolveRequiredService<ISubscriptionHandler<TKey, TValue>>(this._handlerType);
+            sp.ResolveRequiredService<ISubscriptionHandler<TKey, TValue>>(this.Options.HandlerType!);
 
         return handler;
     }

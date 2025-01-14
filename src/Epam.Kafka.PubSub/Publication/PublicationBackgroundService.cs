@@ -22,7 +22,6 @@ namespace Epam.Kafka.PubSub.Publication;
 internal class PublicationBackgroundService<TKey, TValue> : PubSubBackgroundService<PublicationOptions,
     PublicationBatchResult, PublicationMonitor, IPublicationTopicWrapper<TKey, TValue>>
 {
-    private readonly Type _handlerType;
     private readonly PublicationHealthMetrics _healthMeter;
     private readonly PublicationStatusMetrics _statusMeter;
 
@@ -31,7 +30,6 @@ internal class PublicationBackgroundService<TKey, TValue> : PubSubBackgroundServ
         IKafkaFactory kafkaFactory,
         PublicationOptions options,
         PublicationMonitor monitor,
-        Type handlerType,
         ILoggerFactory? loggerFactory) : base(
         serviceScopeFactory,
         kafkaFactory,
@@ -39,11 +37,11 @@ internal class PublicationBackgroundService<TKey, TValue> : PubSubBackgroundServ
         monitor,
         loggerFactory)
     {
-        this._handlerType = handlerType ?? throw new ArgumentNullException(nameof(handlerType));
+        Type handlerType = options.HandlerType ?? throw new ArgumentException("HandlerType is null", nameof(options));
 
         if (!typeof(IPublicationHandler<TKey, TValue>).IsAssignableFrom(handlerType))
         {
-            throw new ArgumentException($"Type {typeof(IPublicationHandler<TKey, TValue>)} not assignable from {handlerType}", nameof(handlerType));
+            throw new ArgumentException($"HandlerType {handlerType} not assignable to {typeof(IPublicationHandler<TKey, TValue>)}", nameof(options));
         }
 
         this._statusMeter = new(this.Monitor);
@@ -181,7 +179,7 @@ internal class PublicationBackgroundService<TKey, TValue> : PubSubBackgroundServ
         CancellationToken cancellationToken)
     {
         IPublicationHandler<TKey, TValue> handler =
-            sp.ResolveRequiredService<IPublicationHandler<TKey, TValue>>(this._handlerType);
+            sp.ResolveRequiredService<IPublicationHandler<TKey, TValue>>(this.Options.HandlerType!);
 
         ISyncPolicy handlerPolicy = this.Monitor.Context.GetHandlerPolicy(this.Options);
 

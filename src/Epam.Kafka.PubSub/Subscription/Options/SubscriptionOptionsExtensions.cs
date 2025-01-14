@@ -3,6 +3,7 @@
 using Confluent.Kafka;
 
 using Epam.Kafka.PubSub.Utils;
+using Epam.Kafka.PubSub.Subscription.State;
 
 using System.Text.RegularExpressions;
 
@@ -15,6 +16,14 @@ public static class SubscriptionOptionsExtensions
 {
     private static readonly char[] TopicsSeparator = { ';' };
     private static readonly char[] PartitionsSeparator = { ',' };
+
+    internal static bool IsTopicNameWithPartition(this SubscriptionOptions options)
+    {
+        Type type = options.StateType;
+
+        return type.IsGenericType &&
+               type.GetGenericTypeDefinition() == typeof(ExternalState<>);
+    }
 
     /// <summary>
     ///     Parse and validate <see cref="SubscriptionOptions.Topics" /> and return collection of topic names.
