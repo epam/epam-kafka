@@ -91,7 +91,6 @@ public sealed class
             sp.GetRequiredService<IKafkaFactory>(),
             options,
             sp.GetRequiredService<PubSubContext>().Publications[this.Key],
-            this.HandlerType,
             sp.GetService<ILoggerFactory>());
     }
 

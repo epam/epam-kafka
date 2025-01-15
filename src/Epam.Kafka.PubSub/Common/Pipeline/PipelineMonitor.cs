@@ -9,6 +9,7 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 using System.Collections.Concurrent;
 using System.Diagnostics.Metrics;
+using Epam.Kafka.PubSub.Subscription.Options;
 
 namespace Epam.Kafka.PubSub.Common.Pipeline;
 
@@ -95,23 +96,43 @@ public abstract class PipelineMonitor
         return result;
     }
 
-    internal bool TryRegisterGroupId(ConsumerConfig config, out string? existingName)
+    internal bool TryRegisterGroupId(ConsumerConfig config, SubscriptionOptions options, out string? msg)
     {
         if (config == null) throw new ArgumentNullException(nameof(config));
 
-        existingName = null;
+        msg = null;
         bool result = true;
 
-        if (config.GroupId != null)
+        if (options.IsTopicNameWithPartition(out Type? storageType))
         {
-            ConcurrentDictionary<string, PipelineMonitor> ids = this.Context.GroupIds;
-            string id = config.GroupId;
+            ConcurrentDictionary<Tuple<string, TopicPartition, Type>, PipelineMonitor> ids = this.Context.PartitionHandlers;
 
-            result = ids.TryAdd(id, this) || ids.TryUpdate(id, this, this);
-
-            if (!result)
+            foreach (TopicPartition tp in options.GetTopicPartitions())
             {
-                existingName = ids[id].Name;
+                Tuple<string, TopicPartition, Type> key = new(config.GroupId, tp, storageType!);
+
+                result = ids.TryAdd(key, this) || ids.TryUpdate(key, this, this);
+
+                if (!result)
+                {
+                    msg = $" Already used for '{tp}' topic partition with external state storage of type '{storageType}' in '{ids[key].Name}' subscription.";
+                }
+            }
+        }
+        else
+        {
+            ConcurrentDictionary<Tuple<string, string>, Type> ids = this.Context.TopicHandlers;
+
+            foreach (string t in options.GetTopicNames())
+            {
+                Tuple<string, string> key = new (config.GroupId, t);
+
+                result = ids.TryAdd(key, options.HandlerType!) || ids.TryUpdate(key, options.HandlerType!, options.HandlerType!);
+
+                if (!result)
+                {
+                    msg = $"Already used for '{t}' topic with handler of type '{ids[key].Name}'.";
+                }
             }
         }
 

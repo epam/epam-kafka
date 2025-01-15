@@ -19,8 +19,9 @@ public abstract class PubSubBuilder<TBuilder, TOptions>
 
     internal PubSubBuilder(KafkaBuilder builder, Type handlerType, string name, Type keyType, Type valueType)
     {
+        if (handlerType == null) throw new ArgumentNullException(nameof(handlerType));
+
         this.Builder = builder ?? throw new ArgumentNullException(nameof(builder));
-        this.HandlerType = handlerType ?? throw new ArgumentNullException(nameof(handlerType));
         this.Key = name ?? throw new ArgumentNullException(nameof(name));
 
         this._options = builder.Services.AddOptions<TOptions>(this.Key)
@@ -28,6 +29,7 @@ public abstract class PubSubBuilder<TBuilder, TOptions>
             {
                 x.KeyType = keyType;
                 x.ValueType = valueType;
+                x.HandlerType = handlerType;
             });
 
         this.Builder.Services.Add(new ServiceDescriptor(typeof(IHostedService), this.Build, ServiceLifetime.Singleton));
@@ -37,11 +39,6 @@ public abstract class PubSubBuilder<TBuilder, TOptions>
     ///     The <see cref="KafkaBuilder" />.
     /// </summary>
     public KafkaBuilder Builder { get; }
-
-    /// <summary>
-    /// Type of corresponding publication or subscription handler
-    /// </summary>
-    public Type HandlerType { get; }
 
     /// <summary>
     ///     The name associated with subscription or publication.
