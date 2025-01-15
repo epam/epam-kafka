@@ -83,7 +83,6 @@ public class
             sp.GetRequiredService<IKafkaFactory>(),
             options,
             sp.GetRequiredService<PubSubContext>().Subscriptions[this.Key],
-            this.HandlerType,
             sp.GetService<ILoggerFactory>());
     }
 

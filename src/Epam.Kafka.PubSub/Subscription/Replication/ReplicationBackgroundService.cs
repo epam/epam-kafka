@@ -24,8 +24,7 @@ internal sealed class ReplicationBackgroundService<TSubKey, TSubValue, TPubKey, 
         SubscriptionOptions options,
         SubscriptionMonitor monitor,
         ILoggerFactory? loggerFactory) : base(
-        serviceScopeFactory, kafkaFactory, options, monitor,
-        typeof(ReplicationHandler<TSubKey, TSubValue, TPubKey, TPubValue>), loggerFactory)
+        serviceScopeFactory, kafkaFactory, options, monitor, loggerFactory)
     {
     }
 
@@ -39,7 +38,9 @@ internal sealed class ReplicationBackgroundService<TSubKey, TSubValue, TPubKey, 
 
         // recreate publisher if needed
         if (this._pubTopic?.Disposed ?? false)
+        {
             this._pubTopic = null;
+        }
 
         // use same cluster as subscription if not specified explicitly
         this.Options.Replication.Cluster ??= this.Options.Cluster;
