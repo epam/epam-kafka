@@ -19,6 +19,7 @@ public abstract class PubSubOptions
 
     internal Type? KeyType;
     internal Type? ValueType;
+    internal Type? HandlerType;
 
     /// <summary>
     ///     Whether processing enabled. Default: <c>true</c>

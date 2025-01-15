@@ -11,6 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Polly;
 
 using System.Collections.Concurrent;
+using Confluent.Kafka;
 
 namespace Epam.Kafka.PubSub.Common;
 
@@ -38,7 +39,8 @@ public sealed class PubSubContext
     private readonly object _syncObj = new();
 
     internal ConcurrentDictionary<string, PipelineMonitor> TransactionIds { get; } = new();
-    internal ConcurrentDictionary<string, PipelineMonitor> GroupIds { get; } = new();
+    internal ConcurrentDictionary<Tuple<string, string>, Type> TopicHandlers { get; } = new();
+    internal ConcurrentDictionary<Tuple<string, TopicPartition, Type>, PipelineMonitor> PartitionHandlers { get; } = new();
 
     internal PubSubContext()
     {

@@ -73,7 +73,6 @@ namespace Epam.Kafka.PubSub.Common
         where TOptions : Epam.Kafka.PubSub.Common.Options.PubSubOptions
     {
         public Epam.Kafka.KafkaBuilder Builder { get; }
-        public System.Type HandlerType { get; }
         public string Key { get; }
         public TBuilder WaitFor(System.Func<System.IServiceProvider, System.Threading.Tasks.Task> waitFor) { }
         public TBuilder WithOptions(System.Action<TOptions> configure) { }

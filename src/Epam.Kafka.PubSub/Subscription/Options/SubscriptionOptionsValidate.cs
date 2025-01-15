@@ -2,7 +2,6 @@
 
 using Epam.Kafka.PubSub.Common.Options;
 using Epam.Kafka.PubSub.Publication.Options;
-using Epam.Kafka.PubSub.Subscription.State;
 using Epam.Kafka.PubSub.Utils;
 
 using Microsoft.Extensions.Options;
@@ -71,16 +70,13 @@ internal class SubscriptionOptionsValidate : IValidateOptions<SubscriptionOption
 
         try
         {
-            Type type = options.StateType;
-
-            if (type == typeof(InternalKafkaState) ||
-                (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(CombinedState<>)))
+            if (options.IsTopicNameWithPartition(out _))
             {
-                options.GetTopicNames();
+                options.GetTopicPartitions();
             }
             else
             {
-                options.GetTopicPartitions();
+                options.GetTopicNames();
             }
         }
         catch (ArgumentException e)
