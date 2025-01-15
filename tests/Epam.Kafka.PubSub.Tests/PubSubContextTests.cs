@@ -6,10 +6,15 @@ using Epam.Kafka.PubSub.Common;
 using Epam.Kafka.PubSub.Publication.Pipeline;
 using Epam.Kafka.PubSub.Subscription;
 using Epam.Kafka.PubSub.Subscription.Options;
+using Epam.Kafka.PubSub.Subscription.Pipeline;
+using Epam.Kafka.PubSub.Subscription.State;
+using Epam.Kafka.PubSub.Tests.Helpers;
 using Moq;
 
 using Polly;
+
 using Shouldly;
+
 using Xunit;
 
 namespace Epam.Kafka.PubSub.Tests;
@@ -51,6 +56,97 @@ public class PubSubContextTests
         p1.TryRegisterTransactionId(pc1, out _).ShouldBe(true);
         p2.TryRegisterTransactionId(pc2, out _).ShouldBe(true);
         p2.TryRegisterTransactionId(pc1, out _).ShouldBe(false);
+    }
+
+    [Fact]
+    public void DuplicateGroupIdInternalState()
+    {
+        PubSubContext context = new PubSubContext();
+
+        SubscriptionMonitor s = context.AddSubscription("sub");
+        ConsumerConfig c1 = new ConsumerConfig { GroupId = "g1" };
+        ConsumerConfig c2 = new ConsumerConfig { GroupId = "g2" };
+
+        SubscriptionOptions o11 = new SubscriptionOptions
+        {
+            StateType = typeof(InternalKafkaState),
+            HandlerType = typeof(int),
+            Topics = "t1"
+        };
+
+        SubscriptionOptions o12 = new SubscriptionOptions
+        {
+            StateType = typeof(InternalKafkaState),
+            HandlerType = typeof(int),
+            Topics = "t2"
+        };
+
+        SubscriptionOptions o21 = new SubscriptionOptions
+        {
+            StateType = typeof(InternalKafkaState),
+            HandlerType = typeof(long),
+            Topics = "t3;t1"
+        };
+
+        SubscriptionOptions o22 = new SubscriptionOptions
+        {
+            StateType = typeof(InternalKafkaState),
+            HandlerType = typeof(long),
+            Topics = "t4;t2"
+        };
+
+        s.TryRegisterGroupId(c1, o11, out _).ShouldBe(true);
+        s.TryRegisterGroupId(c1, o11, out _).ShouldBe(true);
+        s.TryRegisterGroupId(c1, o21, out _).ShouldBe(false);
+        s.TryRegisterGroupId(c2, o21, out _).ShouldBe(true);
+        s.TryRegisterGroupId(c2, o21, out _).ShouldBe(true);
+
+        s.TryRegisterGroupId(c1, o12, out _).ShouldBe(true);
+        s.TryRegisterGroupId(c1, o12, out _).ShouldBe(true);
+        s.TryRegisterGroupId(c1, o22, out _).ShouldBe(false);
+        s.TryRegisterGroupId(c2, o22, out _).ShouldBe(true);
+        s.TryRegisterGroupId(c2, o22, out _).ShouldBe(true);
+    }
+
+    [Fact]
+    public void DuplicateGroupIdExternalState()
+    {
+        PubSubContext context = new PubSubContext();
+
+        SubscriptionMonitor s1 = context.AddSubscription("s1");
+        SubscriptionMonitor s2 = context.AddSubscription("s2");
+        ConsumerConfig c1 = new ConsumerConfig { GroupId = "g1" };
+        ConsumerConfig c2 = new ConsumerConfig { GroupId = "g2" };
+
+        SubscriptionOptions o11 = new SubscriptionOptions
+        {
+            StateType = typeof(ExternalState<TestOffsetsStorage>),
+            Topics = "t1[1]"
+        };
+
+        SubscriptionOptions o12 = new SubscriptionOptions
+        {
+            StateType = typeof(ExternalState<TestOffsetsStorage>),
+            Topics = "t1[2]"
+        };
+
+        SubscriptionOptions o21 = new SubscriptionOptions
+        {
+            StateType = typeof(ExternalState<IExternalOffsetsStorage>),
+            Topics = "t1[1]"
+        };
+
+        s1.TryRegisterGroupId(c1, o11, out _).ShouldBe(true);
+        s1.TryRegisterGroupId(c1, o11, out _).ShouldBe(true);
+        s1.TryRegisterGroupId(c1, o12, out _).ShouldBe(true);
+        s1.TryRegisterGroupId(c1, o12, out _).ShouldBe(true);
+        s2.TryRegisterGroupId(c1, o11, out _).ShouldBe(false);
+        s2.TryRegisterGroupId(c1, o12, out _).ShouldBe(false);
+        s2.TryRegisterGroupId(c2, o11, out _).ShouldBe(true);
+        s2.TryRegisterGroupId(c2, o11, out _).ShouldBe(true);
+        s2.TryRegisterGroupId(c2, o12, out _).ShouldBe(true);
+        s2.TryRegisterGroupId(c2, o12, out _).ShouldBe(true);
+        s2.TryRegisterGroupId(c1, o21, out _).ShouldBe(true); // different offsets storage
     }
 
     [Fact]

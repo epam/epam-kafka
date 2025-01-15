@@ -53,6 +53,14 @@ internal sealed class SubscriptionTopicWrapper<TKey, TValue> : IDisposable
         this._consumeTimeoutMs = config.GetCancellationDelayMaxMs();
         this.ConsumerGroup = config.GroupId;
 
+        if (!monitor.TryRegisterGroupId(config, this.Options, out string? msg))
+        {
+            var exception = new InvalidOperationException($"Unable to use '{config.GroupId}' group.id in '{monitor.Name}' subscription. {msg}");
+            exception.DoNotRetryBatch();
+
+            throw exception;
+        }
+
         this.Consumer = kafkaFactory.CreateConsumer<TKey, TValue>(config, options.Cluster, b =>
         {
             if (keyDeserializer != null)

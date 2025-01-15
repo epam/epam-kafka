@@ -70,7 +70,7 @@ internal class SubscriptionOptionsValidate : IValidateOptions<SubscriptionOption
 
         try
         {
-            if (options.IsTopicNameWithPartition())
+            if (options.IsTopicNameWithPartition(out _))
             {
                 options.GetTopicPartitions();
             }

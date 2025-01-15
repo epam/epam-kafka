@@ -17,12 +17,19 @@ public static class SubscriptionOptionsExtensions
     private static readonly char[] TopicsSeparator = { ';' };
     private static readonly char[] PartitionsSeparator = { ',' };
 
-    internal static bool IsTopicNameWithPartition(this SubscriptionOptions options)
+    internal static bool IsTopicNameWithPartition(this SubscriptionOptions options, out Type? storageType)
     {
+        storageType = null;
         Type type = options.StateType;
 
-        return type.IsGenericType &&
-               type.GetGenericTypeDefinition() == typeof(ExternalState<>);
+        bool result = type.IsGenericType && type.GetGenericTypeDefinition() == typeof(ExternalState<>);
+
+        if (result)
+        {
+            storageType = type.GenericTypeArguments.Single();
+        }
+
+        return result;
     }
 
     /// <summary>
