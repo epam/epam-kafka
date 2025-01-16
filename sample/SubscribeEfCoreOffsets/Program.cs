@@ -42,6 +42,7 @@ internal class Program
                 .WithHealthChecks()
 
                 // store offsets in external storage (registered above) instead of Kafka internal storage, however keep using consumer group re-balancing
+                // use .WithSubscribeAndExternalOffsets() to assign constant topic partitions instead of group re-balancing
                 .WithSubscribeAndExternalOffsets()
                 // seed topic before processing
                 .WaitFor(sp =>
