@@ -11,7 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
-namespace PublishTransactionEfCore;
+namespace PublishEfCoreTransactional;
 
 internal class Program
 {
@@ -46,7 +46,7 @@ internal class Program
                 {
                     SampleDbContext db = sp.GetRequiredService<SampleDbContext>();
 
-                    db.Set<SampleDbEntity>().Add(new SampleDbEntity { Id = 1, Name = "qwe", KafkaPubState = KafkaPublicationState.Queued });
+                    db.Entities.Add(new SampleDbEntity { Id = 1, Name = "qwe", KafkaPubState = KafkaPublicationState.Queued });
 
                     return db.SaveChangesAsync();
                 });
@@ -88,7 +88,7 @@ public class SampleDbContext : DbContext
 
     }
 
-    public DbSet<SampleDbEntity> Entities { get; } = null!;
+    public DbSet<SampleDbEntity> Entities => this.Set<SampleDbEntity>();
 }
 
 public class PubSample : DbContextEntityPublicationHandler<long, SampleKafkaEntity, SampleDbEntity, SampleDbContext>
