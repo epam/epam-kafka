@@ -33,6 +33,8 @@ Also it is a framework for building pub/sub batch processing applications.
 
  * Dependency injection for Confluent.Kafka consumer, producer, client with named configs and options pattern. https://github.com/epam/epam-kafka/tree/develop/sample/ProduceAndConsume
  * Subscribe for topic with kafka internal offsets storage and consumer group rebalance. https://github.com/epam/epam-kafka/tree/develop/sample/Subscribe
+ * Read data from DB using Entity framework core, convert to message, publish message to kafka, and finally update row state in database. https://github.com/epam/epam-kafka/tree/develop/sample/PublishEfCore
+ * Read data from DB using Entity framework core, convert to multiple messages, publish messages to kafka in single transaction, and finally update row state in database. https://github.com/epam/epam-kafka/tree/develop/sample/PublishTransactionEfCore
 
 ## Packages
 
