@@ -17,6 +17,7 @@ namespace Epam.Kafka
         public Microsoft.Extensions.Options.OptionsBuilder<Epam.Kafka.Options.KafkaConsumerOptions> WithConsumerConfig(string name) { }
         public Epam.Kafka.KafkaBuilder WithDefaults(System.Action<Epam.Kafka.Options.KafkaFactoryOptions> configure) { }
         public Microsoft.Extensions.Options.OptionsBuilder<Epam.Kafka.Options.KafkaProducerOptions> WithProducerConfig(string name) { }
+        public Microsoft.Extensions.Options.OptionsBuilder<Epam.Kafka.Options.KafkaClusterOptions> WithTestMockCluster(string name, int numBrokers = 1) { }
     }
     public static class KafkaClientExtensions
     {
@@ -56,6 +57,14 @@ namespace Epam.Kafka
     public static class ServiceCollectionExtensions
     {
         public static Epam.Kafka.KafkaBuilder AddKafka(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, bool useConfiguration = true) { }
+    }
+    public sealed class TestMockCluster : System.IDisposable
+    {
+        public TestMockCluster(int numBrokers = 1, Microsoft.Extensions.Logging.ILoggerFactory? loggerFactory = null) { }
+        public string BootstrapServers { get; }
+        public Confluent.Kafka.IAdminClient CreateDependentAdminClient() { }
+        public void Dispose() { }
+        public System.Collections.Generic.Dictionary<Confluent.Kafka.Message<byte[], byte[]?>, Confluent.Kafka.DeliveryResult<byte[], byte[]?>> SeedTopic(string topicName, params Confluent.Kafka.Message<byte[], byte[]?>[] messages) { }
     }
 }
 namespace Epam.Kafka.Options

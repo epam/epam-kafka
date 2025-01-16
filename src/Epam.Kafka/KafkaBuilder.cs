@@ -6,6 +6,8 @@ using Epam.Kafka.Options.Configuration;
 using Epam.Kafka.Options.Validation;
 
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Epam.Kafka;
@@ -62,6 +64,29 @@ public partial class KafkaBuilder
         }
 
         return this.Services.AddOptions<KafkaClusterOptions>(name);
+    }
+
+    /// <summary>
+    /// EXPERIMENTAL API, SUBJECT TO CHANGE OR REMOVAL
+    ///     Add <see cref="TestMockCluster"/> with logical name specified by <paramref name="name" />.
+    /// </summary>
+    /// <param name="name">The logical name.</param>
+    /// <param name="numBrokers">The number of brokers (default 1)</param>
+    /// <returns>Options builder for further configuration.</returns>
+    /// <exception cref="ArgumentNullException"></exception>
+    public OptionsBuilder<KafkaClusterOptions> WithTestMockCluster(string name, int numBrokers = 1)
+    {
+        if (name == null)
+        {
+            throw new ArgumentNullException(nameof(name));
+        }
+
+        this.Services.TryAddKeyedSingleton(name, (sp, _) => new TestMockCluster(numBrokers, sp.GetService<ILoggerFactory>()));
+
+        return this.Services.AddOptions<KafkaClusterOptions>(name).Configure<IServiceProvider>((options, sp) =>
+        {
+            options.ClientConfig.BootstrapServers = sp.GetRequiredKeyedService<TestMockCluster>(name).BootstrapServers;
+        });
     }
 
     /// <summary>
