@@ -27,11 +27,12 @@ Also it is a framework for building pub/sub batch processing applications.
 ### Publication specific
 
  * Default implementation to publish data from EntityFramework (Core and EF6) context.
- * Support for transactional producers. 
+ * Support for transactional producers.
 
 ## Samples
 
  * Dependency injection for Confluent.Kafka consumer, producer, client with named configs and options pattern. https://github.com/epam/epam-kafka/tree/develop/sample/ProduceAndConsume
+ * Subscribe for topic with kafka internal offsets storage and consumer group rebalance. https://github.com/epam/epam-kafka/tree/develop/sample/Subscribe
 
 ## Packages
 

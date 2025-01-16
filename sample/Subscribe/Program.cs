@@ -22,16 +22,11 @@ internal class Program
         {
             KafkaBuilder builder = services.AddKafka();
 
-            services.AddSingleton(sp => new MockCluster(1, sp.GetService<ILoggerFactory>()));
             // use mock cluster for demo purposes only, NOT for production!
-            builder.WithClusterConfig("Sandbox").PostConfigure<MockCluster>((options, mock) =>
-            {
-                options.ClientConfig.BootstrapServers = mock.BootstrapServers;
-            });
+            builder.WithTestMockCluster("Sandbox");
 
-            string environmentName = context.HostingEnvironment.EnvironmentName;
-
-            builder.WithConfigPlaceholders($"<{nameof(context.HostingEnvironment.EnvironmentName)}>", environmentName);
+            // configure custom placeholders that can be used in config
+            builder.WithConfigPlaceholders($"<{nameof(context.HostingEnvironment.EnvironmentName)}>", context.HostingEnvironment.EnvironmentName);
 
             // subscription summary health check with "live" tag
             builder.WithSubscriptionSummaryHealthCheck(new[] { "live" });
@@ -41,7 +36,13 @@ internal class Program
                 .WithHealthChecks()
 
                 // seed topic before processing
-                .WaitFor(sp => sp.GetRequiredService<MockCluster>().SeedTopicAsync("sample.name", new Guid().ToByteArray(), new Guid().ToByteArray()));
+                .WaitFor(sp =>
+                {
+                     sp.GetRequiredKeyedService<TestMockCluster>("Sandbox").SeedTopic("sample.name",
+                            new Message<byte[], byte[]?> { Key = Guid.NewGuid().ToByteArray() });
+
+                     return Task.CompletedTask;
+                });
 
         }).Build().Run();
     }
