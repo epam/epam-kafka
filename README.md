@@ -32,9 +32,12 @@ Also it is a framework for building pub/sub batch processing applications.
 ## Samples
 
  * Dependency injection for Confluent.Kafka consumer, producer, client with named configs and options pattern. https://github.com/epam/epam-kafka/tree/develop/sample/ProduceAndConsume
+ * Read data from Kafka, proccess it using custom handler, store processed offsets in Kafka, use consumer group for rebalance. https://github.com/epam/epam-kafka/tree/develop/sample/Subscribe
+ * Read data from Kafka, proccess it using custom handler, store processed offsets in DB using Entity Framework Core, use consumer group for rebalance. https://github.com/epam/epam-kafka/tree/develop/sample/SubscribeEfCoreOffsets
+ * Read data from Kafka, proccess it and save in DB using Entity Framework Core, store processed offsets in DB using Entity Framework Core (optionally commit offsets and processed data in same DB transaction), optionally use consumer group for rebalance. https://github.com/epam/epam-kafka/tree/develop/sample/SubscribeEfCore
  * Subscribe for topic with kafka internal offsets storage and consumer group rebalance. https://github.com/epam/epam-kafka/tree/develop/sample/Subscribe
  * Read data from DB using Entity framework core, convert to message, publish message to kafka, and finally update row state in database. https://github.com/epam/epam-kafka/tree/develop/sample/PublishEfCore
- * Read data from DB using Entity framework core, convert to multiple messages, publish messages to kafka in single transaction, and finally update row state in database. https://github.com/epam/epam-kafka/tree/develop/sample/PublishTransactionEfCore
+ * Read data from DB using Entity framework core, convert to multiple messages, publish messages to kafka in single transaction, and finally update row state in database. https://github.com/epam/epam-kafka/tree/develop/sample/PublishEfCoreTransactional
 
 ## Packages
 
