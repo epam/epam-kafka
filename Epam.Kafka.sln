@@ -69,8 +69,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Epam.Kafka.HealthChecks", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Epam.Kafka.HealthChecks.Tests", "tests\Epam.Kafka.HealthChecks.Tests\Epam.Kafka.HealthChecks.Tests.csproj", "{1A03484B-86A4-4FBA-936C-E8F6C0C03992}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProduceAndConsume", "sample\ProduceAndConsume\ProduceAndConsume.csproj", "{415FFADD-0922-44B9-8FE6-B6178D2FD9BB}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -121,10 +119,6 @@ Global
 		{1A03484B-86A4-4FBA-936C-E8F6C0C03992}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1A03484B-86A4-4FBA-936C-E8F6C0C03992}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1A03484B-86A4-4FBA-936C-E8F6C0C03992}.Release|Any CPU.Build.0 = Release|Any CPU
-		{415FFADD-0922-44B9-8FE6-B6178D2FD9BB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{415FFADD-0922-44B9-8FE6-B6178D2FD9BB}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{415FFADD-0922-44B9-8FE6-B6178D2FD9BB}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{415FFADD-0922-44B9-8FE6-B6178D2FD9BB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -145,7 +139,6 @@ Global
 		{FEEEFBBD-B549-459A-A5F2-3F608EC1BF39} = {222BCFF6-0433-4BE2-B19F-800790CC9261}
 		{F698E1DF-EF50-4358-86A1-D43A60692094} = {E0525F24-5B2C-4D26-A93F-6817B1540C87}
 		{1A03484B-86A4-4FBA-936C-E8F6C0C03992} = {837928B6-19AD-471C-A875-912C7F1F97C7}
-		{415FFADD-0922-44B9-8FE6-B6178D2FD9BB} = {07C5B87A-BBE0-4E3E-83CB-8A95B2D6855E}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {12AADABB-DDF0-4214-9300-49F6F55819DA}
