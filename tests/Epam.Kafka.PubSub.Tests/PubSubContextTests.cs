@@ -54,6 +54,7 @@ public class PubSubContextTests
         PublicationMonitor p2 = context.AddPublication("p2");
 
         p1.TryRegisterTransactionId(pc1, out _).ShouldBe(true);
+        p1.TryRegisterTransactionId(pc1, out _).ShouldBe(true);
         p2.TryRegisterTransactionId(pc2, out _).ShouldBe(true);
         p2.TryRegisterTransactionId(pc1, out _).ShouldBe(false);
     }

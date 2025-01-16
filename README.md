@@ -22,15 +22,17 @@ Also it is a framework for building pub/sub batch processing applications.
  * Assign and external offsets: `IExternalOffsetsStorage` interface implementation for offsets storage. Partition assigmnent based on configuration.
  * Default implementation for `IExternalOffsetsStorage` using EntityFramework (Core and EF6).
  * Default implementation for subscription that store data using EntityFramework (Core and EF6). Possibility to commit data and offsets in same database transaction.
+ * Default implementation for subscription that consume data from kafka, then process it, and finally publish result to kafka. In case of kafka internal offsets storage and publishing to same cluster from which data was consumed it is possible to update offsets and publish result in same transaction.
 
 ### Publication specific
 
  * Default implementation to publish data from EntityFramework (Core and EF6) context.
- * Support for transactional producers. 
+ * Support for transactional producers.
 
 ## Samples
 
  * Dependency injection for Confluent.Kafka consumer, producer, client with named configs and options pattern. https://github.com/epam/epam-kafka/tree/develop/sample/ProduceAndConsume
+ * Subscribe for topic with kafka internal offsets storage and consumer group rebalance. https://github.com/epam/epam-kafka/tree/develop/sample/Subscribe
 
 ## Packages
 
