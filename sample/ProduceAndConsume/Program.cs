@@ -19,6 +19,9 @@ internal class Program
         {
             KafkaBuilder kafkaBuilder = services.AddKafka();
 
+            // use mock cluster for demo purposes only, NOT for production!
+            kafkaBuilder.WithTestMockCluster("Sandbox");
+
             // optionally append or override cluster settings configured in appsettings.json
             kafkaBuilder.WithClusterConfig("Sandbox").Configure(x =>
             {
@@ -84,20 +87,28 @@ internal class ProduceSample : BackgroundService
             // optionally setup producer builder
         });
 
-        var deliveryResult = await producer.ProduceAsync("test1", new Message<string, string> { Key = "Test", Value = "Test" },
-            stoppingToken);
+        while (!stoppingToken.IsCancellationRequested)
+        {
+            var deliveryResult = await producer.ProduceAsync("test1", 
+                new Message<string, string> { Key = "Test", Value = "Test" },
+                stoppingToken);
 
-        this._logger.LogInformation("{Status} {TopicPartitionOffset}", deliveryResult.Status, deliveryResult.TopicPartitionOffset);
+            this._logger.LogInformation("{Status} {TopicPartitionOffset}", deliveryResult.Status, deliveryResult.TopicPartitionOffset);
+
+            await Task.Delay(3000, stoppingToken);
+        }
     }
 }
 
 internal class ConsumeSample : BackgroundService
 {
     private readonly IKafkaFactory _kafkaFactory;
+    private readonly ILogger<ConsumeSample> _logger;
 
-    public ConsumeSample(IKafkaFactory kafkaFactory)
+    public ConsumeSample(IKafkaFactory kafkaFactory, ILogger<ConsumeSample> logger)
     {
         this._kafkaFactory = kafkaFactory ?? throw new ArgumentNullException(nameof(kafkaFactory));
+        this._logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
@@ -111,6 +122,7 @@ internal class ConsumeSample : BackgroundService
 
         // optionally refine config in runtime 
         cfg.EnableAutoCommit = true;
+        cfg.AutoOffsetReset = AutoOffsetReset.Earliest;
 
         // or create consumer config without IKafkaFactory
         // ConsumerConfig cfg = = new ConsumerConfig { GroupId = "test2" };
@@ -124,6 +136,16 @@ internal class ConsumeSample : BackgroundService
             // optionally setup consumer builder
         });
 
-        consumer.Consume(1000);
+        consumer.Subscribe("test1");
+
+        while (!stoppingToken.IsCancellationRequested)
+        {
+            ConsumeResult<string, string>? result = consumer.Consume(stoppingToken);
+
+            if (result != null)
+            {
+                this._logger.LogInformation("Consumed {TopicPartitionOffset}", result.TopicPartitionOffset);
+            }
+        }
     }
 }
