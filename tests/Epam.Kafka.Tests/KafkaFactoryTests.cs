@@ -4,6 +4,7 @@ using Confluent.Kafka;
 
 using Epam.Kafka.Tests.Common;
 
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 using Moq;
@@ -19,6 +20,29 @@ public class KafkaFactoryTests : TestWithServices
 {
     public KafkaFactoryTests(ITestOutputHelper output) : base(output)
     {
+    }
+
+    [Fact]
+    public void TestMockCluster()
+    {
+        this.Services.AddKafka().WithTestMockCluster("qwe");
+
+        TestMockCluster mockCluster = this.ServiceProvider.GetRequiredKeyedService<TestMockCluster>("qwe");
+
+        this.Output.WriteLine(mockCluster.BootstrapServers);
+
+        // create empty topic
+        mockCluster.SeedTopic("anyName1");
+
+        // create topic and produce message
+        mockCluster.SeedTopic("anyName2", new Message<byte[], byte[]?> { Key = Guid.NewGuid().ToByteArray() });
+
+        using IAdminClient adminClient = mockCluster.CreateDependentAdminClient();
+
+        foreach (var t in adminClient.GetMetadata(TimeSpan.FromSeconds(1)).Topics)
+        {
+            this.Output.WriteLine(t.Topic);
+        }
     }
 
     [Theory]
