@@ -2,7 +2,9 @@
 
 using Confluent.Kafka;
 using Confluent.SchemaRegistry;
+
 using Epam.Kafka;
+
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -11,7 +13,7 @@ namespace ProduceAndConsume;
 
 internal class Program
 {
-    static void Main(string[] args)
+    private static void Main(string[] args)
     {
         IHostBuilder hostBuilder = Host.CreateDefaultBuilder(args);
 
@@ -70,7 +72,7 @@ internal class ProduceSample : BackgroundService
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         // create previously configured producer config by explicit name
-        var cfg = this._kafkaFactory.CreateProducerConfig("p1");
+        ProducerConfig cfg = this._kafkaFactory.CreateProducerConfig("p1");
 
         // or create previously configured producer config using previously configured default name
         // var cfg = this._kafkaFactory.CreateProducerConfig();
@@ -82,14 +84,14 @@ internal class ProduceSample : BackgroundService
         //ProducerConfig cfg = new ProducerConfig { EnableDeliveryReports = true};
 
         // Create producer instance using producer config and previously configured client config with explicit name
-        using var producer = this._kafkaFactory.CreateProducer<string, string>(cfg, "Sandbox", builder =>
+        using IProducer<string, string> producer = this._kafkaFactory.CreateProducer<string, string>(cfg, "Sandbox", builder =>
         {
             // optionally setup producer builder
         });
 
         while (!stoppingToken.IsCancellationRequested)
         {
-            var deliveryResult = await producer.ProduceAsync("test1", 
+            DeliveryResult<string, string> deliveryResult = await producer.ProduceAsync("test1",
                 new Message<string, string> { Key = "Test", Value = "Test" },
                 stoppingToken);
 
@@ -131,7 +133,7 @@ internal class ConsumeSample : BackgroundService
         ISchemaRegistryClient sr = this._kafkaFactory.GetOrCreateSchemaRegistryClient("Sandbox");
 
         // Create consumer instance using consumer config and previously configured client config with explicit name
-        using var consumer = this._kafkaFactory.CreateConsumer<string, string>(cfg, "Sandbox", builder =>
+        using IConsumer<string, string> consumer = this._kafkaFactory.CreateConsumer<string, string>(cfg, "Sandbox", builder =>
         {
             // optionally setup consumer builder
         });

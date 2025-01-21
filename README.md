@@ -35,12 +35,14 @@ Also it is a framework for building pub/sub batch processing applications.
  * Read data from Kafka, proccess it using custom handler, store processed offsets in Kafka, use consumer group for rebalance. https://github.com/epam/epam-kafka/tree/develop/sample/Subscribe
  * Read data from Kafka, proccess it using custom handler, store processed offsets in DB using Entity Framework Core, optionally use consumer group for rebalance. https://github.com/epam/epam-kafka/tree/develop/sample/SubscribeEfCoreOffsets
  * Read data from Kafka, proccess it and save in DB using Entity Framework Core, store processed offsets in DB using Entity Framework Core (optionally commit offsets and processed data in same DB transaction), optionally use consumer group for rebalance. https://github.com/epam/epam-kafka/tree/develop/sample/SubscribeEfCore
- * Read data from DB using Entity framework core, convert to message, publish message to kafka, and finally update row state in database. https://github.com/epam/epam-kafka/tree/develop/sample/PublishEfCore
- * Read data from DB using Entity framework core, convert to multiple messages, publish messages to kafka in single transaction, and finally update row state in database. https://github.com/epam/epam-kafka/tree/develop/sample/PublishEfCoreTransactional
+ * Read data from Kafka, proccess it and publish result to kafka. Update kafka internal offsets storage and produce result messages in same transaction. https://github.com/epam/epam-kafka/tree/develop/sample/SubscribeReplicationTransactional
+ * Read data from DB using Entity framework core, convert one row to one message, publish message to kafka, and finally update row state in database. https://github.com/epam/epam-kafka/tree/develop/sample/PublishEfCore
+ * Read data from DB using Entity framework core, convert one row to multiple messages, publish messages to kafka in single transaction, and finally update row state in database. https://github.com/epam/epam-kafka/tree/develop/sample/PublishEfCoreTransactional
 
 ## Packages
 
  *  [Epam.Kafka](https://www.nuget.org/packages/Epam.Kafka)
+ *  [Epam.Kafka.HealthChecks](https://www.nuget.org/packages/Epam.Kafka.HealthChecks)
  *  [Epam.Kafka.PubSub](https://www.nuget.org/packages/Epam.Kafka.PubSub)
  *  [Epam.Kafka.PubSub.EntityFrameworkCore](https://www.nuget.org/packages/Epam.Kafka.PubSub.EntityFrameworkCore)
  *  [Epam.Kafka.PubSub.EntityFramework6](https://www.nuget.org/packages/Epam.Kafka.PubSub.EntityFramework6)

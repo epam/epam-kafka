@@ -14,7 +14,9 @@ namespace Subscribe;
 
 internal class Program
 {
-    static void Main(string[] args)
+    private static readonly string[] Tags = new[] { "live" };
+
+    private static void Main(string[] args)
     {
         IHostBuilder hostBuilder = Host.CreateDefaultBuilder(args);
 
@@ -29,7 +31,7 @@ internal class Program
             builder.WithConfigPlaceholders($"<{nameof(context.HostingEnvironment.EnvironmentName)}>", context.HostingEnvironment.EnvironmentName);
 
             // subscription summary health check with "live" tag
-            builder.WithSubscriptionSummaryHealthCheck(new[] { "live" });
+            builder.WithSubscriptionSummaryHealthCheck(Tags);
 
             // add subscription with default offsets storage managed by kafka broker
             builder.AddSubscription<Ignore, Ignore, SubSample>(nameof(SubSample))
@@ -38,10 +40,10 @@ internal class Program
                 // seed topic before processing
                 .WaitFor(sp =>
                 {
-                     sp.GetRequiredKeyedService<TestMockCluster>("Sandbox").SeedTopic("sample.name",
-                            new Message<byte[], byte[]?> { Key = Guid.NewGuid().ToByteArray() });
+                    sp.GetRequiredKeyedService<TestMockCluster>("Sandbox").SeedTopic("sample.name",
+                           new Message<byte[], byte[]?> { Key = Guid.NewGuid().ToByteArray() });
 
-                     return Task.CompletedTask;
+                    return Task.CompletedTask;
                 });
 
         }).Build().Run();
