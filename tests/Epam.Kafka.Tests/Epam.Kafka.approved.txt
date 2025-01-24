@@ -58,6 +58,45 @@ namespace Epam.Kafka
     {
         public static Epam.Kafka.KafkaBuilder AddKafka(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, bool useConfiguration = true) { }
     }
+    public class Statistics
+    {
+        public Statistics() { }
+        [System.Text.Json.Serialization.JsonPropertyName("age")]
+        public long AgeMicroseconds { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("brokers")]
+        public System.Collections.Generic.Dictionary<string, Epam.Kafka.Stats.BrokerStatistics> Brokers { get; }
+        [System.Text.Json.Serialization.JsonPropertyName("client_id")]
+        public string ClientId { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("ts")]
+        public long ClockMicroseconds { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("rxmsgs")]
+        public long ConsumedMessagesTotal { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("cgrp")]
+        public Epam.Kafka.Stats.GroupStatistics? ConsumerGroups { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("name")]
+        public string Name { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("replyq")]
+        public long OpsQueueCountGauge { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("msg_cnt")]
+        public long ProducerQueueCountGauge { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("msg_max")]
+        public long ProducerQueueMax { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("msg_size")]
+        public long ProducerQueueSizeGauge { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("msg_size_max")]
+        public long ProducerQueueSizeMax { get; set; }
+        [System.Text.Json.Serialization.JsonIgnore]
+        public string RawJson { get; }
+        [System.Text.Json.Serialization.JsonPropertyName("time")]
+        public long TimeEpochSeconds { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("topics")]
+        public System.Collections.Generic.Dictionary<string, Epam.Kafka.Stats.TopicStatistics> Topics { get; }
+        [System.Text.Json.Serialization.JsonPropertyName("txmsgs")]
+        public long TransmittedMessagesTotal { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("type")]
+        public string Type { get; set; }
+        public static Epam.Kafka.Statistics FromJson(string json) { }
+    }
     public sealed class TestMockCluster : System.IDisposable
     {
         public TestMockCluster(int numBrokers = 1, Microsoft.Extensions.Logging.ILoggerFactory? loggerFactory = null) { }
@@ -93,5 +132,73 @@ namespace Epam.Kafka.Options
     {
         public KafkaProducerOptions() { }
         public Confluent.Kafka.ProducerConfig ProducerConfig { get; set; }
+    }
+}
+namespace Epam.Kafka.Stats
+{
+    public class BrokerStatistics
+    {
+        public BrokerStatistics() { }
+        [System.Text.Json.Serialization.JsonPropertyName("name")]
+        public string Name { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("nodeid")]
+        public long NodeId { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("nodename")]
+        public string NodeName { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("source")]
+        public string Source { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("state")]
+        public string State { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("stateage")]
+        public long StateAgeMicroseconds { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("toppars")]
+        public System.Collections.Generic.Dictionary<string, Confluent.Kafka.TopicPartition> TopicPartitions { get; }
+    }
+    public class GroupStatistics
+    {
+        public GroupStatistics() { }
+        [System.Text.Json.Serialization.JsonPropertyName("join_state")]
+        public string JoinState { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("rebalance_age")]
+        public long RebalanceAgeMilliseconds { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("rebalance_cnt")]
+        public long RebalanceCount { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("state")]
+        public string State { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("stateage")]
+        public long StateAgeMilliseconds { get; set; }
+    }
+    public class PartitionStatistics
+    {
+        public const long InternalUnassignedPartition = -1;
+        public PartitionStatistics() { }
+        [System.Text.Json.Serialization.JsonPropertyName("committed_offset")]
+        public long CommittedOffset { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("consumer_lag")]
+        public long ConsumerLag { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("fetch_state")]
+        public string FetchState { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("hi_offset")]
+        public long HiOffset { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("partition")]
+        public long Id { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("lo_offset")]
+        public long LoOffset { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("ls_offset")]
+        public long LsOffset { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("next_offset")]
+        public long NextOffset { get; set; }
+    }
+    public class TopicStatistics
+    {
+        public TopicStatistics() { }
+        [System.Text.Json.Serialization.JsonPropertyName("age")]
+        public long AgeMilliseconds { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("metadata_age")]
+        public long MetadataAgeMilliseconds { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("topic")]
+        public string Name { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("partitions")]
+        public System.Collections.Generic.Dictionary<long, Epam.Kafka.Stats.PartitionStatistics> Partitions { get; }
     }
 }
