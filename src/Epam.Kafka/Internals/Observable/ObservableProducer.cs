@@ -25,7 +25,7 @@ internal class ObservableProducer<TKey, TValue> : ObservableClient, IProducer<TK
         try
         {
             builder.SetStatisticsHandler((_, json) => this.StatisticsHandler(json));
-            this.StatObservers = new List<IObserver<string>>();
+            this.StatJsonObservers = new List<IObserver<string>>();
         }
         catch (InvalidOperationException)
         {

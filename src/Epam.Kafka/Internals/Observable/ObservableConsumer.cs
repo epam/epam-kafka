@@ -25,7 +25,7 @@ internal class ObservableConsumer<TKey, TValue> : ObservableClient, IConsumer<TK
         try
         {
             builder.SetStatisticsHandler((_, json) => this.StatisticsHandler(json));
-            this.StatObservers = new List<IObserver<string>>();
+            this.StatJsonObservers = new List<IObserver<string>>();
         }
         catch (InvalidOperationException)
         {

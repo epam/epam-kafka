@@ -2,18 +2,29 @@
 
 using Confluent.Kafka;
 
+using Epam.Kafka.Stats;
+
 namespace Epam.Kafka.Internals.Observable;
 
-internal abstract class ObservableClient : ClientWrapper, IObservable<Error>, IObservable<string>
+#pragma warning disable CA1031 // notify other listeners event if one of them failed
+
+internal abstract class ObservableClient : ClientWrapper, IObservable<Error>, IObservable<string>, IObservable<Statistics>
 {
     protected List<IObserver<Error>>? ErrorObservers { get; set; }
-    protected List<IObserver<string>>? StatObservers { get; set; }
+    protected List<IObserver<string>>? StatJsonObservers { get; set; }
 
     protected void StatisticsHandler(string json)
     {
-        foreach (IObserver<string> observer in this.StatObservers!)
+        foreach (IObserver<string> observer in this.StatJsonObservers!)
         {
-            observer.OnNext(json);
+            try
+            {
+                observer.OnNext(json);
+            }
+            catch
+            {
+                // notify other listeners event if one of them failed
+            }
         }
     }
 
@@ -21,14 +32,21 @@ internal abstract class ObservableClient : ClientWrapper, IObservable<Error>, IO
     {
         foreach (IObserver<Error> observer in this.ErrorObservers!)
         {
-            observer.OnNext(error);
+            try
+            {
+                observer.OnNext(error);
+            }
+            catch
+            {
+                // notify other listeners event if one of them failed
+            }
         }
     }
 
     protected void ClearObservers()
     {
         ClearObservers(this.ErrorObservers);
-        ClearObservers(this.StatObservers);
+        ClearObservers(this.StatJsonObservers);
     }
 
     private static void ClearObservers<T>(List<IObserver<T>>? items)
@@ -42,7 +60,14 @@ internal abstract class ObservableClient : ClientWrapper, IObservable<Error>, IO
         {
             if (items.Contains(item))
             {
-                item.OnCompleted();
+                try
+                {
+                    item.OnCompleted();
+                }
+                catch
+                {
+                    // notify other listeners event if one of them failed
+                }
             }
         }
 
@@ -51,6 +76,8 @@ internal abstract class ObservableClient : ClientWrapper, IObservable<Error>, IO
 
     public IDisposable Subscribe(IObserver<Error> observer)
     {
+        if (observer == null) throw new ArgumentNullException(nameof(observer));
+
         if (this.ErrorObservers == null)
         {
             throw new InvalidOperationException(
@@ -67,18 +94,27 @@ internal abstract class ObservableClient : ClientWrapper, IObservable<Error>, IO
 
     public IDisposable Subscribe(IObserver<string> observer)
     {
-        if (this.StatObservers == null)
+        if (observer == null) throw new ArgumentNullException(nameof(observer));
+
+        if (this.StatJsonObservers == null)
         {
             throw new InvalidOperationException(
                 "Cannot subscribe to statistics because handler was explicitly set in producer/consumer builder.");
         }
 
-        if (!this.StatObservers.Contains(observer))
+        if (!this.StatJsonObservers.Contains(observer))
         {
-            this.StatObservers.Add(observer);
+            this.StatJsonObservers.Add(observer);
         }
 
-        return new Unsubscriber<string>(this.StatObservers, observer);
+        return new Unsubscriber<string>(this.StatJsonObservers, observer);
+    }
+
+    public IDisposable Subscribe(IObserver<Statistics> observer)
+    {
+        if (observer == null) throw new ArgumentNullException(nameof(observer));
+
+        return this.Subscribe(new ParseStatsJsonObserver(observer));
     }
 
     private class Unsubscriber<T> : IDisposable
@@ -98,3 +134,5 @@ internal abstract class ObservableClient : ClientWrapper, IObservable<Error>, IO
         }
     }
 }
+
+#pragma warning restore CA1031
