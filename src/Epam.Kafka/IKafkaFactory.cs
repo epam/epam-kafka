@@ -70,6 +70,10 @@ public interface IKafkaFactory
     ///         Each call to <see cref="CreateConsumer{TKey,TValue}" /> is guaranteed to return a new
     ///         <see cref="IConsumer{TKey,TValue}" /> instance.
     ///     </para>
+    /// <para>
+    /// It is safe to cast instance returned by this method to <see cref="IObservable{T}"/> where T can be:
+    /// <see cref="Error"/> to subscribe for errors. <see cref="Statistics"/> to subscribe for statistics.
+    /// </para>
     /// </remarks>
     IConsumer<TKey, TValue> CreateConsumer<TKey, TValue>(ConsumerConfig config, string? cluster = null,
         Action<ConsumerBuilder<TKey, TValue>>? configure = null);
@@ -88,6 +92,10 @@ public interface IKafkaFactory
     ///         Each call to <see cref="CreateProducer{TKey,TValue}" /> is guaranteed to return a new
     ///         <see cref="IProducer{TKey,TValue}" /> instance.
     ///     </para>
+    /// <para>
+    /// It is safe to cast instance returned by this method to <see cref="IObservable{T}"/> where T can be:
+    /// <see cref="Error"/> to subscribe for errors. <see cref="Statistics"/> to subscribe for statistics.
+    /// </para>
     /// </remarks>
     IProducer<TKey, TValue> CreateProducer<TKey, TValue>(ProducerConfig config, string? cluster = null,
         Action<ProducerBuilder<TKey, TValue>>? configure = null);
@@ -113,6 +121,10 @@ public interface IKafkaFactory
     ///         <see cref="IKafkaFactory" />. All of them will be disposed together with <see cref="IKafkaFactory" /> default
     ///         implementation.
     ///     </para>
+    /// <para>
+    /// It is safe to cast instance returned by this method to <see cref="IObservable{T}"/> where T can be:
+    /// <see cref="Error"/> to subscribe for errors. <see cref="Statistics"/> to subscribe for statistics.
+    /// </para>
     /// </remarks>
     IClient GetOrCreateClient(string? cluster = null);
 

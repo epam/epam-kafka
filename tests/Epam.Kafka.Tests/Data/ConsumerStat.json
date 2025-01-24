@@ -5,13 +5,14 @@
   "ts": 185203076223,
   "time": 1719564501,
   "age": 40044513,
-  "replyq": 0,
-  "msg_cnt": 0,
-  "msg_size": 0,
-  "msg_max": 0,
-  "msg_size_max": 0,
+  "replyq": 555,
+  "msg_cnt": 78,
+  "msg_size": 79,
+  "msg_max": 80,
+  "msg_size_max": 81,
   "simple_cnt": 0,
   "metadata_cache_cnt": 1,
+  "unknown value": "any",
   "brokers": {
     "sasl_ssl://kafka-5.sandbox.contoso.com:9095/535": {
       "name": "sasl_ssl://kafka-5.sandbox.contoso.com:9095/535",
@@ -1063,7 +1064,7 @@
   "tx_bytes": 20124,
   "rx": 82,
   "rx_bytes": 8712,
-  "txmsgs": 0,
+  "txmsgs": 323,
   "txmsg_bytes": 0,
   "rxmsgs": 2,
   "rxmsg_bytes": 30

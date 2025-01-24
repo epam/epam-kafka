@@ -4,7 +4,7 @@ using Confluent.Kafka;
 
 namespace Epam.Kafka.Internals;
 
-internal sealed class SharedClient : ClientWrapper, IObservable<Error>, IObservable<string>
+internal sealed class SharedClient : ClientWrapper, IObservable<Error>, IObservable<string>, IObservable<Statistics>
 {
     public const string ProducerName = "Shared";
 
@@ -43,5 +43,10 @@ internal sealed class SharedClient : ClientWrapper, IObservable<Error>, IObserva
     public IDisposable Subscribe(IObserver<string> observer)
     {
         return ((IObservable<string>)this._client).Subscribe(observer);
+    }
+
+    public IDisposable Subscribe(IObserver<Statistics> observer)
+    {
+        return ((IObservable<Statistics>)this._client).Subscribe(observer);
     }
 }
