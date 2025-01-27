@@ -83,7 +83,7 @@ internal abstract class StatisticsMetrics : IObserver<Statistics>
         });
     }
 
-    protected void CreateTopLevelCounter(Meter meter, string name, Func<Statistics, long> factory)
+    protected void CreateTopLevelCounter(Meter meter, string name, Func<Statistics, long> factory, string? unit = null, string? description = null)
     {
         if (meter == null) throw new ArgumentNullException(nameof(meter));
         if (name == null) throw new ArgumentNullException(nameof(name));
@@ -100,7 +100,7 @@ internal abstract class StatisticsMetrics : IObserver<Statistics>
             }
 
             return Empty;
-        });
+        }, unit, description);
     }
 }
 

@@ -4,15 +4,16 @@ using System.Diagnostics.Metrics;
 
 namespace Epam.Kafka.Metrics;
 
-internal sealed class ConsumerMetrics : StatisticsMetrics
+internal sealed class ConsumerMetrics : TopLevelMetrics
 {
-    public ConsumerMetrics() : base(Statistics.MeterName)
-    {
-    }
-
     protected override void Initialize(Meter meter)
     {
-        this.CreateTopLevelCounter(meter, "epam_kafka_stats_rxmsgs", v => v.ConsumedMessagesTotal);
-        this.CreateTopLevelCounter(meter, "epam_kafka_stats_age", v => v.AgeMicroseconds);
+        base.Initialize(meter);
+
+        this.CreateTopLevelCounter(meter, "epam_kafka_stats_rxmsgs", v => v.ConsumedMessagesTotal,
+            description: "Total number of messages consumed, not including ignored messages (due to offset, etc), from Kafka brokers.");
+
+        //this.CreateTopLevelCounter(meter, "epam_kafka_stats_rx", v => v.ConsumedRequestsTotal,
+        //    description: "Total number of responses received from Kafka brokers.");
     }
 }
