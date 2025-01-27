@@ -2,6 +2,7 @@
 
 using Epam.Kafka.Stats;
 
+using System.Diagnostics.Metrics;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -12,6 +13,11 @@ namespace Epam.Kafka;
 /// </summary>
 public class Statistics
 {
+    /// <summary>
+    /// Name of <see cref="Meter"/> used to expose top level statistics.
+    /// </summary>
+    public const string MeterName = "Epam.Kafka.Statistics";
+
     /// <summary>
     /// Create new instance of <see cref="Statistics"/> object from json representation.
     /// </summary>

@@ -1,6 +1,9 @@
 ﻿// Copyright © 2024 EPAM Systems
 
+using System.Diagnostics.Metrics;
+
 using Confluent.Kafka;
+using Epam.Kafka.Metrics;
 using Epam.Kafka.Stats;
 
 using Shouldly;
@@ -77,5 +80,57 @@ public class StatisticsTests
         group.JoinState.ShouldBe("steady");
         group.RebalanceAgeMilliseconds.ShouldBe(35748);
         group.RebalanceCount.ShouldBe(1);
+    }
+
+    [Fact]
+    public void TopLevelMetricsTests()
+    {
+        MeterListener ml = new MeterListener();
+
+        ml.InstrumentPublished = (instrument, listener) => { listener.EnableMeasurementEvents(instrument); };
+
+        Dictionary<string, long> results = new();
+
+        ml.SetMeasurementEventCallback<long>((instrument, measurement, tags, _) =>
+        {
+            string ts = string.Join("-", tags.ToArray().Select(x => $"{x.Key}:{x.Value}"));
+
+            string key = $"{instrument.Name}_{ts}";
+
+            results[key] = measurement;
+        });
+
+        ml.Start();
+
+        ConsumerMetrics cm = new();
+        ProducerMetrics pm = new();
+
+        cm.OnNext(new Statistics { ClientId = "c1", Name = "n1", Type = "c", ConsumedMessagesTotal = 123 });
+        pm.OnNext(new Statistics { ClientId = "c1", Name = "n2", Type = "p", TransmittedMessagesTotal = 111 });
+
+        ml.RecordObservableInstruments();
+        results.Count.ShouldBe(4);
+        results["epam_kafka_stats_rxmsgs_Name:c1-Handler:n1-Instance:c"].ShouldBe(123);
+        results["epam_kafka_stats_txmsgs_Name:c1-Handler:n2-Instance:p"].ShouldBe(111);
+        results["epam_kafka_stats_age_Name:c1-Handler:n1-Instance:c"].ShouldBe(0);
+        results["epam_kafka_stats_age_Name:c1-Handler:n2-Instance:p"].ShouldBe(0);
+
+        cm.OnCompleted();
+
+        cm.OnNext(new Statistics { ClientId = "c1", Name = "n1", ConsumedMessagesTotal = 124 });
+        pm.OnNext(new Statistics { ClientId = "p1", Name = "n1", TransmittedMessagesTotal = 112, AgeMicroseconds = 555});
+
+        results.Clear();
+        ml.RecordObservableInstruments();
+
+        results.Count.ShouldBe(2);
+        results["epam_kafka_stats_txmsgs_Name:c1-Handler:n2-Instance:p"].ShouldBe(112);
+        results["epam_kafka_stats_age_Name:c1-Handler:n2-Instance:p"].ShouldBe(555);
+
+        pm.OnCompleted();
+
+        results.Clear();
+        ml.RecordObservableInstruments();
+        results.Count.ShouldBe(0);
     }
 }

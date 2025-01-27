@@ -2,6 +2,8 @@
 
 using Confluent.Kafka;
 
+using Epam.Kafka.Metrics;
+
 namespace Epam.Kafka.Internals.Observable;
 
 internal class ObservableProducer<TKey, TValue> : ObservableClient, IProducer<TKey, TValue>
@@ -25,7 +27,11 @@ internal class ObservableProducer<TKey, TValue> : ObservableClient, IProducer<TK
         try
         {
             builder.SetStatisticsHandler((_, json) => this.StatisticsHandler(json));
-            this.StatJsonObservers = new List<IObserver<string>>();
+            this.StatObservers = new List<IObserver<string>>();
+
+#pragma warning disable CA2000 // unsubscribe not needed
+            this.Subscribe(new ProducerMetrics());
+#pragma warning restore CA2000
         }
         catch (InvalidOperationException)
         {

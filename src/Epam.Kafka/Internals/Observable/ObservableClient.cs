@@ -11,11 +11,11 @@ namespace Epam.Kafka.Internals.Observable;
 internal abstract class ObservableClient : ClientWrapper, IObservable<Error>, IObservable<string>, IObservable<Statistics>
 {
     protected List<IObserver<Error>>? ErrorObservers { get; set; }
-    protected List<IObserver<string>>? StatJsonObservers { get; set; }
+    protected List<IObserver<string>>? StatObservers { get; set; }
 
     protected void StatisticsHandler(string json)
     {
-        foreach (IObserver<string> observer in this.StatJsonObservers!)
+        foreach (IObserver<string> observer in this.StatObservers!)
         {
             try
             {
@@ -46,7 +46,7 @@ internal abstract class ObservableClient : ClientWrapper, IObservable<Error>, IO
     protected void ClearObservers()
     {
         ClearObservers(this.ErrorObservers);
-        ClearObservers(this.StatJsonObservers);
+        ClearObservers(this.StatObservers);
     }
 
     private static void ClearObservers<T>(List<IObserver<T>>? items)
@@ -96,18 +96,18 @@ internal abstract class ObservableClient : ClientWrapper, IObservable<Error>, IO
     {
         if (observer == null) throw new ArgumentNullException(nameof(observer));
 
-        if (this.StatJsonObservers == null)
+        if (this.StatObservers == null)
         {
             throw new InvalidOperationException(
                 "Cannot subscribe to statistics because handler was explicitly set in producer/consumer builder.");
         }
 
-        if (!this.StatJsonObservers.Contains(observer))
+        if (!this.StatObservers.Contains(observer))
         {
-            this.StatJsonObservers.Add(observer);
+            this.StatObservers.Add(observer);
         }
 
-        return new Unsubscriber<string>(this.StatJsonObservers, observer);
+        return new Unsubscriber<string>(this.StatObservers, observer);
     }
 
     public IDisposable Subscribe(IObserver<Statistics> observer)
