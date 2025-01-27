@@ -11,6 +11,8 @@ using Moq;
 
 using Shouldly;
 
+using System.Diagnostics.Metrics;
+
 using Xunit;
 using Xunit.Abstractions;
 
@@ -178,7 +180,7 @@ public class KafkaFactoryTests : TestWithServices
 
         ConsumerConfig config = this.KafkaFactory.CreateConsumerConfig("any");
 
-        var consumer =
+        using var consumer =
             this.KafkaFactory.CreateConsumer<string, string>(config);
 
         Assert.NotNull(consumer);
@@ -430,6 +432,45 @@ public class KafkaFactoryTests : TestWithServices
     }
 
     [Fact]
+    public void CreateDefaultClientWithMetrics()
+    {
+        MockCluster.AddMockCluster(this).WithClusterConfig(MockCluster.ClusterName)
+            .Configure(x => x.ClientConfig.StatisticsIntervalMs = 100);
+
+        MeterListener ml = new MeterListener();
+
+        ml.InstrumentPublished = (instrument, listener) => { listener.EnableMeasurementEvents(instrument); };
+
+        Dictionary<string, long> results = new();
+
+        ml.SetMeasurementEventCallback<long>((instrument, measurement, tags, _) =>
+        {
+            string ts = string.Join("-", tags.ToArray().Select(x => $"{x.Key}:{x.Value}"));
+
+            string key = $"{instrument.Name}_{ts}";
+
+            results[key] = measurement;
+        });
+
+        ml.Start();
+        ml.RecordObservableInstruments();
+        ml.RecordObservableInstruments();
+        results.Count.ShouldBe(0);
+
+        using IClient c1 = this.KafkaFactory.GetOrCreateClient();
+        Assert.NotNull(c1);
+        Task.Delay(200).Wait();
+        ml.RecordObservableInstruments();
+
+        foreach (var kvp in results)
+        {
+            this.Output.WriteLine($"{kvp.Key}: {kvp.Value}");
+        }
+
+        results.Count.ShouldBe(2);
+    }
+
+    [Fact]
     public void CreateDefaultClientsError()
     {
         MockCluster.AddMockCluster(this).WithProducerConfig("Shared").Configure(x => x.ProducerConfig.TransactionalId = "any");
@@ -466,7 +507,7 @@ public class KafkaFactoryTests : TestWithServices
         config.SaslOauthbearerClientSecret = "anyValue";
         config.Debug = "all";
 
-        IProducer<string, string> producer = this.KafkaFactory.CreateProducer<string, string>(config);
+        using IProducer<string, string> producer = this.KafkaFactory.CreateProducer<string, string>(config);
 
         logger.Entries["Epam.Kafka.Factory"].ShouldHaveSingleItem().ShouldContain("[sasl.oauthBearer.client.secret, *******]");
         logger.Entries["Qwe"].ShouldNotBeEmpty();
