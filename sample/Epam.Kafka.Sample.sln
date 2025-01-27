@@ -17,6 +17,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SubscribeEfCoreOffsets", "S
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SubscribeReplicationTransactional", "SubscribeReplicationTransactional\SubscribeReplicationTransactional.csproj", "{CEBB3DAB-C6E0-4563-B438-567F679A4F43}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProduceAndConsumeMetrics", "ProduceAndConsumeMetrics\ProduceAndConsumeMetrics.csproj", "{4E163658-6518-484C-8751-26317D1829DB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -51,6 +53,10 @@ Global
 		{CEBB3DAB-C6E0-4563-B438-567F679A4F43}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CEBB3DAB-C6E0-4563-B438-567F679A4F43}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CEBB3DAB-C6E0-4563-B438-567F679A4F43}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4E163658-6518-484C-8751-26317D1829DB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4E163658-6518-484C-8751-26317D1829DB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4E163658-6518-484C-8751-26317D1829DB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4E163658-6518-484C-8751-26317D1829DB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
