@@ -11,6 +11,8 @@
 	<ItemGroup>
 		<PackageReference Include="Epam.Kafka" Version="2.5.202-rc" />
 		<PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.1" />
+		<PackageReference Include="OpenTelemetry.Exporter.Console" Version="1.11.1" />
+		<PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.11.1" />
 	</ItemGroup>
 
 	<ItemGroup>
