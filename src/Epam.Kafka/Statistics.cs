@@ -116,7 +116,29 @@ public class Statistics
     [JsonPropertyName("msg_size_max")]
     public long ProducerQueueSizeMax { get; set; }
 
-    //TODO: tx, tx_bytes, rx, rx_bytes
+    /// <summary>
+    /// Total number of requests sent to Kafka brokers.
+    /// </summary>
+    [JsonPropertyName("tx")]
+    public long TransmittedRequestsTotal { get; set; }
+
+    /// <summary>
+    /// Total number of bytes transmitted to Kafka brokers.
+    /// </summary>
+    [JsonPropertyName("tx_bytes")]
+    public long TransmittedBytesTotal { get; set; }
+
+    /// <summary>
+    /// Total number of responses received from Kafka brokers.
+    /// </summary>
+    [JsonPropertyName("rx")]
+    public long ConsumedRequestsTotal { get; set; }
+
+    /// <summary>
+    /// Total number of bytes received from Kafka brokers.
+    /// </summary>
+    [JsonPropertyName("rx_bytes")]
+    public long ConsumedBytesTotal { get; set; }
 
     /// <summary>
     /// Total number of messages transmitted (produced) to Kafka brokers.
