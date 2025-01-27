@@ -18,6 +18,11 @@ internal sealed class SharedClient : ClientWrapper, IObservable<Error>, IObserva
 
         ProducerConfig config = kafkaFactory.CreateProducerConfig(ProducerName);
 
+        if (string.IsNullOrWhiteSpace(config.ClientId))
+        {
+            config.ClientId = $"Epam.Kafka.SharedClient.{cluster}";
+        }
+
         this._client = kafkaFactory.CreateProducer<Null, Null>(config, cluster);
     }
 

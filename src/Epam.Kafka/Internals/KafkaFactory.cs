@@ -252,7 +252,7 @@ internal sealed class KafkaFactory : IKafkaFactory, IDisposable
             {
                 if (!this._clients.TryGetValue(clusterOptions, out result))
                 {
-                    result = new SharedClient(this, cluster);
+                    result = new SharedClient(this, cluster ?? this._topicOptions.CurrentValue.Cluster);
 
                     this._clients.Add(clusterOptions, result);
                 }
