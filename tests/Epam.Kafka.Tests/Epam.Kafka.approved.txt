@@ -203,11 +203,29 @@ namespace Epam.Kafka.Stats
         public TopicStatistics() { }
         [System.Text.Json.Serialization.JsonPropertyName("age")]
         public long AgeMilliseconds { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("batchcnt")]
+        public Epam.Kafka.Stats.WindowStats BatchCount { get; }
+        [System.Text.Json.Serialization.JsonPropertyName("batchsize")]
+        public Epam.Kafka.Stats.WindowStats BatchSize { get; }
         [System.Text.Json.Serialization.JsonPropertyName("metadata_age")]
         public long MetadataAgeMilliseconds { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("topic")]
         public string Name { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("partitions")]
         public System.Collections.Generic.Dictionary<long, Epam.Kafka.Stats.PartitionStatistics> Partitions { get; }
+    }
+    public class WindowStats
+    {
+        public WindowStats() { }
+        [System.Text.Json.Serialization.JsonPropertyName("avg")]
+        public long Avg { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("cnt")]
+        public long Count { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("max")]
+        public long Max { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("min")]
+        public long Min { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("sum")]
+        public long Sum { get; set; }
     }
 }

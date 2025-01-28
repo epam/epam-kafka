@@ -63,6 +63,8 @@ public class StatisticsTests
         topic.Name.ShouldBe("epam-kafka-sample-topic-2");
         topic.AgeMilliseconds.ShouldBe(23753);
         topic.MetadataAgeMilliseconds.ShouldBe(35918);
+        topic.BatchSize.Sum.ShouldBe(18808985);
+        topic.BatchCount.Sum.ShouldBe(480028);
 
         topic.Partitions.ShouldNotBeNull().Count.ShouldBe(2);
         PartitionStatistics partition = topic.Partitions[0];
