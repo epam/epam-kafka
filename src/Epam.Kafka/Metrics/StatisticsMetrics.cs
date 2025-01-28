@@ -12,55 +12,53 @@ internal abstract class StatisticsMetrics : IObserver<Statistics>
     private const string HandlerTag = "Handler";
     private const string InstanceTag = "Instance";
 
+    private readonly object _syncObj = new();
     private bool _initialized;
-    private readonly Meter _meter;
+    private Meter? _topLevelMeter;
+    private Meter? _topParMeter;
 
     protected Statistics? Value { get; private set; }
     protected static IEnumerable<Measurement<long>> Empty { get; } = Enumerable.Empty<Measurement<long>>();
 
-    protected KeyValuePair<string, object?>[]? TopLevelTags { get; private set; }
-
-    protected StatisticsMetrics(string meterName)
-    {
-        if (meterName == null) throw new ArgumentNullException(nameof(meterName));
-
-        this._meter = new Meter(meterName);
-    }
-
     public void OnNext(Statistics value)
     {
         this.Value = value;
-        this.TopLevelTags ??= new[]
-        {
-            new KeyValuePair<string, object?>(NameTag, value.ClientId),
-            new KeyValuePair<string, object?>(HandlerTag, value.Name),
-            new KeyValuePair<string, object?>(InstanceTag, value.Type),
-        };
 
         if (!this._initialized)
         {
-            lock (this._meter)
+            lock (this._syncObj)
             {
                 if (!this._initialized)
                 {
-                    this.Initialize(this._meter);
+                    KeyValuePair<string, object?>[] topLevelTags = new[]
+                    {
+                        new KeyValuePair<string, object?>(NameTag, value.ClientId),
+                        new KeyValuePair<string, object?>(HandlerTag, value.Name),
+                        new KeyValuePair<string, object?>(InstanceTag, value.Type),
+                    };
+
+                    this._topLevelMeter = new Meter(Statistics.TopLevelMeterName, null, topLevelTags);
+                    this._topParMeter = new Meter(Statistics.TopicPartitionMeterName, null, topLevelTags);
+
+                    this.Initialize(this._topLevelMeter, this._topParMeter);
+
                     this._initialized = true;
                 }
             }
         }
     }
 
-    protected abstract void Initialize(Meter meter);
+    protected abstract void Initialize(Meter meter, Meter topParMeter);
 
     public void OnError(Exception error)
     {
         this.Value = null;
-        this.TopLevelTags = null;
     }
 
     public void OnCompleted()
     {
-        this._meter.Dispose();
+        this._topLevelMeter?.Dispose();
+        this._topParMeter?.Dispose();
     }
 
     protected void CreateTopLevelGauge(Meter meter, string name, Func<Statistics, long> factory)
@@ -75,8 +73,7 @@ internal abstract class StatisticsMetrics : IObserver<Statistics>
 
             if (value is not null)
             {
-                return Enumerable.Repeat(
-                    new Measurement<long>(factory(value), this.TopLevelTags), 1);
+                return Enumerable.Repeat(new Measurement<long>(factory(value)), 1);
             }
 
             return Empty;
@@ -95,8 +92,7 @@ internal abstract class StatisticsMetrics : IObserver<Statistics>
 
             if (value is not null)
             {
-                return Enumerable.Repeat(
-                    new Measurement<long>(factory(value), this.TopLevelTags), 1);
+                return Enumerable.Repeat(new Measurement<long>(factory(value)), 1);
             }
 
             return Empty;

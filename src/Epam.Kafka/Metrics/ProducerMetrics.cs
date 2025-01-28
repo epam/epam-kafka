@@ -4,11 +4,11 @@ using System.Diagnostics.Metrics;
 
 namespace Epam.Kafka.Metrics;
 
-internal sealed class ProducerMetrics : TopLevelMetrics
+internal sealed class ProducerMetrics : CommonMetrics
 {
-    protected override void Initialize(Meter meter)
+    protected override void Initialize(Meter meter, Meter topParMeter)
     {
-        base.Initialize(meter);
+        base.Initialize(meter, topParMeter);
 
         this.CreateTopLevelCounter(meter, "epam_kafka_stats_txmsgs", v => v.TransmittedMessagesTotal,
             description: "Total number of messages transmitted (produced) to Kafka brokers");

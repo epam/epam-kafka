@@ -4,11 +4,11 @@ using System.Diagnostics.Metrics;
 
 namespace Epam.Kafka.Metrics;
 
-internal sealed class ConsumerMetrics : TopLevelMetrics
+internal sealed class ConsumerMetrics : CommonMetrics
 {
-    protected override void Initialize(Meter meter)
+    protected override void Initialize(Meter meter, Meter topParMeter)
     {
-        base.Initialize(meter);
+        base.Initialize(meter, topParMeter);
 
         this.CreateTopLevelCounter(meter, "epam_kafka_stats_rxmsgs", v => v.ConsumedMessagesTotal,
             description: "Total number of messages consumed, not including ignored messages (due to offset, etc), from Kafka brokers.");

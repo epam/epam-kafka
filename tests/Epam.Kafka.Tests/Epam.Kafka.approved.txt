@@ -60,7 +60,8 @@ namespace Epam.Kafka
     }
     public class Statistics
     {
-        public const string MeterName = "Epam.Kafka.Statistics";
+        public const string TopLevelMeterName = "Epam.Kafka.Statistics";
+        public const string TopicPartitionMeterName = "Epam.Kafka.Statistics.Toppar";
         public Statistics() { }
         [System.Text.Json.Serialization.JsonPropertyName("age")]
         public long AgeMicroseconds { get; set; }
@@ -77,7 +78,7 @@ namespace Epam.Kafka
         [System.Text.Json.Serialization.JsonPropertyName("rx")]
         public long ConsumedRequestsTotal { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("cgrp")]
-        public Epam.Kafka.Stats.GroupStatistics? ConsumerGroups { get; set; }
+        public Epam.Kafka.Stats.GroupStatistics ConsumerGroup { get; }
         [System.Text.Json.Serialization.JsonPropertyName("name")]
         public string Name { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("replyq")]
@@ -90,6 +91,8 @@ namespace Epam.Kafka
         public long ProducerQueueSizeGauge { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("msg_size_max")]
         public long ProducerQueueSizeMax { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("eos")]
+        public Epam.Kafka.Stats.GroupStatistics ProducerTransaction { get; }
         [System.Text.Json.Serialization.JsonIgnore]
         public string RawJson { get; }
         [System.Text.Json.Serialization.JsonPropertyName("time")]
@@ -185,6 +188,10 @@ namespace Epam.Kafka.Stats
         public long CommittedOffset { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("consumer_lag")]
         public long ConsumerLag { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("desired")]
+        public bool Desired { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("fetchq_cnt")]
+        public long FetchCount { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("fetch_state")]
         public string FetchState { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("hi_offset")]
@@ -197,6 +204,10 @@ namespace Epam.Kafka.Stats
         public long LsOffset { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("next_offset")]
         public long NextOffset { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("msgq_cnt")]
+        public long QueueCount { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("unknown")]
+        public bool Unknown { get; set; }
     }
     public class TopicStatistics
     {
@@ -204,9 +215,9 @@ namespace Epam.Kafka.Stats
         [System.Text.Json.Serialization.JsonPropertyName("age")]
         public long AgeMilliseconds { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("batchcnt")]
-        public Epam.Kafka.Stats.WindowStats BatchCount { get; }
+        public Epam.Kafka.Stats.WindowStatistics BatchCount { get; }
         [System.Text.Json.Serialization.JsonPropertyName("batchsize")]
-        public Epam.Kafka.Stats.WindowStats BatchSize { get; }
+        public Epam.Kafka.Stats.WindowStatistics BatchSize { get; }
         [System.Text.Json.Serialization.JsonPropertyName("metadata_age")]
         public long MetadataAgeMilliseconds { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("topic")]
@@ -214,9 +225,23 @@ namespace Epam.Kafka.Stats
         [System.Text.Json.Serialization.JsonPropertyName("partitions")]
         public System.Collections.Generic.Dictionary<long, Epam.Kafka.Stats.PartitionStatistics> Partitions { get; }
     }
-    public class WindowStats
+    public class TransactionStatistics
     {
-        public WindowStats() { }
+        public TransactionStatistics() { }
+        [System.Text.Json.Serialization.JsonPropertyName("txn_may_enq")]
+        public bool EnqAllowed { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("idemp_stateage")]
+        public long IdempotentAgeMilliseconds { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("idemp_state")]
+        public string IdempotentState { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("txn_stateage")]
+        public long TransactionAgeMilliseconds { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("txn_state")]
+        public string TransactionState { get; set; }
+    }
+    public class WindowStatistics
+    {
+        public WindowStatistics() { }
         [System.Text.Json.Serialization.JsonPropertyName("avg")]
         public long Avg { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("cnt")]

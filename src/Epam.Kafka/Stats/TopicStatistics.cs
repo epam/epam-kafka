@@ -31,13 +31,13 @@ public class TopicStatistics
     /// Batch sizes in bytes
     /// </summary>
     [JsonPropertyName("batchsize")]
-    public WindowStats BatchSize { get; } = new();
+    public WindowStatistics BatchSize { get; } = new();
 
     /// <summary>
     /// Batch message counts
     /// </summary>
     [JsonPropertyName("batchcnt")]
-    public WindowStats BatchCount { get; } = new();
+    public WindowStatistics BatchCount { get; } = new();
 
     /// <summary>
     /// Partitions dict, key is partition id, value is <see cref="PartitionStatistics"/>

@@ -7,7 +7,7 @@ namespace Epam.Kafka.Stats;
 /// <summary>
 /// Rolling window statistics. The values are in microseconds unless otherwise stated.
 /// </summary>
-public class WindowStats
+public class WindowStatistics
 {
     /// <summary>
     /// Smallest value

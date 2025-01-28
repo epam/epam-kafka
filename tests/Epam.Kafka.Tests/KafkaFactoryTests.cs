@@ -11,8 +11,6 @@ using Moq;
 
 using Shouldly;
 
-using System.Diagnostics.Metrics;
-
 using Xunit;
 using Xunit.Abstractions;
 
@@ -437,37 +435,17 @@ public class KafkaFactoryTests : TestWithServices
         MockCluster.AddMockCluster(this).WithClusterConfig(MockCluster.ClusterName)
             .Configure(x => x.ClientConfig.StatisticsIntervalMs = 100);
 
-        MeterListener ml = new MeterListener();
-
-        ml.InstrumentPublished = (instrument, listener) => { listener.EnableMeasurementEvents(instrument); };
-
-        Dictionary<string, long> results = new();
-
-        ml.SetMeasurementEventCallback<long>((instrument, measurement, tags, _) =>
-        {
-            string ts = string.Join("-", tags.ToArray().Select(x => $"{x.Key}:{x.Value}"));
-
-            string key = $"{instrument.Name}_{ts}";
-
-            results[key] = measurement;
-        });
-
-        ml.Start();
+        using MeterHelper ml = new();
         ml.RecordObservableInstruments();
         ml.RecordObservableInstruments();
-        results.Count.ShouldBe(0);
+        ml.Results.Count.ShouldBe(0);
 
         using IClient c1 = this.KafkaFactory.GetOrCreateClient();
         Assert.NotNull(c1);
         Task.Delay(200).Wait();
-        ml.RecordObservableInstruments();
+        ml.RecordObservableInstruments(this.Output);
 
-        foreach (var kvp in results)
-        {
-            this.Output.WriteLine($"{kvp.Key}: {kvp.Value}");
-        }
-
-        results.Count.ShouldBe(2);
+        ml.Results.Count.ShouldBe(2);
     }
 
     [Fact]
