@@ -6,9 +6,21 @@ namespace Epam.Kafka.Internals;
 
 internal abstract class ClientWrapper : IClient
 {
+    private bool _disposed;
     protected abstract IClient Inner { get; }
 
-    public abstract void Dispose();
+    public virtual void Dispose()
+    {
+        this._disposed = true;
+    }
+
+    protected void EnsureNotDisposed()
+    {
+        if (this._disposed)
+        {
+            throw new ObjectDisposedException(this.GetType().Name);
+        }
+    }
 
     public int AddBrokers(string brokers)
     {

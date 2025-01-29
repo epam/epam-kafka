@@ -1,19 +1,27 @@
 ﻿// Copyright © 2024 EPAM Systems
 
-using System.Diagnostics.Metrics;
-
 using Confluent.Kafka;
+
 using Epam.Kafka.Metrics;
 using Epam.Kafka.Stats;
+using Epam.Kafka.Tests.Common;
 
 using Shouldly;
 
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Epam.Kafka.Tests;
 
 public class StatisticsTests
 {
+    public ITestOutputHelper Output { get; }
+
+    public StatisticsTests(ITestOutputHelper output)
+    {
+        this.Output = output ?? throw new ArgumentNullException(nameof(output));
+    }
+
     [Fact]
     public void ParseErrors()
     {
@@ -63,6 +71,8 @@ public class StatisticsTests
         topic.Name.ShouldBe("epam-kafka-sample-topic-2");
         topic.AgeMilliseconds.ShouldBe(23753);
         topic.MetadataAgeMilliseconds.ShouldBe(35918);
+        topic.BatchSize.Sum.ShouldBe(18808985);
+        topic.BatchCount.Sum.ShouldBe(480028);
 
         topic.Partitions.ShouldNotBeNull().Count.ShouldBe(2);
         PartitionStatistics partition = topic.Partitions[0];
@@ -74,7 +84,7 @@ public class StatisticsTests
         partition.ConsumerLag.ShouldBe(1);
         partition.FetchState.ShouldBe("active");
 
-        GroupStatistics group = value.ConsumerGroups.ShouldNotBeNull();
+        GroupStatistics group = value.ConsumerGroup.ShouldNotBeNull();
         group.State.ShouldBe("up");
         group.StateAgeMilliseconds.ShouldBe(39225);
         group.JoinState.ShouldBe("steady");
@@ -85,22 +95,7 @@ public class StatisticsTests
     [Fact]
     public void TopLevelMetricsTests()
     {
-        MeterListener ml = new MeterListener();
-
-        ml.InstrumentPublished = (instrument, listener) => { listener.EnableMeasurementEvents(instrument); };
-
-        Dictionary<string, long> results = new();
-
-        ml.SetMeasurementEventCallback<long>((instrument, measurement, tags, _) =>
-        {
-            string ts = string.Join("-", tags.ToArray().Select(x => $"{x.Key}:{x.Value}"));
-
-            string key = $"{instrument.Name}_{ts}";
-
-            results[key] = measurement;
-        });
-
-        ml.Start();
+        using MeterHelper ml = new(Statistics.TopLevelMeterName);
 
         ConsumerMetrics cm = new();
         ProducerMetrics pm = new();
@@ -108,29 +103,63 @@ public class StatisticsTests
         cm.OnNext(new Statistics { ClientId = "c1", Name = "n1", Type = "c", ConsumedMessagesTotal = 123 });
         pm.OnNext(new Statistics { ClientId = "c1", Name = "n2", Type = "p", TransmittedMessagesTotal = 111 });
 
-        ml.RecordObservableInstruments();
-        results.Count.ShouldBe(4);
-        results["epam_kafka_stats_rxmsgs_Name:c1-Handler:n1-Instance:c"].ShouldBe(123);
-        results["epam_kafka_stats_txmsgs_Name:c1-Handler:n2-Instance:p"].ShouldBe(111);
-        results["epam_kafka_stats_age_Name:c1-Handler:n1-Instance:c"].ShouldBe(0);
-        results["epam_kafka_stats_age_Name:c1-Handler:n2-Instance:p"].ShouldBe(0);
+        ml.RecordObservableInstruments(this.Output);
+
+        ml.Results.Count.ShouldBe(4);
+        ml.Results["epam_kafka_stats_rxmsgs_Handler:n1-Name:c1-Type:c"].ShouldBe(123);
+        ml.Results["epam_kafka_stats_txmsgs_Handler:n2-Name:c1-Type:p"].ShouldBe(111);
+        ml.Results["epam_kafka_stats_age_Handler:n1-Name:c1-Type:c"].ShouldBe(0);
+        ml.Results["epam_kafka_stats_age_Handler:n2-Name:c1-Type:p"].ShouldBe(0);
 
         cm.OnCompleted();
 
         cm.OnNext(new Statistics { ClientId = "c1", Name = "n1", ConsumedMessagesTotal = 124 });
-        pm.OnNext(new Statistics { ClientId = "p1", Name = "n1", TransmittedMessagesTotal = 112, AgeMicroseconds = 555});
+        pm.OnNext(new Statistics { ClientId = "p1", Name = "n1", TransmittedMessagesTotal = 112, AgeMicroseconds = 555 });
 
-        results.Clear();
-        ml.RecordObservableInstruments();
+        ml.Results.Clear();
+        ml.RecordObservableInstruments(this.Output);
 
-        results.Count.ShouldBe(2);
-        results["epam_kafka_stats_txmsgs_Name:c1-Handler:n2-Instance:p"].ShouldBe(112);
-        results["epam_kafka_stats_age_Name:c1-Handler:n2-Instance:p"].ShouldBe(555);
+        ml.Results.Count.ShouldBe(2);
+        ml.Results["epam_kafka_stats_txmsgs_Handler:n2-Name:c1-Type:p"].ShouldBe(112);
+        ml.Results["epam_kafka_stats_age_Handler:n2-Name:c1-Type:p"].ShouldBe(555);
 
         pm.OnCompleted();
 
-        results.Clear();
-        ml.RecordObservableInstruments();
-        results.Count.ShouldBe(0);
+        ml.Results.Clear();
+        ml.RecordObservableInstruments(this.Output);
+        ml.Results.Count.ShouldBe(0);
+    }
+
+    [Fact]
+    public void TopParMetricsTests()
+    {
+        using MeterHelper ml = new(Statistics.TopicPartitionMeterName);
+
+        ConsumerMetrics cm = new();
+
+        Statistics statistics = new Statistics { ClientId = "c1", Name = "n1", Type = "c", ConsumedMessagesTotal = 123 };
+        TopicStatistics ts = new TopicStatistics { Name = "t1" };
+        PartitionStatistics ps = new PartitionStatistics { Id = 2, ConsumerLag = 445 };
+
+        ts.Partitions.Add(ps.Id, ps);
+
+        statistics.Topics.Add(ts.Name, ts);
+
+        cm.OnNext(statistics);
+
+        ml.RecordObservableInstruments(this.Output);
+
+        ml.Results.Count.ShouldBe(1);
+        ml.Results["epam_kafka_stats_tp_lag_Handler:n1-Name:c1-Type:c-Topic:t1-Partition:2"].ShouldBe(445);
+
+        statistics.Topics.Clear();
+
+        cm.OnNext(statistics);
+
+        ml.Results.Clear();
+        ml.RecordObservableInstruments(this.Output);
+        ml.Results.Count.ShouldBe(0);
+
+        cm.OnCompleted();
     }
 }

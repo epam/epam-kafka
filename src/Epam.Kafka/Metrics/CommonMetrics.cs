@@ -4,15 +4,15 @@ using System.Diagnostics.Metrics;
 
 namespace Epam.Kafka.Metrics;
 
-internal class TopLevelMetrics : StatisticsMetrics
+internal class CommonMetrics : StatisticsMetrics
 {
-    protected TopLevelMetrics() : base(Statistics.MeterName)
+    protected CommonMetrics() : base()
     {
     }
 
-    protected override void Initialize(Meter meter)
+    protected override void Initialize(Meter meter, Meter topParMeter)
     {
-        this.CreateTopLevelCounter(meter, "epam_kafka_stats_age", v => v.AgeMicroseconds, "microseconds",
+        this.CreateCounter(meter, "epam_kafka_stats_age", v => v.AgeMicroseconds, "microseconds",
             "Time since this client instance was created (microseconds).");
 
         //this.CreateTopLevelCounter(meter, "epam_kafka_stats_replyq", v => v.OpsQueueCountGauge, description:

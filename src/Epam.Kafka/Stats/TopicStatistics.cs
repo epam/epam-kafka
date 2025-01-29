@@ -28,6 +28,18 @@ public class TopicStatistics
     public long MetadataAgeMilliseconds { get; set; }
 
     /// <summary>
+    /// Batch sizes in bytes
+    /// </summary>
+    [JsonPropertyName("batchsize")]
+    public WindowStatistics BatchSize { get; } = new();
+
+    /// <summary>
+    /// Batch message counts
+    /// </summary>
+    [JsonPropertyName("batchcnt")]
+    public WindowStatistics BatchCount { get; } = new();
+
+    /// <summary>
     /// Partitions dict, key is partition id, value is <see cref="PartitionStatistics"/>
     /// </summary>
     [JsonPropertyName("partitions")]

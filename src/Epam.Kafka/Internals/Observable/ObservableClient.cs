@@ -6,10 +6,12 @@ using Epam.Kafka.Stats;
 
 namespace Epam.Kafka.Internals.Observable;
 
-#pragma warning disable CA1031 // notify other listeners event if one of them failed
+#pragma warning disable CA1031 // notify other listeners even if one of them failed
 
 internal abstract class ObservableClient : ClientWrapper, IObservable<Error>, IObservable<string>, IObservable<Statistics>
 {
+    private readonly ParseStatsJsonObserver _parseObserver = new();
+
     protected List<IObserver<Error>>? ErrorObservers { get; set; }
     protected List<IObserver<string>>? StatObservers { get; set; }
 
@@ -23,7 +25,7 @@ internal abstract class ObservableClient : ClientWrapper, IObservable<Error>, IO
             }
             catch
             {
-                // notify other listeners event if one of them failed
+                // notify other listeners even if one of them failed
             }
         }
     }
@@ -38,45 +40,42 @@ internal abstract class ObservableClient : ClientWrapper, IObservable<Error>, IO
             }
             catch
             {
-                // notify other listeners event if one of them failed
+                // notify other listeners even if one of them failed
             }
         }
     }
 
-    protected void ClearObservers()
+    protected void CompleteObservers()
     {
-        ClearObservers(this.ErrorObservers);
-        ClearObservers(this.StatObservers);
+        CompleteObservers(this.ErrorObservers);
+        CompleteObservers(this.StatObservers);
     }
 
-    private static void ClearObservers<T>(List<IObserver<T>>? items)
+    private static void CompleteObservers<T>(List<IObserver<T>>? items)
     {
         if (items == null)
         {
             return;
         }
 
-        foreach (IObserver<T> item in items.ToArray())
+        foreach (IObserver<T> item in items)
         {
-            if (items.Contains(item))
+            try
             {
-                try
-                {
-                    item.OnCompleted();
-                }
-                catch
-                {
-                    // notify other listeners event if one of them failed
-                }
+                item.OnCompleted();
+            }
+            catch
+            {
+                // notify other listeners even if one of them failed
             }
         }
-
-        items.Clear();
     }
 
     public IDisposable Subscribe(IObserver<Error> observer)
     {
         if (observer == null) throw new ArgumentNullException(nameof(observer));
+
+        this.EnsureNotDisposed();
 
         if (this.ErrorObservers == null)
         {
@@ -96,6 +95,8 @@ internal abstract class ObservableClient : ClientWrapper, IObservable<Error>, IO
     {
         if (observer == null) throw new ArgumentNullException(nameof(observer));
 
+        this.EnsureNotDisposed();
+
         if (this.StatObservers == null)
         {
             throw new InvalidOperationException(
@@ -114,24 +115,12 @@ internal abstract class ObservableClient : ClientWrapper, IObservable<Error>, IO
     {
         if (observer == null) throw new ArgumentNullException(nameof(observer));
 
-        return this.Subscribe(new ParseStatsJsonObserver(observer));
-    }
+        this.EnsureNotDisposed();
 
-    private class Unsubscriber<T> : IDisposable
-    {
-        private readonly List<IObserver<T>> _observers;
-        private readonly IObserver<T> _observer;
-
-        public Unsubscriber(List<IObserver<T>> observers, IObserver<T> observer)
-        {
-            this._observers = observers;
-            this._observer = observer;
-        }
-
-        public void Dispose()
-        {
-            this._observers.Remove(this._observer);
-        }
+#pragma warning disable CA2000 // don't need to unsubscribe
+        this.Subscribe(this._parseObserver);
+#pragma warning restore CA2000
+        return this._parseObserver.Subscribe(observer);
     }
 }
 
