@@ -16,7 +16,12 @@ public class Statistics
     /// <summary>
     /// Name of <see cref="Meter"/> used to expose top level statistics.
     /// </summary>
-    public const string MeterName = "Epam.Kafka.Statistics";
+    public const string TopLevelMeterName = "Epam.Kafka.Statistics";
+
+    /// <summary>
+    /// Name of <see cref="Meter"/> used to expose top topic partition statistics.
+    /// </summary>
+    public const string TopicPartitionMeterName = "Epam.Kafka.Statistics.Toppar";
 
     /// <summary>
     /// Create new instance of <see cref="Statistics"/> object from json representation.
@@ -175,10 +180,14 @@ public class Statistics
     public Dictionary<string, TopicStatistics> Topics { get; } = new();
 
     /// <summary>
-    /// Consumer group metrics. See <see cref="GroupStatistics"/>.
+    /// Consumer group metrics.
     /// </summary>
     [JsonPropertyName("cgrp")]
-    public GroupStatistics? ConsumerGroups { get; set; }
+    public GroupStatistics ConsumerGroup { get; } = new();
 
-    //TODO: eos
+    /// <summary>
+    /// EOS / Idempotent producer state and metrics.
+    /// </summary>
+    [JsonPropertyName("eos")]
+    public GroupStatistics ProducerTransaction { get; } = new();
 }

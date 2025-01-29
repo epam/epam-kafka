@@ -21,6 +21,30 @@ public class PartitionStatistics
     public long Id { get; set; }
 
     /// <summary>
+    /// Partition is explicitly desired by application
+    /// </summary>
+    [JsonPropertyName("desired")]
+    public bool Desired { get; set; }
+
+    /// <summary>
+    /// Partition not seen in topic metadata from broker
+    /// </summary>
+    [JsonPropertyName("unknown")]
+    public bool Unknown { get; set; }
+
+    /// <summary>
+    /// Number of messages waiting to be produced in first-level queue
+    /// </summary>
+    [JsonPropertyName("msgq_cnt")]
+    public long QueueCount { get; set; }
+
+    /// <summary>
+    /// Number of pre-fetched messages in fetch queue
+    /// </summary>
+    [JsonPropertyName("fetchq_cnt")]
+    public long FetchCount { get; set; }
+
+    /// <summary>
     /// Consumer fetch state for this partition (none, stopping, stopped, offset-query, offset-wait, active)
     /// </summary>
     [JsonPropertyName("fetch_state")]

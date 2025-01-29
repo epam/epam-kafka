@@ -1,10 +1,9 @@
 ﻿// Copyright © 2024 EPAM Systems
 
-using System.Text.Json;
-
-using System.Text.Json.Serialization;
-
 using Confluent.Kafka;
+
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Epam.Kafka.Stats;
 
