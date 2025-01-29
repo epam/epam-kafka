@@ -159,5 +159,7 @@ public class StatisticsTests
         ml.Results.Clear();
         ml.RecordObservableInstruments(this.Output);
         ml.Results.Count.ShouldBe(0);
+
+        cm.OnCompleted();
     }
 }
