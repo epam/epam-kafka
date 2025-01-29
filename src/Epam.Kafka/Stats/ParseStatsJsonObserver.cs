@@ -1,15 +1,14 @@
 ﻿// Copyright © 2024 EPAM Systems
 
+using Epam.Kafka.Internals.Observable;
+
 namespace Epam.Kafka.Stats;
 
-internal sealed class ParseStatsJsonObserver : IObserver<string>
-{
-    private readonly IObserver<Statistics> _inner;
+#pragma warning disable CA1031 // notify other listeners even if one of them failed
 
-    public ParseStatsJsonObserver(IObserver<Statistics> inner)
-    {
-        this._inner = inner ?? throw new ArgumentNullException(nameof(inner));
-    }
+internal sealed class ParseStatsJsonObserver : IObserver<string>, IObservable<Statistics>
+{
+    private readonly List<IObserver<Statistics>> _inner = new();
 
     public void OnNext(string value)
     {
@@ -20,21 +19,65 @@ internal sealed class ParseStatsJsonObserver : IObserver<string>
         }
         catch (Exception e)
         {
-            this._inner.OnError(e);
+            this.OnError(e);
 
             throw;
         }
 
-        this._inner.OnNext(statistics);
+        foreach (IObserver<Statistics> observer in this._inner)
+        {
+            try
+            {
+                observer.OnNext(statistics);
+            }
+            catch
+            {
+                // notify other listeners even if one of them failed
+            }
+        }
     }
 
     public void OnError(Exception error)
     {
-        this._inner.OnError(error);
+        foreach (IObserver<Statistics> observer in this._inner)
+        {
+            try
+            {
+                observer.OnError(error);
+            }
+            catch
+            {
+                // notify other listeners even if one of them failed
+            }
+        }
     }
 
     public void OnCompleted()
     {
-        this._inner.OnCompleted();
+        foreach (IObserver<Statistics> observer in this._inner)
+        {
+            try
+            {
+                observer.OnCompleted();
+            }
+            catch
+            {
+                // notify other listeners even if one of them failed
+            }
+        }
+
+        this._inner.Clear();
+    }
+
+    public IDisposable Subscribe(IObserver<Statistics> observer)
+    {
+        if (!this._inner.Contains(observer))
+        {
+            this._inner.Add(observer);
+        }
+
+        return new Unsubscriber<Statistics>(this._inner, observer);
     }
 }
+
+#pragma warning restore CA1031
