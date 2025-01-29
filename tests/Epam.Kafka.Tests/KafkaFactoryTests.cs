@@ -14,8 +14,6 @@ using Shouldly;
 using Xunit;
 using Xunit.Abstractions;
 
-using static Confluent.Kafka.ConfigPropertyNames;
-
 namespace Epam.Kafka.Tests;
 
 public class KafkaFactoryTests : TestWithServices
@@ -503,12 +501,17 @@ public class KafkaFactoryTests : TestWithServices
 
         using MeterHelper ml = new(Statistics.TopLevelMeterName);
         ml.RecordObservableInstruments();
-        ml.RecordObservableInstruments();
         ml.Results.Count.ShouldBe(0);
 
         using IClient c1 = this.KafkaFactory.GetOrCreateClient();
         Assert.NotNull(c1);
         Task.Delay(200).Wait();
+        ml.RecordObservableInstruments(this.Output);
+
+        ml.Results.Count.ShouldBe(2);
+
+        Task.Delay(1000).Wait();
+
         ml.RecordObservableInstruments(this.Output);
 
         ml.Results.Count.ShouldBe(2);

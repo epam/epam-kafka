@@ -106,10 +106,10 @@ public class StatisticsTests
         ml.RecordObservableInstruments(this.Output);
 
         ml.Results.Count.ShouldBe(4);
-        ml.Results["epam_kafka_stats_rxmsgs_Handler:n1-Instance:c-Name:c1"].ShouldBe(123);
-        ml.Results["epam_kafka_stats_txmsgs_Handler:n2-Instance:p-Name:c1"].ShouldBe(111);
-        ml.Results["epam_kafka_stats_age_Handler:n1-Instance:c-Name:c1"].ShouldBe(0);
-        ml.Results["epam_kafka_stats_age_Handler:n2-Instance:p-Name:c1"].ShouldBe(0);
+        ml.Results["epam_kafka_stats_rxmsgs_Handler:n1-Name:c1-Type:c"].ShouldBe(123);
+        ml.Results["epam_kafka_stats_txmsgs_Handler:n2-Name:c1-Type:p"].ShouldBe(111);
+        ml.Results["epam_kafka_stats_age_Handler:n1-Name:c1-Type:c"].ShouldBe(0);
+        ml.Results["epam_kafka_stats_age_Handler:n2-Name:c1-Type:p"].ShouldBe(0);
 
         cm.OnCompleted();
 
@@ -120,8 +120,8 @@ public class StatisticsTests
         ml.RecordObservableInstruments(this.Output);
 
         ml.Results.Count.ShouldBe(2);
-        ml.Results["epam_kafka_stats_txmsgs_Handler:n2-Instance:p-Name:c1"].ShouldBe(112);
-        ml.Results["epam_kafka_stats_age_Handler:n2-Instance:p-Name:c1"].ShouldBe(555);
+        ml.Results["epam_kafka_stats_txmsgs_Handler:n2-Name:c1-Type:p"].ShouldBe(112);
+        ml.Results["epam_kafka_stats_age_Handler:n2-Name:c1-Type:p"].ShouldBe(555);
 
         pm.OnCompleted();
 
@@ -150,7 +150,7 @@ public class StatisticsTests
         ml.RecordObservableInstruments(this.Output);
 
         ml.Results.Count.ShouldBe(1);
-        ml.Results["epam_kafka_stats_tp_lag_Handler:n1-Instance:c-Name:c1-Topic:t1-Partition:2"].ShouldBe(445);
+        ml.Results["epam_kafka_stats_tp_lag_Handler:n1-Name:c1-Type:c-Topic:t1-Partition:2"].ShouldBe(445);
 
         statistics.Topics.Clear();
 

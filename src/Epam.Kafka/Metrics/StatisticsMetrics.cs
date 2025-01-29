@@ -1,6 +1,7 @@
 ﻿// Copyright © 2024 EPAM Systems
 
 using System.Diagnostics.Metrics;
+using System.Text.RegularExpressions;
 using Epam.Kafka.Stats;
 
 namespace Epam.Kafka.Metrics;
@@ -9,9 +10,12 @@ namespace Epam.Kafka.Metrics;
 
 internal abstract class StatisticsMetrics : IObserver<Statistics>
 {
+    private static readonly Regex HandlerRegex = new ("^(.*)#(consumer|producer)-(\\d{1,7})$",
+        RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
     private const string NameTag = "Name";
     private const string HandlerTag = "Handler";
-    private const string InstanceTag = "Instance";
+    private const string TypeTag = "Type";
     private const string TopicTagName = "Topic";
     private const string PartitionTagName = "Partition";
 
@@ -33,11 +37,15 @@ internal abstract class StatisticsMetrics : IObserver<Statistics>
             {
                 if (!this._initialized)
                 {
+                    Match match = HandlerRegex.Match(value.Name);
+
+                    string name = match.Success ? match.Result("$3") : value.Name;
+
                     KeyValuePair<string, object?>[] topLevelTags = new[]
                     {
                         new KeyValuePair<string, object?>(NameTag, value.ClientId),
-                        new KeyValuePair<string, object?>(HandlerTag, value.Name),
-                        new KeyValuePair<string, object?>(InstanceTag, value.Type),
+                        new KeyValuePair<string, object?>(HandlerTag, name),
+                        new KeyValuePair<string, object?>(TypeTag, value.Type),
                     };
 
                     this._topLevelMeter = new Meter(Statistics.TopLevelMeterName, null, topLevelTags);
