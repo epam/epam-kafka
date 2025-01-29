@@ -10,7 +10,7 @@ internal sealed class ProducerMetrics : CommonMetrics
     {
         base.Initialize(meter, topParMeter);
 
-        this.CreateTopLevelCounter(meter, "epam_kafka_stats_txmsgs", v => v.TransmittedMessagesTotal,
+        this.CreateCounter(meter, "epam_kafka_stats_txmsgs", v => v.TransmittedMessagesTotal,
             description: "Total number of messages transmitted (produced) to Kafka brokers");
 
         //this.CreateTopLevelCounter(meter, "epam_kafka_stats_tx", v => v.TransmittedRequestsTotal,

@@ -435,7 +435,7 @@ public class KafkaFactoryTests : TestWithServices
         MockCluster.AddMockCluster(this).WithClusterConfig(MockCluster.ClusterName)
             .Configure(x => x.ClientConfig.StatisticsIntervalMs = 100);
 
-        using MeterHelper ml = new();
+        using MeterHelper ml = new(Statistics.TopLevelMeterName);
         ml.RecordObservableInstruments();
         ml.RecordObservableInstruments();
         ml.Results.Count.ShouldBe(0);

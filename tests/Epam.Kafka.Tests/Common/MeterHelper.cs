@@ -11,12 +11,17 @@ public sealed class MeterHelper : IDisposable
 
     public IDictionary<string, long> Results { get; } = new Dictionary<string, long>();
 
-    public MeterHelper()
+    public MeterHelper(string meterName)
     {
         this._listener.InstrumentPublished = (instrument, listener) => { listener.EnableMeasurementEvents(instrument); };
 
         this._listener.SetMeasurementEventCallback<long>((instrument, measurement, tags, _) =>
         {
+            if (instrument.Meter.Name != meterName)
+            {
+                return;
+            }
+
             KeyValuePair<string, object?>[] t = tags.ToArray();
 
             if (instrument.Meter.Tags != null)

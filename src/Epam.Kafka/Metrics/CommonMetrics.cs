@@ -12,7 +12,7 @@ internal class CommonMetrics : StatisticsMetrics
 
     protected override void Initialize(Meter meter, Meter topParMeter)
     {
-        this.CreateTopLevelCounter(meter, "epam_kafka_stats_age", v => v.AgeMicroseconds, "microseconds",
+        this.CreateCounter(meter, "epam_kafka_stats_age", v => v.AgeMicroseconds, "microseconds",
             "Time since this client instance was created (microseconds).");
 
         //this.CreateTopLevelCounter(meter, "epam_kafka_stats_replyq", v => v.OpsQueueCountGauge, description:

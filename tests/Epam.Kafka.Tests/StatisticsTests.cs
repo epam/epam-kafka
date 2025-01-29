@@ -1,9 +1,11 @@
 ﻿// Copyright © 2024 EPAM Systems
 
 using Confluent.Kafka;
+
 using Epam.Kafka.Metrics;
 using Epam.Kafka.Stats;
 using Epam.Kafka.Tests.Common;
+
 using Shouldly;
 
 using Xunit;
@@ -93,7 +95,7 @@ public class StatisticsTests
     [Fact]
     public void TopLevelMetricsTests()
     {
-        using MeterHelper ml = new();
+        using MeterHelper ml = new(Statistics.TopLevelMeterName);
 
         ConsumerMetrics cm = new();
         ProducerMetrics pm = new();
@@ -112,7 +114,7 @@ public class StatisticsTests
         cm.OnCompleted();
 
         cm.OnNext(new Statistics { ClientId = "c1", Name = "n1", ConsumedMessagesTotal = 124 });
-        pm.OnNext(new Statistics { ClientId = "p1", Name = "n1", TransmittedMessagesTotal = 112, AgeMicroseconds = 555});
+        pm.OnNext(new Statistics { ClientId = "p1", Name = "n1", TransmittedMessagesTotal = 112, AgeMicroseconds = 555 });
 
         ml.Results.Clear();
         ml.RecordObservableInstruments(this.Output);
@@ -122,6 +124,37 @@ public class StatisticsTests
         ml.Results["epam_kafka_stats_age_Handler:n2-Instance:p-Name:c1"].ShouldBe(555);
 
         pm.OnCompleted();
+
+        ml.Results.Clear();
+        ml.RecordObservableInstruments(this.Output);
+        ml.Results.Count.ShouldBe(0);
+    }
+
+    [Fact]
+    public void TopParMetricsTests()
+    {
+        using MeterHelper ml = new(Statistics.TopicPartitionMeterName);
+
+        ConsumerMetrics cm = new();
+
+        Statistics statistics = new Statistics { ClientId = "c1", Name = "n1", Type = "c", ConsumedMessagesTotal = 123 };
+        TopicStatistics ts = new TopicStatistics { Name = "t1" };
+        PartitionStatistics ps = new PartitionStatistics { Id = 2, ConsumerLag = 445 };
+
+        ts.Partitions.Add(ps.Id, ps);
+
+        statistics.Topics.Add(ts.Name, ts);
+
+        cm.OnNext(statistics);
+
+        ml.RecordObservableInstruments(this.Output);
+
+        ml.Results.Count.ShouldBe(1);
+        ml.Results["epam_kafka_stats_tp_lag_Handler:n1-Instance:c-Name:c1-Topic:t1-Partition:2"].ShouldBe(445);
+
+        statistics.Topics.Clear();
+
+        cm.OnNext(statistics);
 
         ml.Results.Clear();
         ml.RecordObservableInstruments(this.Output);
