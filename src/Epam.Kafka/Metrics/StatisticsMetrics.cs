@@ -2,7 +2,6 @@
 
 using System.Diagnostics.Metrics;
 using System.Text.RegularExpressions;
-using Epam.Kafka.Stats;
 
 namespace Epam.Kafka.Metrics;
 
@@ -10,14 +9,12 @@ namespace Epam.Kafka.Metrics;
 
 internal abstract class StatisticsMetrics : IObserver<Statistics>
 {
-    private static readonly Regex HandlerRegex = new ("^(.*)#(consumer|producer)-(\\d{1,7})$",
+    private static readonly Regex HandlerRegex = new("^(.*)#(consumer|producer)-(\\d{1,7})$",
         RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
     private const string NameTag = "Name";
     private const string HandlerTag = "Handler";
     private const string TypeTag = "Type";
-    private const string TopicTagName = "Topic";
-    private const string PartitionTagName = "Partition";
 
     private readonly object _syncObj = new();
     private bool _initialized;
@@ -72,7 +69,7 @@ internal abstract class StatisticsMetrics : IObserver<Statistics>
         this._topParMeter?.Dispose();
     }
 
-    protected void CreateGauge(Meter meter, string name, Func<Statistics, long> factory)
+    protected void CreateGauge(Meter meter, string name, Func<Statistics, long> factory, string? unit = null, string? description = null)
     {
         if (meter == null) throw new ArgumentNullException(nameof(meter));
         if (name == null) throw new ArgumentNullException(nameof(name));
@@ -88,7 +85,7 @@ internal abstract class StatisticsMetrics : IObserver<Statistics>
             }
 
             return Empty;
-        });
+        }, unit, description);
     }
 
     protected void CreateCounter(Meter meter, string name, Func<Statistics, long> factory, string? unit = null, string? description = null)
@@ -104,33 +101,6 @@ internal abstract class StatisticsMetrics : IObserver<Statistics>
             if (value is not null)
             {
                 return Enumerable.Repeat(new Measurement<long>(factory(value)), 1);
-            }
-
-            return Empty;
-        }, unit, description);
-    }
-
-    protected void CreateTpGauge(Meter meter, string name, Func<KeyValuePair<TopicStatistics,PartitionStatistics>,long> factory, string? unit = null,
-        string? description = null)
-    {
-        if (meter == null) throw new ArgumentNullException(nameof(meter));
-        if (name == null) throw new ArgumentNullException(nameof(name));
-
-        meter.CreateObservableGauge(name, () =>
-        {
-            Statistics? v = this.Value;
-
-            if (v != null)
-            {
-                return v.Topics
-                    .SelectMany(p =>
-                        p.Value.Partitions.Where(x => x.Key != PartitionStatistics.InternalUnassignedPartition)
-                            .Select(x => new KeyValuePair<TopicStatistics, PartitionStatistics>(p.Value, x.Value)))
-                    .Select(m => new Measurement<long>(factory(m), new[]
-                    {
-                        new KeyValuePair<string, object?>(TopicTagName, m.Key.Name),
-                        new KeyValuePair<string, object?>(PartitionTagName, m.Value.Id)
-                    }));
             }
 
             return Empty;

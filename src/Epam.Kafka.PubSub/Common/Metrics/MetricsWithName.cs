@@ -12,14 +12,11 @@ internal abstract class MetricsWithName : IDisposable
 
     private readonly Meter _meter;
 
-    private readonly KeyValuePair<string, object?>[] _monitorName;
-
     protected MetricsWithName(string name, PipelineMonitor monitor)
     {
         if (name == null) throw new ArgumentNullException(nameof(name));
 
-        this._meter = new Meter(name);
-        this._monitorName = new[] { new KeyValuePair<string, object?>(NameTag, monitor.FullName) };
+        this._meter = new Meter(name,null, new[] { new KeyValuePair<string, object?>(NameTag, monitor.FullName) });
     }
 
     public void Dispose()
@@ -29,6 +26,6 @@ internal abstract class MetricsWithName : IDisposable
 
     protected void CreateObservableGauge<T>(string name, Func<T> observeValue, string? description) where T : struct
     {
-        this._meter.CreateObservableGauge(name, () => new Measurement<T>(observeValue(), this._monitorName), null, description);
+        this._meter.CreateObservableGauge(name, () => new Measurement<T>(observeValue()), null, description);
     }
 }

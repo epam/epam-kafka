@@ -61,7 +61,7 @@ namespace Epam.Kafka
     public class Statistics
     {
         public const string TopLevelMeterName = "Epam.Kafka.Statistics";
-        public const string TopicPartitionMeterName = "Epam.Kafka.Statistics.Toppar";
+        public const string TopicPartitionMeterName = "Epam.Kafka.Statistics.TopicPartition";
         public Statistics() { }
         [System.Text.Json.Serialization.JsonPropertyName("age")]
         public long AgeMicroseconds { get; set; }

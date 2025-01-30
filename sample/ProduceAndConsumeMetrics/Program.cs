@@ -23,7 +23,7 @@ internal class Program
         hostBuilder.ConfigureServices(services =>
         {
             services.AddOpenTelemetry().WithMetrics(
-                mb => mb.AddMeter(Statistics.MeterName)
+                mb => mb.AddMeter(Statistics.TopLevelMeterName, Statistics.TopicPartitionMeterName)
                     .AddReader(new PeriodicExportingMetricReader(new CustomConsoleExporter(), 1000)));
 
             KafkaBuilder kafkaBuilder = services.AddKafka();
@@ -121,8 +121,16 @@ internal class CustomConsoleExporter : ConsoleExporter<Metric>
         {
             foreach (MetricPoint point in m.GetMetricPoints())
             {
-                var pt = new List<string>(point.Tags.Count);
+                var pt = new List<string>();
 
+                if (m.MeterTags is not null)
+                {
+                    foreach (KeyValuePair<string, object?> tag in m.MeterTags)
+                    {
+                        pt.Add(tag.ToString());
+                    }
+                }
+                
                 foreach (KeyValuePair<string, object?> tag in point.Tags)
                 {
                     pt.Add(tag.ToString());
@@ -130,7 +138,18 @@ internal class CustomConsoleExporter : ConsoleExporter<Metric>
 
                 string tags = string.Join(",", pt);
 
-                Console.WriteLine($"{m.Name}[{tags}]= {point.GetSumLong()}");
+                string value = "???";
+
+                if (m.MetricType == MetricType.LongGauge)
+                {
+                    value = point.GetGaugeLastValueLong().ToString("D");
+                }
+                else if (m.MetricType == MetricType.LongSum)
+                {
+                    value = point.GetSumLong().ToString("D");
+                }
+
+                Console.WriteLine($"{m.Name}[{tags}]= {value}");
             }
         }
 
