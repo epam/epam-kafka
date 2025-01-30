@@ -19,9 +19,6 @@ internal abstract class CommonMetrics : StatisticsMetrics
 
         this.CreateGauge(meter, "epam_kafka_stats_age", v => v.AgeMicroseconds / 1000000, "seconds",
             "Time since this client instance was created (seconds).");
-
-        this.CreateGauge(meter, "epam_kafka_stats_replyq", v => v.OpsQueueCountGauge, description:
-            "Number of ops (callbacks, events, etc) waiting in queue for application to serve with rd_kafka_poll().");
     }
 
     protected abstract long GetTxRxMsg(Statistics value);

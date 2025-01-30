@@ -105,13 +105,11 @@ public class StatisticsTests
 
         ml.RecordObservableInstruments(this.Output);
 
-        ml.Results.Count.ShouldBe(10);
+        ml.Results.Count.ShouldBe(8);
         ml.Results["epam_kafka_stats_trx_msgs_Handler:n1-Name:c1-Type:c"].ShouldBe(123);
         ml.Results["epam_kafka_stats_trx_msgs_Handler:n2-Name:c1-Type:p"].ShouldBe(111);
         ml.Results["epam_kafka_stats_age_Handler:n1-Name:c1-Type:c"].ShouldBe(0);
         ml.Results["epam_kafka_stats_age_Handler:n2-Name:c1-Type:p"].ShouldBe(0);
-        ml.Results["epam_kafka_stats_replyq_Handler:n1-Name:c1-Type:c"].ShouldBe(332);
-        ml.Results["epam_kafka_stats_replyq_Handler:n2-Name:c1-Type:p"].ShouldBe(0);
 
         cm.OnCompleted();
 
@@ -121,10 +119,9 @@ public class StatisticsTests
         ml.Results.Clear();
         ml.RecordObservableInstruments(this.Output);
 
-        ml.Results.Count.ShouldBe(5);
+        ml.Results.Count.ShouldBe(4);
         ml.Results["epam_kafka_stats_trx_msgs_Handler:n2-Name:c1-Type:p"].ShouldBe(112);
         ml.Results["epam_kafka_stats_age_Handler:n2-Name:c1-Type:p"].ShouldBe(555);
-        ml.Results["epam_kafka_stats_replyq_Handler:n2-Name:c1-Type:p"].ShouldBe(0);
 
         pm.OnCompleted();
 
