@@ -157,7 +157,7 @@ internal sealed class KafkaFactory : IKafkaFactory, IDisposable
 
         try
         {
-            consumer = new ObservableConsumer<TKey, TValue>(builder);
+            consumer = new ObservableConsumer<TKey, TValue>(builder, config);
 
             logger.ConsumerCreateOk(PrepareConfigForLogs(config), typeof(TKey), typeof(TValue), oauthSet, logSet);
         }

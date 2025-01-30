@@ -21,7 +21,7 @@ public class Statistics
     /// <summary>
     /// Name of <see cref="Meter"/> used to expose top topic partition statistics.
     /// </summary>
-    public const string TopicPartitionMeterName = "Epam.Kafka.Statistics.Toppar";
+    public const string TopicPartitionMeterName = "Epam.Kafka.Statistics.TopicPartition";
 
     /// <summary>
     /// Create new instance of <see cref="Statistics"/> object from json representation.

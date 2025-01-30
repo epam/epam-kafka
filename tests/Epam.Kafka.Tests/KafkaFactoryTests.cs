@@ -508,13 +508,13 @@ public class KafkaFactoryTests : TestWithServices
         Task.Delay(200).Wait();
         ml.RecordObservableInstruments(this.Output);
 
-        ml.Results.Count.ShouldBe(2);
+        ml.Results.Count.ShouldBe(5);
 
         Task.Delay(1000).Wait();
 
         ml.RecordObservableInstruments(this.Output);
 
-        ml.Results.Count.ShouldBe(2);
+        ml.Results.Count.ShouldBe(5);
     }
 
     [Fact]

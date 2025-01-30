@@ -10,7 +10,7 @@ internal class ObservableConsumer<TKey, TValue> : ObservableClient, IConsumer<TK
 {
     private readonly IConsumer<TKey, TValue> _inner;
 
-    public ObservableConsumer(ConsumerBuilder<TKey, TValue> builder)
+    public ObservableConsumer(ConsumerBuilder<TKey, TValue> builder, ConsumerConfig config)
     {
         if (builder == null) throw new ArgumentNullException(nameof(builder));
 
@@ -29,7 +29,7 @@ internal class ObservableConsumer<TKey, TValue> : ObservableClient, IConsumer<TK
             builder.SetStatisticsHandler((_, json) => this.StatisticsHandler(json));
             this.StatObservers = new List<IObserver<string>>();
 #pragma warning disable CA2000 // unsubscribe not needed
-            this.Subscribe(new ConsumerMetrics());
+            this.Subscribe(new ConsumerMetrics(config));
 #pragma warning restore CA2000
         }
         catch (InvalidOperationException)
