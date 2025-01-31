@@ -98,7 +98,7 @@ public class StatisticsTests
         using MeterHelper ml = new(Statistics.TopLevelMeterName);
 
         ConsumerMetrics cm = new(new ConsumerConfig());
-        ProducerMetrics pm = new();
+        ProducerMetrics pm = new(new ProducerConfig());
 
         cm.OnNext(new Statistics { ClientId = "c1", Name = "n1", Type = "c", ConsumedMessagesTotal = 123, OpsQueueCountGauge = 332 });
         pm.OnNext(new Statistics { ClientId = "c1", Name = "n2", Type = "p", TransmittedMessagesTotal = 111 });
@@ -159,6 +159,28 @@ public class StatisticsTests
         ml.Results.Clear();
         ml.RecordObservableInstruments(this.Output);
         ml.Results.Count.ShouldBe(0);
+
+        cm.OnCompleted();
+    }
+
+    [Fact]
+    public void TransactionMetricsTests()
+    {
+        using MeterHelper ml = new(Statistics.TransactionMeterName);
+
+        ProducerMetrics cm = new(new ProducerConfig { TransactionalId = "qwe" });
+
+        Statistics statistics = new Statistics { ClientId = "c1", Name = "n1", Type = "c", ConsumedMessagesTotal = 123 };
+        statistics.ProducerTransaction.EnqAllowed = true;
+        statistics.ProducerTransaction.TransactionState = "test";
+        statistics.ProducerTransaction.TransactionAgeMilliseconds = 120000;
+
+        cm.OnNext(statistics);
+
+        ml.RecordObservableInstruments(this.Output);
+
+        ml.Results.Count.ShouldBe(1);
+        ml.Results["epam_kafka_stats_eos_txn_age_Handler:n1-Name:c1-Type:c-Enqueue:True-State:test-Transaction:qwe"].ShouldBe(120);
 
         cm.OnCompleted();
     }

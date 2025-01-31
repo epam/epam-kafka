@@ -20,7 +20,7 @@ public class MetricsTests : TestWithServices
     }
 
     [Fact]
-    public void CreateDefaultClientWithMetrics()
+    public async Task CreateDefaultClientWithMetrics()
     {
         MockCluster.AddMockCluster(this).WithClusterConfig(MockCluster.ClusterName)
             .Configure(x => x.ClientConfig.StatisticsIntervalMs = 100);
@@ -31,12 +31,12 @@ public class MetricsTests : TestWithServices
 
         using IClient c1 = this.KafkaFactory.GetOrCreateClient();
         Assert.NotNull(c1);
-        Task.Delay(200).Wait();
+        await Task.Delay(200);
         ml.RecordObservableInstruments(this.Output);
 
         ml.Results.Count.ShouldBe(4);
 
-        Task.Delay(1000).Wait();
+        await Task.Delay(1000);
 
         ml.RecordObservableInstruments(this.Output);
 
@@ -44,7 +44,7 @@ public class MetricsTests : TestWithServices
     }
 
     [Fact]
-    public void ConsumerTopParMetricsAssign()
+    public async Task ConsumerTopParMetricsAssign()
     {
         this.Services.AddKafka(false).WithTestMockCluster(MockCluster.ClusterName);
 
@@ -62,7 +62,7 @@ public class MetricsTests : TestWithServices
             }, MockCluster.ClusterName);
 
         // No assigned topic partitions
-        Task.Delay(200).Wait();
+        await Task.Delay(200);
         ml.RecordObservableInstruments();
         ml.Results.Count.ShouldBe(0);
 
@@ -79,5 +79,57 @@ public class MetricsTests : TestWithServices
         consumer.Consume(200);
         ml.RecordObservableInstruments();
         ml.Results.Count.ShouldBe(0);
+    }
+
+    [Fact]
+    public async Task ProducerTransaction()
+    {
+        this.Services.AddKafka(false).WithTestMockCluster(MockCluster.ClusterName);
+
+        using MeterHelper ml = new(Statistics.TransactionMeterName);
+        ml.RecordObservableInstruments();
+        ml.Results.Count.ShouldBe(0);
+
+        using IProducer<int, int> producer =
+            this.KafkaFactory.CreateProducer<int, int>(new ProducerConfig
+            {
+                TransactionalId = "qwe",
+                StatisticsIntervalMs = 100
+            }, MockCluster.ClusterName);
+
+        await Task.Delay(200);
+        ml.RecordObservableInstruments(this.Output);
+        ml.Results.Count.ShouldBe(1);
+        ml.Results.Keys.Single().ShouldContain("Type:producer-Enqueue:False-State:Init-Transaction:qwe");
+
+        // One 1 of 4 assigned
+        producer.InitTransactions(TimeSpan.FromSeconds(3));
+
+        await Task.Delay(200);
+        ml.RecordObservableInstruments(this.Output);
+        ml.Results.Count.ShouldBe(1);
+        ml.Results.Keys.Single().ShouldContain("Type:producer-Enqueue:False-State:Ready-Transaction:qwe");
+
+        producer.BeginTransaction();
+
+        await Task.Delay(200);
+        ml.RecordObservableInstruments(this.Output);
+        ml.Results.Count.ShouldBe(1);
+        ml.Results.Keys.Single().ShouldContain("Type:producer-Enqueue:True-State:InTransaction-Transaction:qwe");
+
+        await producer.ProduceAsync("test", new Message<int, int> { Key = 1, Value = 2 });
+        ml.RecordObservableInstruments(this.Output);
+
+        await Task.Delay(200);
+        ml.RecordObservableInstruments(this.Output);
+        ml.Results.Count.ShouldBe(1);
+        //ml.Results.Keys.Single().ShouldContain("Type:producer-Enqueue:False-State:Init-Transaction:qwe");
+
+        producer.CommitTransaction();
+
+        await Task.Delay(200);
+        ml.RecordObservableInstruments(this.Output);
+        ml.Results.Count.ShouldBe(1);
+        //ml.Results.Keys.Single().ShouldContain("Type:producer-Enqueue:False-State:Init-Transaction:qwe");
     }
 }

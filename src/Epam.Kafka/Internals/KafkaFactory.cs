@@ -226,7 +226,7 @@ internal sealed class KafkaFactory : IKafkaFactory, IDisposable
 
         try
         {
-            producer = new(builder);
+            producer = new(builder, config);
 
             logger.ProducerCreateOk(PrepareConfigForLogs(config), typeof(TKey), typeof(TValue), oauthSet, logSet);
         }
