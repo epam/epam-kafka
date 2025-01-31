@@ -3,12 +3,15 @@
 using System.Diagnostics.Metrics;
 
 using Confluent.Kafka;
+
 using Epam.Kafka.Stats;
 
 namespace Epam.Kafka.Metrics;
 
 internal sealed class ConsumerMetrics : CommonMetrics
 {
+    private const string DesiredTagName = "Desired";
+    private const string FetchTagName = "Fetch";
     private const string TopicTagName = "Topic";
     private const string PartitionTagName = "Partition";
     private const string ConsumerGroupTagName = "Group";
@@ -63,6 +66,8 @@ internal sealed class ConsumerMetrics : CommonMetrics
                             .Select(x => new KeyValuePair<TopicStatistics, PartitionStatistics>(p.Value, x.Value)))
                     .Select(m => new Measurement<long>(factory(m), new[]
                     {
+                        new KeyValuePair<string, object?>(DesiredTagName, m.Value.Desired),
+                        new KeyValuePair<string, object?>(FetchTagName, m.Value.FetchState),
                         new KeyValuePair<string, object?>(TopicTagName, m.Key.Name),
                         new KeyValuePair<string, object?>(PartitionTagName, m.Value.Id),
                         new KeyValuePair<string, object?>(ConsumerGroupTagName, this._config.GroupId)

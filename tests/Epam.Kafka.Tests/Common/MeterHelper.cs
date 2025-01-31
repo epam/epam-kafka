@@ -41,6 +41,8 @@ public sealed class MeterHelper : IDisposable
 
     public void RecordObservableInstruments(ITestOutputHelper? output = null)
     {
+        this.Results.Clear();
+
         this._listener.RecordObservableInstruments();
 
         if (output != null)
