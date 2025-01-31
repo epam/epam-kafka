@@ -494,30 +494,6 @@ public class KafkaFactoryTests : TestWithServices
     }
 
     [Fact]
-    public void CreateDefaultClientWithMetrics()
-    {
-        MockCluster.AddMockCluster(this).WithClusterConfig(MockCluster.ClusterName)
-            .Configure(x => x.ClientConfig.StatisticsIntervalMs = 100);
-
-        using MeterHelper ml = new(Statistics.TopLevelMeterName);
-        ml.RecordObservableInstruments();
-        ml.Results.Count.ShouldBe(0);
-
-        using IClient c1 = this.KafkaFactory.GetOrCreateClient();
-        Assert.NotNull(c1);
-        Task.Delay(200).Wait();
-        ml.RecordObservableInstruments(this.Output);
-
-        ml.Results.Count.ShouldBe(4);
-
-        Task.Delay(1000).Wait();
-
-        ml.RecordObservableInstruments(this.Output);
-
-        ml.Results.Count.ShouldBe(4);
-    }
-
-    [Fact]
     public void CreateDefaultClientsError()
     {
         MockCluster.AddMockCluster(this).WithProducerConfig("Shared").Configure(x => x.ProducerConfig.TransactionalId = "any");

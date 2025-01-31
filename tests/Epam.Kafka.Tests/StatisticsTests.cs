@@ -100,7 +100,7 @@ public class StatisticsTests
         ConsumerMetrics cm = new(new ConsumerConfig());
         ProducerMetrics pm = new();
 
-        cm.OnNext(new Statistics { ClientId = "c1", Name = "n1", Type = "c", ConsumedMessagesTotal = 123, OpsQueueCountGauge = 332});
+        cm.OnNext(new Statistics { ClientId = "c1", Name = "n1", Type = "c", ConsumedMessagesTotal = 123, OpsQueueCountGauge = 332 });
         pm.OnNext(new Statistics { ClientId = "c1", Name = "n2", Type = "p", TransmittedMessagesTotal = 111 });
 
         ml.RecordObservableInstruments(this.Output);
@@ -139,7 +139,7 @@ public class StatisticsTests
 
         Statistics statistics = new Statistics { ClientId = "c1", Name = "n1", Type = "c", ConsumedMessagesTotal = 123 };
         TopicStatistics ts = new TopicStatistics { Name = "t1" };
-        PartitionStatistics ps = new PartitionStatistics { Id = 2, ConsumerLag = 445 };
+        PartitionStatistics ps = new PartitionStatistics { Id = 2, ConsumerLag = 445, Desired = true, FetchState = "active" };
 
         ts.Partitions.Add(ps.Id, ps);
 
@@ -150,7 +150,7 @@ public class StatisticsTests
         ml.RecordObservableInstruments(this.Output);
 
         ml.Results.Count.ShouldBe(1);
-        ml.Results["epam_kafka_stats_tp_lag_Handler:n1-Name:c1-Type:c-Topic:t1-Partition:2-Group:qwe"].ShouldBe(445);
+        ml.Results["epam_kafka_stats_tp_lag_Handler:n1-Name:c1-Type:c-Desired:True-Fetch:active-Topic:t1-Partition:2-Group:qwe"].ShouldBe(445);
 
         statistics.Topics.Clear();
 
