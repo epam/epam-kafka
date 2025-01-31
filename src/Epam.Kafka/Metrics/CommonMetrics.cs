@@ -6,7 +6,7 @@ namespace Epam.Kafka.Metrics;
 
 internal abstract class CommonMetrics : StatisticsMetrics
 {
-    protected override void Initialize(Meter meter, Meter topParMeter)
+    protected override void Initialize(Meter meter, Meter topParMeter, Meter transactionMeter)
     {
         this.CreateCounter(meter, "epam_kafka_stats_trx_msgs", this.GetTxRxMsg,
             description: "Number of messages consumed or produced.");

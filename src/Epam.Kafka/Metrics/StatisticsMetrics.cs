@@ -20,6 +20,7 @@ internal abstract class StatisticsMetrics : IObserver<Statistics>
     private bool _initialized;
     private Meter? _topLevelMeter;
     private Meter? _topParMeter;
+    private Meter? _transactionMeter;
 
     protected Statistics? Value { get; private set; }
     protected static IEnumerable<Measurement<long>> Empty { get; } = Enumerable.Empty<Measurement<long>>();
@@ -47,8 +48,9 @@ internal abstract class StatisticsMetrics : IObserver<Statistics>
 
                     this._topLevelMeter = new Meter(Statistics.TopLevelMeterName, null, topLevelTags);
                     this._topParMeter = new Meter(Statistics.TopicPartitionMeterName, null, topLevelTags);
+                    this._transactionMeter = new Meter(Statistics.TransactionMeterName, null, topLevelTags);
 
-                    this.Initialize(this._topLevelMeter, this._topParMeter);
+                    this.Initialize(this._topLevelMeter, this._topParMeter, this._transactionMeter);
 
                     this._initialized = true;
                 }
@@ -56,7 +58,7 @@ internal abstract class StatisticsMetrics : IObserver<Statistics>
         }
     }
 
-    protected abstract void Initialize(Meter meter, Meter topParMeter);
+    protected abstract void Initialize(Meter meter, Meter topParMeter, Meter transactionMeter);
 
     public void OnError(Exception error)
     {
@@ -67,6 +69,7 @@ internal abstract class StatisticsMetrics : IObserver<Statistics>
     {
         this._topLevelMeter?.Dispose();
         this._topParMeter?.Dispose();
+        this._transactionMeter?.Dispose();
     }
 
     protected void CreateGauge(Meter meter, string name, Func<Statistics, long> factory, string? unit = null, string? description = null)

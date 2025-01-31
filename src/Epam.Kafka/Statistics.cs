@@ -19,9 +19,14 @@ public class Statistics
     public const string TopLevelMeterName = "Epam.Kafka.Statistics";
 
     /// <summary>
-    /// Name of <see cref="Meter"/> used to expose top topic partition statistics.
+    /// Name of <see cref="Meter"/> used to expose topic partition statistics.
     /// </summary>
     public const string TopicPartitionMeterName = "Epam.Kafka.Statistics.TopicPartition";
+
+    /// <summary>
+    /// Name of <see cref="Meter"/> used to expose producer transaction statistics.
+    /// </summary>
+    public const string TransactionMeterName = "Epam.Kafka.Statistics.Transaction";
 
     /// <summary>
     /// Create new instance of <see cref="Statistics"/> object from json representation.
@@ -189,5 +194,5 @@ public class Statistics
     /// EOS / Idempotent producer state and metrics.
     /// </summary>
     [JsonPropertyName("eos")]
-    public GroupStatistics ProducerTransaction { get; } = new();
+    public TransactionStatistics ProducerTransaction { get; } = new();
 }

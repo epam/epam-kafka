@@ -23,12 +23,32 @@ internal sealed class ConsumerMetrics : CommonMetrics
         this._config = config ?? throw new ArgumentNullException(nameof(config));
     }
 
-    protected override void Initialize(Meter meter, Meter topParMeter)
+    protected override void Initialize(Meter meter, Meter topParMeter, Meter transactionMeter)
     {
-        base.Initialize(meter, topParMeter);
+        base.Initialize(meter, topParMeter, transactionMeter);
 
-        this.CreateTpGauge(topParMeter, "epam_kafka_stats_tp_lag",
-            m => m.Value.ConsumerLag, null, "Consumer lag");
+        topParMeter.CreateObservableGauge("epam_kafka_stats_tp_lag", () =>
+        {
+            Statistics? v = this.Value;
+
+            if (v != null)
+            {
+                return v.Topics
+                    .SelectMany(p =>
+                        p.Value.Partitions.Where(x => x.Key != PartitionStatistics.InternalUnassignedPartition)
+                            .Select(x => new KeyValuePair<TopicStatistics, PartitionStatistics>(p.Value, x.Value)))
+                    .Select(m => new Measurement<long>(m.Value.ConsumerLag, new[]
+                    {
+                        new KeyValuePair<string, object?>(DesiredTagName, m.Value.Desired),
+                        new KeyValuePair<string, object?>(FetchTagName, m.Value.FetchState),
+                        new KeyValuePair<string, object?>(TopicTagName, m.Key.Name),
+                        new KeyValuePair<string, object?>(PartitionTagName, m.Value.Id),
+                        new KeyValuePair<string, object?>(ConsumerGroupTagName, this._config.GroupId)
+                    }));
+            }
+
+            return Empty;
+        }, null, "Consumer lag");
     }
 
     protected override long GetTxRxMsg(Statistics value)
@@ -44,37 +64,5 @@ internal sealed class ConsumerMetrics : CommonMetrics
     protected override long GetTxRxBytes(Statistics value)
     {
         return value.ConsumedBytesTotal;
-    }
-
-    private void CreateTpGauge(Meter meter, string name,
-        Func<KeyValuePair<TopicStatistics, PartitionStatistics>, long> factory,
-        string? unit = null,
-        string? description = null)
-    {
-        if (meter == null) throw new ArgumentNullException(nameof(meter));
-        if (name == null) throw new ArgumentNullException(nameof(name));
-
-        meter.CreateObservableGauge(name, () =>
-        {
-            Statistics? v = this.Value;
-
-            if (v != null)
-            {
-                return v.Topics
-                    .SelectMany(p =>
-                        p.Value.Partitions.Where(x => x.Key != PartitionStatistics.InternalUnassignedPartition)
-                            .Select(x => new KeyValuePair<TopicStatistics, PartitionStatistics>(p.Value, x.Value)))
-                    .Select(m => new Measurement<long>(factory(m), new[]
-                    {
-                        new KeyValuePair<string, object?>(DesiredTagName, m.Value.Desired),
-                        new KeyValuePair<string, object?>(FetchTagName, m.Value.FetchState),
-                        new KeyValuePair<string, object?>(TopicTagName, m.Key.Name),
-                        new KeyValuePair<string, object?>(PartitionTagName, m.Value.Id),
-                        new KeyValuePair<string, object?>(ConsumerGroupTagName, this._config.GroupId)
-                    }));
-            }
-
-            return Empty;
-        }, unit, description);
     }
 }
