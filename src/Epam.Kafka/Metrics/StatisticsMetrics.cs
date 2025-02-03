@@ -19,6 +19,7 @@ internal abstract class StatisticsMetrics : IObserver<Statistics>
     private readonly object _syncObj = new();
     private bool _initialized;
     private readonly List<Meter> _meters = new();
+    private KeyValuePair<string, object?>[] _topLevelTags = null!;
 
     protected Statistics? Value { get; private set; }
     protected static IEnumerable<Measurement<long>> Empty { get; } = Enumerable.Empty<Measurement<long>>();
@@ -37,7 +38,7 @@ internal abstract class StatisticsMetrics : IObserver<Statistics>
 
                     string name = match.Success ? match.Result("$3") : value.Name;
 
-                    KeyValuePair<string, object?>[] topLevelTags = new[]
+                    this._topLevelTags = new[]
                     {
                         new KeyValuePair<string, object?>(NameTag, value.ClientId),
                         new KeyValuePair<string, object?>(HandlerTag, name),
@@ -46,16 +47,31 @@ internal abstract class StatisticsMetrics : IObserver<Statistics>
 
                     this._initialized = true;
 
-                    foreach (Meter meter in this.Initialize(topLevelTags))
-                    {
-                        this._meters.Add(meter);
-                    }
+                    this.Initialize(this.CreateMeter);
                 }
             }
         }
     }
 
-    protected abstract IEnumerable<Meter> Initialize(KeyValuePair<string, object?>[] topLevelTags);
+    protected abstract void Initialize(Func<string, IEnumerable<KeyValuePair<string, object?>>?, Meter> meterFactory);
+
+    private Meter CreateMeter(string name, IEnumerable<KeyValuePair<string, object?>>? tags = null)
+    {
+        if (name == null) throw new ArgumentNullException(nameof(name));
+
+        IEnumerable<KeyValuePair<string, object?>> resultTags = this._topLevelTags;
+
+        if (tags != null)
+        {
+            resultTags = resultTags.Concat(tags);
+        }
+
+        Meter meter = new(name, null, resultTags);
+
+        this._meters.Add(meter);
+
+        return meter;
+    }
 
     public void OnError(Exception error)
     {
@@ -66,15 +82,7 @@ internal abstract class StatisticsMetrics : IObserver<Statistics>
     {
         foreach (Meter meter in this._meters)
         {
-#pragma warning disable CA1031 // don't prevent other meters dispose
-            try
-            {
-                meter.Dispose();
-            }
-            catch
-            {
-            }
-#pragma warning restore CA1031
+            meter.Dispose();
         }
     }
 

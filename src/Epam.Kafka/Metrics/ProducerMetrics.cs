@@ -19,14 +19,11 @@ internal sealed class ProducerMetrics : CommonMetrics
     }
 
 #pragma warning disable CA2000 // Meter will be disposed in base class
-    protected override IEnumerable<Meter> Initialize(KeyValuePair<string, object?>[] topLevelTags)
+    protected override void Initialize(Func<string, IEnumerable<KeyValuePair<string, object?>>?, Meter> meterFactory)
     {
-        foreach (Meter m in base.Initialize(topLevelTags))
-        {
-            yield return m;
-        }
+        base.Initialize(meterFactory);
 
-        Meter meter = new(Statistics.TransactionMeterName, null, topLevelTags);
+        Meter meter = meterFactory(Statistics.TransactionMeterName, null);
 
         if (!string.IsNullOrWhiteSpace(this._config.TransactionalId))
         {
@@ -63,8 +60,6 @@ internal sealed class ProducerMetrics : CommonMetrics
 
             return Empty;
         }, "seconds", "Idempotent state age seconds");
-
-        yield return meter;
     }
 #pragma warning restore CA2000 // Meter will be disposed in base class
     protected override long GetTxRxMsg(Statistics value)

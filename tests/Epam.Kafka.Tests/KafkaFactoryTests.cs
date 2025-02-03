@@ -141,12 +141,11 @@ public class KafkaFactoryTests : TestWithServices
         kafkaBuilder.WithConsumerConfig("any").Configure(x =>
         {
             x.ConsumerConfig.GroupId = "any";
-            x.ConsumerConfig.StatisticsIntervalMs = 5;
         });
 
         ConsumerConfig config = this.KafkaFactory.CreateConsumerConfig("any");
 
-        var consumer =
+        using var consumer =
             this.KafkaFactory.CreateConsumer<string, string>(config,
                 configure: b =>
                     b.SetOAuthBearerTokenRefreshHandler(
@@ -168,7 +167,6 @@ public class KafkaFactoryTests : TestWithServices
         kafkaBuilder.WithConsumerConfig("any").Configure(x =>
         {
             x.ConsumerConfig.GroupId = "any";
-            x.ConsumerConfig.StatisticsIntervalMs = 5;
         });
         kafkaBuilder.WithClusterConfig(MockCluster.ClusterName).Configure(x => x.WithOAuthHandler(_ =>
         {
@@ -195,7 +193,6 @@ public class KafkaFactoryTests : TestWithServices
         kafkaBuilder.WithConsumerConfig("any").Configure(x =>
         {
             x.ConsumerConfig.GroupId = "any";
-            x.ConsumerConfig.StatisticsIntervalMs = 5;
         });
         kafkaBuilder.WithClusterConfig(MockCluster.ClusterName)
             .Configure(x => x.WithOAuthHandler(_ => throw new ArithmeticException(), true));
@@ -278,8 +275,6 @@ public class KafkaFactoryTests : TestWithServices
 
         ProducerConfig config = this.KafkaFactory.CreateProducerConfig();
 
-        config.StatisticsIntervalMs = 5;
-
         using IProducer<string, string> producer =
             this.KafkaFactory.CreateProducer<string, string>(config);
 
@@ -287,9 +282,11 @@ public class KafkaFactoryTests : TestWithServices
 
         var errorObs = new Mock<IObserver<Error>>();
         var statsObs = new Mock<IObserver<string>>();
+        var statsParsedObs = new Mock<IObserver<Statistics>>();
 
         producer.ShouldBeAssignableTo<IObservable<Error>>()!.Subscribe(errorObs.Object);
         producer.ShouldBeAssignableTo<IObservable<string>>()!.Subscribe(statsObs.Object);
+        producer.ShouldBeAssignableTo<IObservable<Statistics>>()!.Subscribe(statsParsedObs.Object);
     }
 
     [Fact]
@@ -298,7 +295,6 @@ public class KafkaFactoryTests : TestWithServices
         MockCluster.AddMockCluster(this).WithConsumerConfig("any").Configure(x =>
         {
             x.ConsumerConfig.GroupId = "any";
-            x.ConsumerConfig.StatisticsIntervalMs = 5;
         });
 
         ConsumerConfig config = this.KafkaFactory.CreateConsumerConfig("any");
@@ -310,9 +306,11 @@ public class KafkaFactoryTests : TestWithServices
 
         var errorObs = new Mock<IObserver<Error>>();
         var statsObs = new Mock<IObserver<string>>();
+        var statsParsedObs = new Mock<IObserver<Statistics>>();
 
         consumer.ShouldBeAssignableTo<IObservable<Error>>()!.Subscribe(errorObs.Object);
         consumer.ShouldBeAssignableTo<IObservable<string>>()!.Subscribe(statsObs.Object);
+        consumer.ShouldBeAssignableTo<IObservable<Statistics>>()!.Subscribe(statsParsedObs.Object);
     }
 
     [Fact]

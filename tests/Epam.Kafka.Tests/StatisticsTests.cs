@@ -150,7 +150,7 @@ public class StatisticsTests
         ml.RecordObservableInstruments(this.Output);
 
         ml.Results.Count.ShouldBe(1);
-        ml.Results["epam_kafka_stats_tp_lag_Group:qwe-Handler:n1-Name:c1-Type:c-Topic:t1-Partition:2"].ShouldBe(445);
+        ml.Results["epam_kafka_stats_tp_lag_Handler:n1-Name:c1-Type:c-Topic:t1-Partition:2"].ShouldBe(445);
 
         statistics.Topics.Clear();
 

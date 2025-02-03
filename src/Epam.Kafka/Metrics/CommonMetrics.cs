@@ -6,9 +6,9 @@ namespace Epam.Kafka.Metrics;
 
 internal abstract class CommonMetrics : StatisticsMetrics
 {
-    protected override IEnumerable<Meter> Initialize(KeyValuePair<string, object?>[] topLevelTags)
+    protected override void Initialize(Func<string, IEnumerable<KeyValuePair<string, object?>>?, Meter> meterFactory)
     {
-        Meter meter = new(Statistics.TopLevelMeterName, null, topLevelTags);
+        Meter meter = meterFactory(Statistics.TopLevelMeterName, null);
 
         this.CreateCounter(meter, "epam_kafka_stats_trx_msgs", this.GetTxRxMsg,
             description: "Number of messages consumed or produced.");
@@ -21,8 +21,6 @@ internal abstract class CommonMetrics : StatisticsMetrics
 
         this.CreateGauge(meter, "epam_kafka_stats_age", v => v.AgeMicroseconds / 1000000, "seconds",
             "Time since this client instance was created (seconds).");
-
-        yield return meter;
     }
 
     protected abstract long GetTxRxMsg(Statistics value);
