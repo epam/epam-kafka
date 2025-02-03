@@ -23,29 +23,22 @@ internal sealed class ConsumerMetrics : CommonMetrics
         this._config = config ?? throw new ArgumentNullException(nameof(config));
     }
 
-    protected override IEnumerable<Meter> Initialize(KeyValuePair<string, object?>[] topLevelTags)
+    protected override void Initialize(Func<string, IEnumerable<KeyValuePair<string, object?>>?, Meter> meterFactory)
     {
-        foreach (Meter m in base.Initialize(topLevelTags))
-        {
-            yield return m;
-        }
+        base.Initialize(meterFactory);
 
-        KeyValuePair<string, object?>[] tags = topLevelTags.Concat(new[]
+        KeyValuePair<string, object?>[] groupTag = new[]
         {
             new KeyValuePair<string, object?>(ConsumerGroupTagName, this._config.GroupId)
-        }).ToArray();
+        };
 
-        Meter cgMeter = new(Statistics.ConsumerGroupMeterName, null, tags);
+        Meter cgMeter = meterFactory(Statistics.ConsumerGroupMeterName, groupTag);
 
         this.ConfigureCgMeter(cgMeter);
 
-        yield return cgMeter;
-
-        Meter topParMeter = new(Statistics.TopicPartitionMeterName, null, tags);
+        Meter topParMeter = meterFactory(Statistics.TopicPartitionMeterName, null);
 
         this.ConfigureTopParMeter(topParMeter);
-
-        yield return topParMeter;
     }
 
     private void ConfigureCgMeter(Meter cgMeter)
