@@ -22,6 +22,12 @@ public class GroupStatistics
     public long StateAgeMilliseconds { get; set; }
 
     /// <summary>
+    /// Current assignment's partition count.
+    /// </summary>
+    [JsonPropertyName("assignment_size")]
+    public long AssignmentCount { get; set; }
+
+    /// <summary>
     /// Local consumer group handler's join state.
     /// </summary>
     [JsonPropertyName("join_state")]
@@ -38,4 +44,11 @@ public class GroupStatistics
     /// </summary>
     [JsonPropertyName("rebalance_cnt")]
     public long RebalanceCount { get; set; }
+
+    /// <summary>
+    /// Last rebalance reason, or empty string.
+    /// </summary>
+    [JsonPropertyName("rebalance_reason")]
+    public string RebalanceReason { get; set; } = string.Empty;
+
 }

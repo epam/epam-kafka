@@ -29,6 +29,11 @@ public class Statistics
     public const string TransactionMeterName = "Epam.Kafka.Statistics.Transaction";
 
     /// <summary>
+    /// Name of <see cref="Meter"/> used to expose consumer group statistics.
+    /// </summary>
+    public const string ConsumerGroupMeterName = "Epam.Kafka.Statistics.ConsumerGroup";
+
+    /// <summary>
     /// Create new instance of <see cref="Statistics"/> object from json representation.
     /// </summary>
     /// <param name="json"></param>

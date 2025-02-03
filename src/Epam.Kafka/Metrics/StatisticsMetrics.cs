@@ -18,9 +18,7 @@ internal abstract class StatisticsMetrics : IObserver<Statistics>
 
     private readonly object _syncObj = new();
     private bool _initialized;
-    private Meter? _topLevelMeter;
-    private Meter? _topParMeter;
-    private Meter? _transactionMeter;
+    private readonly List<Meter> _meters = new();
 
     protected Statistics? Value { get; private set; }
     protected static IEnumerable<Measurement<long>> Empty { get; } = Enumerable.Empty<Measurement<long>>();
@@ -46,19 +44,18 @@ internal abstract class StatisticsMetrics : IObserver<Statistics>
                         new KeyValuePair<string, object?>(TypeTag, value.Type),
                     };
 
-                    this._topLevelMeter = new Meter(Statistics.TopLevelMeterName, null, topLevelTags);
-                    this._topParMeter = new Meter(Statistics.TopicPartitionMeterName, null, topLevelTags);
-                    this._transactionMeter = new Meter(Statistics.TransactionMeterName, null, topLevelTags);
-
-                    this.Initialize(this._topLevelMeter, this._topParMeter, this._transactionMeter);
-
                     this._initialized = true;
+
+                    foreach (Meter meter in this.Initialize(topLevelTags))
+                    {
+                        this._meters.Add(meter);
+                    }
                 }
             }
         }
     }
 
-    protected abstract void Initialize(Meter meter, Meter topParMeter, Meter transactionMeter);
+    protected abstract IEnumerable<Meter> Initialize(KeyValuePair<string, object?>[] topLevelTags);
 
     public void OnError(Exception error)
     {
@@ -67,9 +64,18 @@ internal abstract class StatisticsMetrics : IObserver<Statistics>
 
     public void OnCompleted()
     {
-        this._topLevelMeter?.Dispose();
-        this._topParMeter?.Dispose();
-        this._transactionMeter?.Dispose();
+        foreach (Meter meter in this._meters)
+        {
+#pragma warning disable CA1031 // don't prevent other meters dispose
+            try
+            {
+                meter.Dispose();
+            }
+            catch
+            {
+            }
+#pragma warning restore CA1031
+        }
     }
 
     protected void CreateGauge(Meter meter, string name, Func<Statistics, long> factory, string? unit = null, string? description = null)

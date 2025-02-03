@@ -150,7 +150,7 @@ public class StatisticsTests
         ml.RecordObservableInstruments(this.Output);
 
         ml.Results.Count.ShouldBe(1);
-        ml.Results["epam_kafka_stats_tp_lag_Handler:n1-Name:c1-Type:c-Desired:True-Fetch:active-Topic:t1-Partition:2-Group:qwe"].ShouldBe(445);
+        ml.Results["epam_kafka_stats_tp_lag_Group:qwe-Handler:n1-Name:c1-Type:c-Topic:t1-Partition:2"].ShouldBe(445);
 
         statistics.Topics.Clear();
 
@@ -170,17 +170,49 @@ public class StatisticsTests
 
         ProducerMetrics cm = new(new ProducerConfig { TransactionalId = "qwe" });
 
-        Statistics statistics = new Statistics { ClientId = "c1", Name = "n1", Type = "c", ConsumedMessagesTotal = 123 };
+        Statistics statistics = new Statistics { ClientId = "c1", Name = "n1", Type = "c" };
         statistics.ProducerTransaction.EnqAllowed = true;
         statistics.ProducerTransaction.TransactionState = "test";
         statistics.ProducerTransaction.TransactionAgeMilliseconds = 120000;
+        statistics.ProducerTransaction.IdempotentState = "ids";
+        statistics.ProducerTransaction.IdempotentAgeMilliseconds = 130000;
 
         cm.OnNext(statistics);
 
         ml.RecordObservableInstruments(this.Output);
 
-        ml.Results.Count.ShouldBe(1);
-        ml.Results["epam_kafka_stats_eos_txn_age_Handler:n1-Name:c1-Type:c-Enqueue:True-State:test-Transaction:qwe"].ShouldBe(120);
+        ml.Results.Count.ShouldBe(2);
+        ml.Results["epam_kafka_stats_eos_txn_age_Handler:n1-Name:c1-Type:c-State:test-Transaction:qwe"].ShouldBe(120);
+        ml.Results["epam_kafka_stats_eos_idemp_age_Handler:n1-Name:c1-Type:c-State:ids"].ShouldBe(130);
+
+        cm.OnCompleted();
+    }
+
+    [Fact]
+    public void ConsumerGroupMetricsTests()
+    {
+        using MeterHelper ml = new(Statistics.ConsumerGroupMeterName);
+
+        ConsumerMetrics cm = new(new ConsumerConfig { GroupId = "qwe" });
+
+        Statistics statistics = new Statistics { ClientId = "c1", Name = "n1", Type = "c" };
+        statistics.ConsumerGroup.State = "test1";
+        statistics.ConsumerGroup.JoinState = "test2";
+        statistics.ConsumerGroup.StateAgeMilliseconds = 120000;
+        statistics.ConsumerGroup.RebalanceReason = "test3";
+        statistics.ConsumerGroup.RebalanceAgeMilliseconds = 130000;
+        statistics.ConsumerGroup.RebalanceCount = 22;
+        statistics.ConsumerGroup.AssignmentCount = 4;
+
+        cm.OnNext(statistics);
+
+        ml.RecordObservableInstruments(this.Output);
+
+        ml.Results.Count.ShouldBe(4);
+        ml.Results["epam_kafka_stats_cg_state_age_Group:qwe-Handler:n1-Name:c1-Type:c-State:test1"].ShouldBe(120);
+        ml.Results["epam_kafka_stats_cg_rebalance_age_Group:qwe-Handler:n1-Name:c1-Type:c-Reason:test3"].ShouldBe(130);
+        ml.Results["epam_kafka_stats_cg_rebalance_count_Group:qwe-Handler:n1-Name:c1-Type:c"].ShouldBe(22);
+        ml.Results["epam_kafka_stats_cg_assignment_count_Group:qwe-Handler:n1-Name:c1-Type:c-State:test2"].ShouldBe(4);
 
         cm.OnCompleted();
     }

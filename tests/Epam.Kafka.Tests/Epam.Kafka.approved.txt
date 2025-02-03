@@ -60,6 +60,7 @@ namespace Epam.Kafka
     }
     public class Statistics
     {
+        public const string ConsumerGroupMeterName = "Epam.Kafka.Statistics.ConsumerGroup";
         public const string TopLevelMeterName = "Epam.Kafka.Statistics";
         public const string TopicPartitionMeterName = "Epam.Kafka.Statistics.TopicPartition";
         public const string TransactionMeterName = "Epam.Kafka.Statistics.Transaction";
@@ -170,12 +171,16 @@ namespace Epam.Kafka.Stats
     public class GroupStatistics
     {
         public GroupStatistics() { }
+        [System.Text.Json.Serialization.JsonPropertyName("assignment_size")]
+        public long AssignmentCount { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("join_state")]
         public string JoinState { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("rebalance_age")]
         public long RebalanceAgeMilliseconds { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("rebalance_cnt")]
         public long RebalanceCount { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("rebalance_reason")]
+        public string RebalanceReason { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("state")]
         public string State { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("stateage")]
