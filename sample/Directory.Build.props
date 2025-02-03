@@ -1,0 +1,5 @@
+<Project>
+	<PropertyGroup>
+		<NoWarn>CA1506</NoWarn>
+	</PropertyGroup>
+</Project>
