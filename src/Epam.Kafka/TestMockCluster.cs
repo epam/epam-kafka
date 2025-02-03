@@ -106,6 +106,10 @@ public sealed class TestMockCluster : IDisposable
 
         Dictionary<Message<byte[], byte[]?>, DeliveryResult<byte[], byte[]?>> result = new(messages.Length);
 
+        using IAdminClient adminClient = producer.CreateDependentAdminClient();
+
+        adminClient.GetMetadata(topicName, TimeSpan.FromMilliseconds(DefaultTimeoutMs));
+
         if (messages.Length > 0)
         {
             foreach (Message<byte[], byte[]?> m in messages)
@@ -124,12 +128,6 @@ public sealed class TestMockCluster : IDisposable
             {
                 throw new InvalidOperationException($"Produced {result.Count} of {messages.Length} messages.");
             }
-        }
-        else
-        {
-            using IAdminClient adminClient = producer.CreateDependentAdminClient();
-
-            adminClient.GetMetadata(topicName, TimeSpan.FromMilliseconds(DefaultTimeoutMs));
         }
 
         return result;
