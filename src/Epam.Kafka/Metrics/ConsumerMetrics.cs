@@ -10,7 +10,8 @@ namespace Epam.Kafka.Metrics;
 
 internal sealed class ConsumerMetrics : CommonMetrics
 {
-    private const string StateTagName = "State";
+    private const string CgStateTagName = "CgState";
+    private const string CgJoinStateTagName = "CgJoinState";
     private const string ReasonTagName = "Reason";
     private const string TopicTagName = "Topic";
     private const string PartitionTagName = "Partition";
@@ -36,7 +37,7 @@ internal sealed class ConsumerMetrics : CommonMetrics
 
         this.ConfigureCgMeter(cgMeter);
 
-        Meter topParMeter = meterFactory(Statistics.TopicPartitionMeterName, null);
+        Meter topParMeter = meterFactory(Statistics.TopicPartitionMeterName, groupTag);
 
         this.ConfigureTopParMeter(topParMeter);
     }
@@ -52,7 +53,8 @@ internal sealed class ConsumerMetrics : CommonMetrics
                 return Enumerable.Repeat(new Measurement<long>(v.ConsumerGroup.StateAgeMilliseconds / 1000,
                     new[]
                     {
-                        new KeyValuePair<string, object?>(StateTagName, v.ConsumerGroup.State)
+                        new KeyValuePair<string, object?>(CgStateTagName, v.ConsumerGroup.State),
+                        new KeyValuePair<string, object?>(CgJoinStateTagName, v.ConsumerGroup.JoinState)
                     }), 1);
             }
 
@@ -93,11 +95,7 @@ internal sealed class ConsumerMetrics : CommonMetrics
 
             if (v != null)
             {
-                return Enumerable.Repeat(new Measurement<long>(v.ConsumerGroup.AssignmentCount,
-                    new[]
-                    {
-                        new KeyValuePair<string, object?>(StateTagName, v.ConsumerGroup.JoinState)
-                    }), 1);
+                return Enumerable.Repeat(new Measurement<long>(v.ConsumerGroup.AssignmentCount), 1);
             }
 
             return Empty;
