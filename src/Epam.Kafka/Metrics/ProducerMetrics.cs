@@ -9,7 +9,8 @@ namespace Epam.Kafka.Metrics;
 internal sealed class ProducerMetrics : CommonMetrics
 {
     private const string TransactionTagName = "Transaction";
-    private const string StateTagName = "State";
+    private const string TrStateTagName = "TrState";
+    private const string IdempStateTagName = "IdempState";
 
     private readonly ProducerConfig _config;
 
@@ -36,7 +37,7 @@ internal sealed class ProducerMetrics : CommonMetrics
                     return Enumerable.Repeat(new Measurement<long>(v.ProducerTransaction.TransactionAgeMilliseconds / 1000,
                         new[]
                         {
-                            new KeyValuePair<string, object?>(StateTagName, v.ProducerTransaction.TransactionState),
+                            new KeyValuePair<string, object?>(TrStateTagName, v.ProducerTransaction.TransactionState),
                             new KeyValuePair<string, object?>(TransactionTagName, this._config.TransactionalId)
                         }), 1);
                 }
@@ -49,12 +50,13 @@ internal sealed class ProducerMetrics : CommonMetrics
         {
             Statistics? v = this.Value;
 
-            if (v != null && !string.IsNullOrWhiteSpace(this._config.TransactionalId))
+            // idempotent producer enabled
+            if (v is { ProducerTransaction.IdempotentAgeMilliseconds: > 0 })
             {
                 return Enumerable.Repeat(new Measurement<long>(v.ProducerTransaction.IdempotentAgeMilliseconds / 1000,
                     new[]
                     {
-                        new KeyValuePair<string, object?>(StateTagName, v.ProducerTransaction.IdempotentState),
+                        new KeyValuePair<string, object?>(IdempStateTagName, v.ProducerTransaction.IdempotentState),
                     }), 1);
             }
 
