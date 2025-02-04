@@ -10,9 +10,8 @@ namespace Epam.Kafka.Metrics;
 
 internal sealed class ConsumerMetrics : CommonMetrics
 {
-    private const string CgStateTagName = "CgState";
-    private const string CgJoinStateTagName = "CgJoinState";
-    private const string ReasonTagName = "Reason";
+    private const string GroupStateTagName = "GroupState";
+    private const string GroupJoinStateTagName = "GroupJoinState";
     private const string TopicTagName = "Topic";
     private const string PartitionTagName = "Partition";
     private const string ConsumerGroupTagName = "Group";
@@ -53,8 +52,8 @@ internal sealed class ConsumerMetrics : CommonMetrics
                 return Enumerable.Repeat(new Measurement<long>(v.ConsumerGroup.StateAgeMilliseconds / 1000,
                     new[]
                     {
-                        new KeyValuePair<string, object?>(CgStateTagName, v.ConsumerGroup.State),
-                        new KeyValuePair<string, object?>(CgJoinStateTagName, v.ConsumerGroup.JoinState)
+                        new KeyValuePair<string, object?>(GroupStateTagName, v.ConsumerGroup.State),
+                        new KeyValuePair<string, object?>(GroupJoinStateTagName, v.ConsumerGroup.JoinState)
                     }), 1);
             }
 
@@ -65,13 +64,9 @@ internal sealed class ConsumerMetrics : CommonMetrics
         {
             Statistics? v = this.Value;
 
-            if (v != null)
+            if (v is { ConsumerGroup.RebalanceAgeMilliseconds: > 0 })
             {
-                return Enumerable.Repeat(new Measurement<long>(v.ConsumerGroup.RebalanceAgeMilliseconds / 1000,
-                    new[]
-                    {
-                        new KeyValuePair<string, object?>(ReasonTagName, v.ConsumerGroup.RebalanceReason)
-                    }), 1);
+                return Enumerable.Repeat(new Measurement<long>(v.ConsumerGroup.RebalanceAgeMilliseconds / 1000), 1);
             }
 
             return Empty;

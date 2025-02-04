@@ -9,7 +9,7 @@ namespace Epam.Kafka.Metrics;
 internal sealed class ProducerMetrics : CommonMetrics
 {
     private const string TransactionTagName = "Transaction";
-    private const string TrStateTagName = "TrState";
+    private const string TransactionStateTagName = "TransactionState";
     private const string IdempStateTagName = "IdempState";
 
     private readonly ProducerConfig _config;
@@ -37,7 +37,7 @@ internal sealed class ProducerMetrics : CommonMetrics
                     return Enumerable.Repeat(new Measurement<long>(v.ProducerTransaction.TransactionAgeMilliseconds / 1000,
                         new[]
                         {
-                            new KeyValuePair<string, object?>(TrStateTagName, v.ProducerTransaction.TransactionState),
+                            new KeyValuePair<string, object?>(TransactionStateTagName, v.ProducerTransaction.TransactionState),
                             new KeyValuePair<string, object?>(TransactionTagName, this._config.TransactionalId)
                         }), 1);
                 }

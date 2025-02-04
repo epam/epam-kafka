@@ -182,7 +182,7 @@ public class StatisticsTests
         ml.RecordObservableInstruments(this.Output);
 
         ml.Results.Count.ShouldBe(2);
-        ml.Results["epam_kafka_stats_eos_txn_age_Handler:n1-Name:c1-Type:c-TrState:test-Transaction:qwe"].ShouldBe(120);
+        ml.Results["epam_kafka_stats_eos_txn_age_Handler:n1-Name:c1-Type:c-TransactionState:test-Transaction:qwe"].ShouldBe(120);
         ml.Results["epam_kafka_stats_eos_idemp_age_Handler:n1-Name:c1-Type:c-IdempState:ids"].ShouldBe(130);
 
         cm.OnCompleted();
@@ -209,8 +209,8 @@ public class StatisticsTests
         ml.RecordObservableInstruments(this.Output);
 
         ml.Results.Count.ShouldBe(4);
-        ml.Results["epam_kafka_stats_cg_state_age_Group:qwe-Handler:n1-Name:c1-Type:c-CgState:test1-CgJoinState:test2"].ShouldBe(120);
-        ml.Results["epam_kafka_stats_cg_rebalance_age_Group:qwe-Handler:n1-Name:c1-Type:c-Reason:test3"].ShouldBe(130);
+        ml.Results["epam_kafka_stats_cg_state_age_Group:qwe-Handler:n1-Name:c1-Type:c-GroupState:test1-GroupJoinState:test2"].ShouldBe(120);
+        ml.Results["epam_kafka_stats_cg_rebalance_age_Group:qwe-Handler:n1-Name:c1-Type:c"].ShouldBe(130);
         ml.Results["epam_kafka_stats_cg_rebalance_count_Group:qwe-Handler:n1-Name:c1-Type:c"].ShouldBe(22);
         ml.Results["epam_kafka_stats_cg_assignment_count_Group:qwe-Handler:n1-Name:c1-Type:c"].ShouldBe(4);
 
