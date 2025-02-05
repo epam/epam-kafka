@@ -6,6 +6,7 @@ using Epam.Kafka.PubSub.Subscription.Options;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace Epam.Kafka.PubSub.Subscription.Replication;
 
@@ -22,12 +23,12 @@ internal sealed class ReplicationBuilder<TSubKey, TSubValue, TPubKey, TPubValue>
     {
     }
 
-    internal override IHostedService CreateInstance(IServiceProvider sp, SubscriptionOptions options)
+    internal override IHostedService Build(IServiceProvider sp)
     {
         return new ReplicationBackgroundService<TSubKey, TSubValue, TPubKey, TPubValue>(
             sp.GetRequiredService<IServiceScopeFactory>(),
             sp.GetRequiredService<IKafkaFactory>(),
-            options,
+            sp.GetRequiredService<IOptionsMonitor<SubscriptionOptions>>(),
             sp.GetRequiredService<PubSubContext>().Subscriptions[this.Key],
             sp.GetService<ILoggerFactory>());
     }

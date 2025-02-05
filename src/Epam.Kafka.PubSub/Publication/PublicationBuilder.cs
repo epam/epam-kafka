@@ -84,12 +84,12 @@ public sealed class
         return this;
     }
 
-    internal override IHostedService CreateInstance(IServiceProvider sp, PublicationOptions options)
+    internal override IHostedService Build(IServiceProvider sp)
     {
         return new PublicationBackgroundService<TKey, TValue>(
             sp.GetRequiredService<IServiceScopeFactory>(),
             sp.GetRequiredService<IKafkaFactory>(),
-            options,
+            sp.GetRequiredService<IOptionsMonitor<PublicationOptions>>().Get(this.Key),
             sp.GetRequiredService<PubSubContext>().Publications[this.Key],
             sp.GetService<ILoggerFactory>());
     }

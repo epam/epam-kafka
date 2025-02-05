@@ -8,6 +8,7 @@ using Epam.Kafka.PubSub.Subscription.State;
 using Epam.Kafka.PubSub.Utils;
 
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace Epam.Kafka.PubSub.Subscription.Topics;
 
@@ -28,6 +29,7 @@ internal sealed class SubscriptionTopicWrapper<TKey, TValue> : IDisposable
 
     public SubscriptionTopicWrapper(IKafkaFactory kafkaFactory,
         SubscriptionMonitor monitor,
+        IOptionsMonitor<SubscriptionOptions> optionsMonitor,
         SubscriptionOptions options,
         IDeserializer<TKey>? keyDeserializer,
         IDeserializer<TValue>? valueDeserializer,
@@ -47,7 +49,7 @@ internal sealed class SubscriptionTopicWrapper<TKey, TValue> : IDisposable
 
         config = config.Clone(this.Monitor.NamePlaceholder);
 
-        this.ConfigureConsumerConfig(config);
+        this.ConfigureConsumerConfig(config, optionsMonitor);
 
         this._autoOffsetReset = config.AutoOffsetReset;
         this._consumeTimeoutMs = config.GetCancellationDelayMaxMs();
@@ -440,7 +442,7 @@ internal sealed class SubscriptionTopicWrapper<TKey, TValue> : IDisposable
         return count > 0;
     }
 
-    private void ConfigureConsumerConfig(ConsumerConfig config)
+    private void ConfigureConsumerConfig(ConsumerConfig config, IOptionsMonitor<SubscriptionOptions> optionsMonitor)
     {
         if (config == null)
         {
@@ -455,10 +457,48 @@ internal sealed class SubscriptionTopicWrapper<TKey, TValue> : IDisposable
             config.SetDotnetLoggerCategory(this.Monitor.FullName);
         }
 
+        const int maxPollBufferMs = 3 * 60 * 1000;
+
+        // to avoid leaving group in case of long-running processing
         if (this.Options.StateType.Name == typeof(CombinedState<>).Name || this.Options.StateType == typeof(InternalKafkaState))
         {
-            // to avoid leaving group in case of long-running processing
-            config.MaxPollIntervalMs ??= (int)TimeSpan.FromMinutes(60).TotalMilliseconds;
+            if (this.Options.HandlerConcurrencyGroup.HasValue)
+            {
+                if (!config.MaxPollIntervalMs.HasValue)
+                {
+                    long sum = 0;
+
+                    foreach (SubscriptionMonitor sm in this.Monitor.Context.Subscriptions.Values)
+                    {
+                        try
+                        {
+                            SubscriptionOptions so = optionsMonitor.Get(sm.Name);
+
+                            if (so.Enabled && so.HandlerConcurrencyGroup == this.Options.HandlerConcurrencyGroup)
+                            {
+                                sum += so.HandlerConcurrencyGroup.Value;
+                            }
+                        }
+#pragma warning disable CA1031 // don't fail if not possible to create options for other subscriptions
+                        catch (Exception e)
+                        {
+                            this.Logger.PollIntervalIgnoreOptions(e, this.Monitor.Name, sm.Name,
+                                this.Options.HandlerConcurrencyGroup.Value);
+                        }
+#pragma warning restore CA1031
+                    }
+
+                    sum = Math.Min(sum, 3 * 60 * 60 * 1000);
+
+                    config.MaxPollIntervalMs = (int)sum + maxPollBufferMs;
+                }
+            }
+            else
+            {
+                // interval can be calculated
+                config.MaxPollIntervalMs ??=
+                    (int)this.Options.HandlerTimeout.TotalMilliseconds + maxPollBufferMs;
+            }
         }
     }
 

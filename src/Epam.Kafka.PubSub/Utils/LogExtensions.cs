@@ -252,4 +252,12 @@ internal static partial class LogExtensions
         Message = "Offsets send to transaction for '{IndexedKey}'. {TopicPartitionOffsets}")]
     public static partial void OffsetsSendToTransaction(this ILogger logger, string indexedKey,
         IEnumerable<TopicPartitionOffset> topicPartitionOffsets);
+
+    [LoggerMessage(
+        EventId = 94,
+        EventName = "PollIntervalIgnoreOptions",
+        Level = LogLevel.Warning,
+        Message = "Unable to create subscription options for '{OtherKey}' to calculate 'max.poll.interval.ms' for '{IndexedKey}' with {ConcurrencyGroup} concurrency group.")]
+    public static partial void PollIntervalIgnoreOptions(this ILogger logger, Exception exception,
+        string indexedKey, string otherKey, int concurrencyGroup);
 }

@@ -76,12 +76,12 @@ public class
         return this;
     }
 
-    internal override IHostedService CreateInstance(IServiceProvider sp, SubscriptionOptions options)
+    internal override IHostedService Build(IServiceProvider sp)
     {
         return new SubscriptionBackgroundService<TKey, TValue>(
             sp.GetRequiredService<IServiceScopeFactory>(),
             sp.GetRequiredService<IKafkaFactory>(),
-            options,
+            sp.GetRequiredService<IOptionsMonitor<SubscriptionOptions>>(),
             sp.GetRequiredService<PubSubContext>().Subscriptions[this.Key],
             sp.GetService<ILoggerFactory>());
     }
