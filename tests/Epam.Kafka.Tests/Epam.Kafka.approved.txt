@@ -168,13 +168,55 @@ namespace Epam.Kafka.Stats
         [System.Text.Json.Serialization.JsonPropertyName("toppars")]
         public System.Collections.Generic.Dictionary<string, Confluent.Kafka.TopicPartition> TopicPartitions { get; }
     }
+    public enum ConsumerGroupJoinState
+    {
+        [System.Text.Json.Serialization.JsonIgnore]
+        None = 0,
+        [System.Text.Json.Serialization.JsonStringEnumMemberName("init")]
+        Init = 1,
+        [System.Text.Json.Serialization.JsonStringEnumMemberName("wait-join")]
+        WaitJoin = 2,
+        [System.Text.Json.Serialization.JsonStringEnumMemberName("wait-metadata")]
+        WaitMetadata = 3,
+        [System.Text.Json.Serialization.JsonStringEnumMemberName("wait-sync")]
+        WaitSync = 4,
+        [System.Text.Json.Serialization.JsonStringEnumMemberName("wait-revoke")]
+        WaitRevoke = 5,
+        [System.Text.Json.Serialization.JsonStringEnumMemberName("wait-unassign")]
+        WaitUnassign = 6,
+        [System.Text.Json.Serialization.JsonStringEnumMemberName("wait-assign")]
+        WaitAssign = 7,
+        [System.Text.Json.Serialization.JsonStringEnumMemberName("steady")]
+        Steady = 8,
+        [System.Text.Json.Serialization.JsonStringEnumMemberName("leaving")]
+        Leaving = 9,
+    }
+    public enum ConsumerGroupState
+    {
+        [System.Text.Json.Serialization.JsonIgnore]
+        None = 0,
+        [System.Text.Json.Serialization.JsonStringEnumMemberName("init")]
+        Init = 1,
+        [System.Text.Json.Serialization.JsonStringEnumMemberName("wait-broker")]
+        WaitBroker = 2,
+        [System.Text.Json.Serialization.JsonStringEnumMemberName("wait-sync")]
+        WaitSync = 3,
+        [System.Text.Json.Serialization.JsonStringEnumMemberName("up")]
+        Up = 4,
+        [System.Text.Json.Serialization.JsonStringEnumMemberName("down")]
+        Down = 5,
+        [System.Text.Json.Serialization.JsonStringEnumMemberName("rebalance")]
+        Rebalance = 6,
+        [System.Text.Json.Serialization.JsonStringEnumMemberName("exit")]
+        Exit = 7,
+    }
     public class GroupStatistics
     {
         public GroupStatistics() { }
         [System.Text.Json.Serialization.JsonPropertyName("assignment_size")]
         public long AssignmentCount { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("join_state")]
-        public string JoinState { get; set; }
+        public Epam.Kafka.Stats.ConsumerGroupJoinState JoinState { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("rebalance_age")]
         public long RebalanceAgeMilliseconds { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("rebalance_cnt")]
@@ -182,9 +224,38 @@ namespace Epam.Kafka.Stats
         [System.Text.Json.Serialization.JsonPropertyName("rebalance_reason")]
         public string RebalanceReason { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("state")]
-        public string State { get; set; }
+        public Epam.Kafka.Stats.ConsumerGroupState State { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("stateage")]
         public long StateAgeMilliseconds { get; set; }
+    }
+    public enum IdempotentProducerIdState
+    {
+        None = 0,
+        Init = 1,
+        Terminate = 2,
+        FatalError = 3,
+        RequestPID = 4,
+        WaitTransport = 5,
+        WaitPID = 6,
+        Assigned = 7,
+        DrainReset = 8,
+        DrainBump = 9,
+        WaitTxnAbort = 10,
+    }
+    public enum PartitionFetchState
+    {
+        [System.Text.Json.Serialization.JsonStringEnumMemberName("none")]
+        None = 0,
+        [System.Text.Json.Serialization.JsonStringEnumMemberName("stopping")]
+        Stopping = 1,
+        [System.Text.Json.Serialization.JsonStringEnumMemberName("stopped")]
+        Stopped = 2,
+        [System.Text.Json.Serialization.JsonStringEnumMemberName("offset-query")]
+        OffsetQuery = 3,
+        [System.Text.Json.Serialization.JsonStringEnumMemberName("offset-wait")]
+        OffsetWait = 4,
+        [System.Text.Json.Serialization.JsonStringEnumMemberName("active")]
+        Active = 5,
     }
     public class PartitionStatistics
     {
@@ -199,7 +270,7 @@ namespace Epam.Kafka.Stats
         [System.Text.Json.Serialization.JsonPropertyName("fetchq_cnt")]
         public long FetchCount { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("fetch_state")]
-        public string FetchState { get; set; }
+        public Epam.Kafka.Stats.PartitionFetchState FetchState { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("hi_offset")]
         public long HiOffset { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("partition")]
@@ -239,11 +310,28 @@ namespace Epam.Kafka.Stats
         [System.Text.Json.Serialization.JsonPropertyName("idemp_stateage")]
         public long IdempotentAgeMilliseconds { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("idemp_state")]
-        public string IdempotentState { get; set; }
+        public Epam.Kafka.Stats.IdempotentProducerIdState IdempotentState { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("txn_stateage")]
         public long TransactionAgeMilliseconds { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("txn_state")]
-        public string TransactionState { get; set; }
+        public Epam.Kafka.Stats.TransactionalProducerState TransactionState { get; set; }
+    }
+    public enum TransactionalProducerState
+    {
+        None = 0,
+        Init = 1,
+        WaitPID = 2,
+        ReadyNotAcked = 3,
+        Ready = 4,
+        InTransaction = 5,
+        BeginCommit = 6,
+        CommittingTransaction = 7,
+        CommitNotAcked = 8,
+        BeginAbort = 9,
+        AbortingTransaction = 10,
+        AbortNotAcked = 11,
+        AbortableError = 12,
+        FatalError = 13,
     }
     public class WindowStatistics
     {

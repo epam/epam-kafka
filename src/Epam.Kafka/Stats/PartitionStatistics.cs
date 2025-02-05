@@ -48,7 +48,7 @@ public class PartitionStatistics
     /// Consumer fetch state for this partition (none, stopping, stopped, offset-query, offset-wait, active)
     /// </summary>
     [JsonPropertyName("fetch_state")]
-    public string FetchState { get; set; } = string.Empty;
+    public PartitionFetchState FetchState { get; set; } = PartitionFetchState.None;
 
     /// <summary>
     /// Next offset to fetch

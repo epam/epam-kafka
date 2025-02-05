@@ -2,23 +2,10 @@
 
 using System.Diagnostics.Metrics;
 
-using Confluent.Kafka;
-
 namespace Epam.Kafka.Metrics;
 
 internal sealed class ProducerMetrics : CommonMetrics
 {
-    private const string TransactionTagName = "Transaction";
-    private const string TransactionStateTagName = "TransactionState";
-    private const string IdempStateTagName = "IdempState";
-
-    private readonly ProducerConfig _config;
-
-    public ProducerMetrics(ProducerConfig config)
-    {
-        this._config = config ?? throw new ArgumentNullException(nameof(config));
-    }
-
 #pragma warning disable CA2000 // Meter will be disposed in base class
     protected override void Initialize(Func<string, IEnumerable<KeyValuePair<string, object?>>?, Meter> meterFactory)
     {
@@ -26,42 +13,11 @@ internal sealed class ProducerMetrics : CommonMetrics
 
         Meter meter = meterFactory(Statistics.TransactionMeterName, null);
 
-        if (!string.IsNullOrWhiteSpace(this._config.TransactionalId))
-        {
-            meter.CreateObservableGauge("epam_kafka_stats_eos_txn_age", () =>
-            {
-                Statistics? v = this.Value;
+        meter.CreateObservableGauge("epam_kafka_stats_eos_txn_state", () => (long)this.Value!.ProducerTransaction.TransactionState,
+            null, "Transaction state");
 
-                if (v != null)
-                {
-                    return Enumerable.Repeat(new Measurement<long>(v.ProducerTransaction.TransactionAgeMilliseconds / 1000,
-                        new[]
-                        {
-                            new KeyValuePair<string, object?>(TransactionStateTagName, v.ProducerTransaction.TransactionState),
-                            new KeyValuePair<string, object?>(TransactionTagName, this._config.TransactionalId)
-                        }), 1);
-                }
-
-                return Empty;
-            }, "seconds", "Transaction state age seconds");
-        }
-
-        meter.CreateObservableGauge("epam_kafka_stats_eos_idemp_age", () =>
-        {
-            Statistics? v = this.Value;
-
-            // idempotent producer enabled
-            if (v is { ProducerTransaction.IdempotentAgeMilliseconds: > 0 })
-            {
-                return Enumerable.Repeat(new Measurement<long>(v.ProducerTransaction.IdempotentAgeMilliseconds / 1000,
-                    new[]
-                    {
-                        new KeyValuePair<string, object?>(IdempStateTagName, v.ProducerTransaction.IdempotentState),
-                    }), 1);
-            }
-
-            return Empty;
-        }, "seconds", "Idempotent state age seconds");
+        meter.CreateObservableGauge("epam_kafka_stats_eos_idemp_state", () => (long)this.Value!.ProducerTransaction.IdempotentState,
+            null, "Idempotent state");
     }
 #pragma warning restore CA2000 // Meter will be disposed in base class
     protected override long GetTxRxMsg(Statistics value)

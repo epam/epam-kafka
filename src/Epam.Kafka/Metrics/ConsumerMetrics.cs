@@ -10,8 +10,7 @@ namespace Epam.Kafka.Metrics;
 
 internal sealed class ConsumerMetrics : CommonMetrics
 {
-    private const string GroupStateTagName = "GroupState";
-    private const string GroupJoinStateTagName = "GroupJoinState";
+    private const string DesiredTagName = "Desired";
     private const string TopicTagName = "Topic";
     private const string PartitionTagName = "Partition";
     private const string ConsumerGroupTagName = "Group";
@@ -32,7 +31,7 @@ internal sealed class ConsumerMetrics : CommonMetrics
             new KeyValuePair<string, object?>(ConsumerGroupTagName, this._config.GroupId)
         };
 
-        Meter cgMeter = meterFactory(Statistics.ConsumerGroupMeterName, groupTag);
+        Meter cgMeter = meterFactory(Statistics.ConsumerGroupMeterName, null);
 
         this.ConfigureCgMeter(cgMeter);
 
@@ -43,83 +42,35 @@ internal sealed class ConsumerMetrics : CommonMetrics
 
     private void ConfigureCgMeter(Meter cgMeter)
     {
-        cgMeter.CreateObservableGauge("epam_kafka_stats_cg_state_age", () =>
-        {
-            Statistics? v = this.Value;
+        cgMeter.CreateObservableGauge("epam_kafka_stats_cg_state", () => (long)this.Value!.ConsumerGroup.State,
+            null, "Consumer group handler state");
 
-            if (v != null)
-            {
-                return Enumerable.Repeat(new Measurement<long>(v.ConsumerGroup.StateAgeMilliseconds / 1000,
-                    new[]
-                    {
-                        new KeyValuePair<string, object?>(GroupStateTagName, v.ConsumerGroup.State),
-                        new KeyValuePair<string, object?>(GroupJoinStateTagName, v.ConsumerGroup.JoinState)
-                    }), 1);
-            }
+        cgMeter.CreateObservableGauge("epam_kafka_stats_cg_join_state", () => (long)this.Value!.ConsumerGroup.JoinState,
+            null, "Consumer group handler join state");
 
-            return Empty;
-        }, "seconds", "Consumer group handler state age seconds");
+        cgMeter.CreateObservableGauge("epam_kafka_stats_cg_rebalance_age", () => this.Value!.ConsumerGroup.RebalanceAgeMilliseconds / 1000,
+            "seconds", "Time elapsed since last rebalance seconds");
 
-        cgMeter.CreateObservableGauge("epam_kafka_stats_cg_rebalance_age", () =>
-        {
-            Statistics? v = this.Value;
+        cgMeter.CreateObservableCounter("epam_kafka_stats_cg_rebalance_count", () => this.Value!.ConsumerGroup.RebalanceCount,
+            null, "Total number of rebalances");
 
-            if (v is { ConsumerGroup.RebalanceAgeMilliseconds: > 0 })
-            {
-                return Enumerable.Repeat(new Measurement<long>(v.ConsumerGroup.RebalanceAgeMilliseconds / 1000), 1);
-            }
-
-            return Empty;
-        }, "seconds", "Time elapsed since last rebalance seconds");
-
-        cgMeter.CreateObservableCounter("epam_kafka_stats_cg_rebalance_count", () =>
-        {
-            Statistics? v = this.Value;
-
-            if (v != null)
-            {
-                return Enumerable.Repeat(new Measurement<long>(v.ConsumerGroup.RebalanceCount), 1);
-            }
-
-            return Empty;
-        }, null, "Total number of rebalances");
-
-        cgMeter.CreateObservableGauge("epam_kafka_stats_cg_assignment_count", () =>
-        {
-            Statistics? v = this.Value;
-
-            if (v != null)
-            {
-                return Enumerable.Repeat(new Measurement<long>(v.ConsumerGroup.AssignmentCount), 1);
-            }
-
-            return Empty;
-        }, null, "Current assignment's partition count");
+        cgMeter.CreateObservableGauge("epam_kafka_stats_cg_assignment_count", () => this.Value!.ConsumerGroup.AssignmentCount,
+            null, "Current assignment's partition count");
     }
 
     private void ConfigureTopParMeter(Meter topParMeter)
     {
-        topParMeter.CreateObservableGauge("epam_kafka_stats_tp_lag", () =>
-        {
-            Statistics? v = this.Value;
-
-            if (v != null)
-            {
-                return v.Topics
-                    .SelectMany(p =>
-                        p.Value.Partitions.Where(x =>
-                                x.Key != PartitionStatistics.InternalUnassignedPartition &&
-                                x.Value is { Desired: true, ConsumerLag: >= 0 })
-                            .Select(x => new KeyValuePair<TopicStatistics, PartitionStatistics>(p.Value, x.Value)))
-                    .Select(m => new Measurement<long>(m.Value.ConsumerLag, new[]
-                    {
-                        new KeyValuePair<string, object?>(TopicTagName, m.Key.Name),
-                        new KeyValuePair<string, object?>(PartitionTagName, m.Value.Id),
-                    }));
-            }
-
-            return Empty;
-        }, null, "Consumer lag");
+        topParMeter.CreateObservableGauge("epam_kafka_stats_tp_lag", () => this.Value!.Topics
+                .SelectMany(p =>
+                    p.Value.Partitions.Where(x => x.Key != PartitionStatistics.InternalUnassignedPartition)
+                        .Select(x => new KeyValuePair<TopicStatistics, PartitionStatistics>(p.Value, x.Value)))
+                .Select(m => new Measurement<long>(m.Value.ConsumerLag, new[]
+                {
+                    new KeyValuePair<string, object?>(DesiredTagName, m.Value.Desired),
+                    new KeyValuePair<string, object?>(TopicTagName, m.Key.Name),
+                    new KeyValuePair<string, object?>(PartitionTagName, m.Value.Id),
+                })),
+            null, "Consumer lag");
     }
 
     protected override long GetTxRxMsg(Statistics value)

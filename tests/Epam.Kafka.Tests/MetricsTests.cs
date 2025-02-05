@@ -31,13 +31,8 @@ public class MetricsTests : TestWithServices
 
         using IClient c1 = this.KafkaFactory.GetOrCreateClient();
         Assert.NotNull(c1);
-        await Task.Delay(200);
-        ml.RecordObservableInstruments(this.Output);
 
-        ml.Results.Count.ShouldBe(4);
-
-        await Task.Delay(1000);
-
+        await Task.Delay(1000).ConfigureAwait(false);
         ml.RecordObservableInstruments(this.Output);
 
         ml.Results.Count.ShouldBe(4);
@@ -81,15 +76,18 @@ public class MetricsTests : TestWithServices
         consumer.Consume(200);
 
         ml.RecordObservableInstruments(this.Output);
-        ml.Results.Count.ShouldBe(1);
-        ml.Results.Keys.Single().ShouldContain("Type:consumer-Topic:test1-Partition:1");
-        ml.Results.Values.Single().ShouldBeGreaterThan(0);
+        ml.Results.Count.ShouldBe(4);
+        ml.Results.Keys.Count(s => s.Contains("Desired:False-Topic:test1-Partition:0")).ShouldBe(1);
+        ml.Results.Keys.Count(s => s.Contains("Desired:True-Topic:test1-Partition:1")).ShouldBe(1);
+        ml.Results.Keys.Count(s => s.Contains("Desired:False-Topic:test1-Partition:2")).ShouldBe(1);
+        ml.Results.Keys.Count(s => s.Contains("Desired:False-Topic:test1-Partition:3")).ShouldBe(1);
 
         // No assigned topic partitions
         consumer.Unassign();
         consumer.Consume(200);
-        ml.RecordObservableInstruments();
-        ml.Results.Count.ShouldBe(0);
+        ml.RecordObservableInstruments(this.Output);
+        ml.Results.Count.ShouldBe(4);
+        ml.Results.Keys.Count(s => s.Contains("Desired:True-Topic:test1-Partition:1")).ShouldBe(0);
     }
 
     [Fact]
@@ -111,8 +109,6 @@ public class MetricsTests : TestWithServices
         await Task.Delay(200);
         ml.RecordObservableInstruments(this.Output);
         ml.Results.Count.ShouldBe(2);
-        ml.Results.Keys.First().ShouldContain("Type:producer-TransactionState:Init-Transaction:qwe");
-        ml.Results.Keys.Last().ShouldContain("Type:producer-IdempState:Init");
 
         // One 1 of 4 assigned
         producer.InitTransactions(TimeSpan.FromSeconds(3));
@@ -120,16 +116,12 @@ public class MetricsTests : TestWithServices
         await Task.Delay(200);
         ml.RecordObservableInstruments(this.Output);
         ml.Results.Count.ShouldBe(2);
-        ml.Results.Keys.First().ShouldContain("Type:producer-TransactionState:Ready-Transaction:qwe");
-        ml.Results.Keys.Last().ShouldContain("Type:producer-IdempState:Assigned");
 
         producer.BeginTransaction();
 
         await Task.Delay(200);
         ml.RecordObservableInstruments(this.Output);
         ml.Results.Count.ShouldBe(2);
-        ml.Results.Keys.First().ShouldContain("Type:producer-TransactionState:InTransaction-Transaction:qwe");
-        ml.Results.Keys.Last().ShouldContain("Type:producer-IdempState:Assigned");
 
         await producer.ProduceAsync("test", new Message<int, int> { Key = 1, Value = 2 });
         ml.RecordObservableInstruments(this.Output);
