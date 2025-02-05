@@ -11,6 +11,7 @@ using Epam.Kafka.PubSub.Utils;
 
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace Epam.Kafka.PubSub.Subscription.Replication;
 
@@ -21,10 +22,10 @@ internal sealed class ReplicationBackgroundService<TSubKey, TSubValue, TPubKey, 
     public ReplicationBackgroundService(
         IServiceScopeFactory serviceScopeFactory,
         IKafkaFactory kafkaFactory,
-        SubscriptionOptions options,
+        IOptionsMonitor<SubscriptionOptions> optionsMonitor,
         SubscriptionMonitor monitor,
         ILoggerFactory? loggerFactory) : base(
-        serviceScopeFactory, kafkaFactory, options, monitor, loggerFactory)
+        serviceScopeFactory, kafkaFactory, optionsMonitor, monitor, loggerFactory)
     {
     }
 
