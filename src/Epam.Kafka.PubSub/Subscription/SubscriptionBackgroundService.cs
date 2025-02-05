@@ -14,6 +14,7 @@ using Epam.Kafka.PubSub.Utils;
 
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 using Polly;
 
@@ -22,26 +23,28 @@ namespace Epam.Kafka.PubSub.Subscription;
 internal class SubscriptionBackgroundService<TKey, TValue> : PubSubBackgroundService<
     SubscriptionOptions, SubscriptionBatchResult, SubscriptionMonitor, SubscriptionTopicWrapper<TKey, TValue>>
 {
+    private readonly IOptionsMonitor<SubscriptionOptions> _optionsMonitor;
     private readonly SubscriptionHealthMetrics _healthMeter;
     private readonly SubscriptionStatusMetrics _statusMeter;
 
     public SubscriptionBackgroundService(
         IServiceScopeFactory serviceScopeFactory,
         IKafkaFactory kafkaFactory,
-        SubscriptionOptions options,
+        IOptionsMonitor<SubscriptionOptions> optionsMonitor,
         SubscriptionMonitor monitor,
         ILoggerFactory? loggerFactory) : base(
         serviceScopeFactory,
         kafkaFactory,
-        options,
+        optionsMonitor.Get(monitor.Name),
         monitor,
         loggerFactory)
     {
-        Type handlerType = options.HandlerType ?? throw new ArgumentException("HandlerType is null", nameof(options));
+        this._optionsMonitor = optionsMonitor;
+        Type handlerType = this.Options.HandlerType ?? throw new ArgumentException("HandlerType is null", nameof(optionsMonitor));
 
         if (!typeof(ISubscriptionHandler<TKey, TValue>).IsAssignableFrom(handlerType))
         {
-            throw new ArgumentException($"HandlerType {handlerType} not assignable to {typeof(ISubscriptionHandler<TKey, TValue>)}", nameof(options));
+            throw new ArgumentException($"HandlerType {handlerType} not assignable to {typeof(ISubscriptionHandler<TKey, TValue>)}", nameof(optionsMonitor));
         }
 
         this._statusMeter = new(this.Monitor);
@@ -74,8 +77,8 @@ internal class SubscriptionBackgroundService<TKey, TValue> : PubSubBackgroundSer
             throw;
         }
 
-        return new SubscriptionTopicWrapper<TKey, TValue>(this.KafkaFactory, this.Monitor, this.Options, ks, vs,
-            this.Logger);
+        return new SubscriptionTopicWrapper<TKey, TValue>(this.KafkaFactory, this.Monitor, this._optionsMonitor, this.Options, 
+            ks, vs, this.Logger);
     }
 
     protected override TimeSpan? GetBatchFinishedTimeout(SubscriptionBatchResult subscriptionBatchResult)
