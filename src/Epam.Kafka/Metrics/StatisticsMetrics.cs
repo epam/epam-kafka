@@ -75,7 +75,8 @@ internal abstract class StatisticsMetrics : IObserver<Statistics>
 
     public void OnError(Exception error)
     {
-        this.Value = null;
+        this.OnCompleted();
+        this._initialized = false;
     }
 
     public void OnCompleted()
@@ -84,44 +85,9 @@ internal abstract class StatisticsMetrics : IObserver<Statistics>
         {
             meter.Dispose();
         }
-    }
 
-    protected void CreateGauge(Meter meter, string name, Func<Statistics, long> factory, string? unit = null, string? description = null)
-    {
-        if (meter == null) throw new ArgumentNullException(nameof(meter));
-        if (name == null) throw new ArgumentNullException(nameof(name));
-        if (factory == null) throw new ArgumentNullException(nameof(factory));
-
-        meter.CreateObservableGauge(name, () =>
-        {
-            Statistics? value = this.Value;
-
-            if (value is not null)
-            {
-                return Enumerable.Repeat(new Measurement<long>(factory(value)), 1);
-            }
-
-            return Empty;
-        }, unit, description);
-    }
-
-    protected void CreateCounter(Meter meter, string name, Func<Statistics, long> factory, string? unit = null, string? description = null)
-    {
-        if (meter == null) throw new ArgumentNullException(nameof(meter));
-        if (name == null) throw new ArgumentNullException(nameof(name));
-        if (factory == null) throw new ArgumentNullException(nameof(factory));
-
-        meter.CreateObservableCounter(name, () =>
-        {
-            Statistics? value = this.Value;
-
-            if (value is not null)
-            {
-                return Enumerable.Repeat(new Measurement<long>(factory(value)), 1);
-            }
-
-            return Empty;
-        }, unit, description);
+        this._meters.Clear();
+        this.Value = null;
     }
 }
 

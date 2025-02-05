@@ -16,7 +16,6 @@ internal partial class StatsJsonContext : JsonSerializerContext
 {
     public class PartitionConverter : JsonConverter<Partition>
     {
-
         public override Partition Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
             return new Partition(reader.GetInt32());

@@ -13,7 +13,7 @@ public class GroupStatistics
     /// Local consumer group handler's state.
     /// </summary>
     [JsonPropertyName("state")]
-    public string State { get; set; } = string.Empty;
+    public ConsumerGroupState State { get; set; } = ConsumerGroupState.None;
 
     /// <summary>
     /// Time elapsed since last state change (milliseconds).
@@ -31,7 +31,7 @@ public class GroupStatistics
     /// Local consumer group handler's join state.
     /// </summary>
     [JsonPropertyName("join_state")]
-    public string JoinState { get; set; } = string.Empty;
+    public ConsumerGroupJoinState JoinState { get; set; } = ConsumerGroupJoinState.None;
 
     /// <summary>
     /// Time elapsed since last re-balance (assign or revoke) (milliseconds).
@@ -50,5 +50,4 @@ public class GroupStatistics
     /// </summary>
     [JsonPropertyName("rebalance_reason")]
     public string RebalanceReason { get; set; } = string.Empty;
-
 }

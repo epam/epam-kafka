@@ -10,16 +10,16 @@ internal abstract class CommonMetrics : StatisticsMetrics
     {
         Meter meter = meterFactory(Statistics.TopLevelMeterName, null);
 
-        this.CreateCounter(meter, "epam_kafka_stats_trx_msgs", this.GetTxRxMsg,
+        meter.CreateObservableCounter("epam_kafka_stats_trx_msgs", () => this.GetTxRxMsg(this.Value!),
             description: "Number of messages consumed or produced.");
 
-        this.CreateCounter(meter, "epam_kafka_stats_trx", this.GetTxRx,
+        meter.CreateObservableCounter("epam_kafka_stats_trx", () => this.GetTxRx(this.Value!),
             description: "Number of requests transmitted or received.");
 
-        this.CreateCounter(meter, "epam_kafka_stats_trx_bytes", this.GetTxRxBytes,
+        meter.CreateObservableCounter("epam_kafka_stats_trx_bytes", () => this.GetTxRxBytes(this.Value!),
             description: "Number of bytes transmitted or received.");
 
-        this.CreateGauge(meter, "epam_kafka_stats_age", v => v.AgeMicroseconds / 1000000, "seconds",
+        meter.CreateObservableGauge("epam_kafka_stats_age", () => this.Value!.AgeMicroseconds / 1000000, "seconds",
             "Time since this client instance was created (seconds).");
     }
 

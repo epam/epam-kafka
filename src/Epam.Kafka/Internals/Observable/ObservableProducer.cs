@@ -10,7 +10,7 @@ internal class ObservableProducer<TKey, TValue> : ObservableClient, IProducer<TK
 {
     private readonly IProducer<TKey, TValue> _inner;
 
-    public ObservableProducer(ProducerBuilder<TKey, TValue> builder, ProducerConfig config)
+    public ObservableProducer(ProducerBuilder<TKey, TValue> builder)
     {
         if (builder == null) throw new ArgumentNullException(nameof(builder));
 
@@ -30,7 +30,7 @@ internal class ObservableProducer<TKey, TValue> : ObservableClient, IProducer<TK
             this.StatObservers = new List<IObserver<string>>();
 
 #pragma warning disable CA2000 // unsubscribe not needed
-            this.Subscribe(new ProducerMetrics(config));
+            this.Subscribe(new ProducerMetrics());
 #pragma warning restore CA2000
         }
         catch (InvalidOperationException)

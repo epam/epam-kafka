@@ -982,7 +982,7 @@
           "xmit_msgq_bytes": 0,
           "fetchq_cnt": 0,
           "fetchq_size": 0,
-          "fetch_state": "active",
+          "fetch_state": "offset-query",
           "query_offset": -1001,
           "next_offset": 12,
           "app_offset": 12,
@@ -1054,11 +1054,14 @@
   "cgrp": {
     "state": "up",
     "stateage": 39225,
-    "join_state": "steady",
+    "join_state": "wait-join",
     "rebalance_age": 35748,
     "rebalance_cnt": 1,
     "rebalance_reason": "Metadata for subscribed topic(s) has changed",
     "assignment_size": 1
+  },
+  "eos": {
+    "txn_state": "InTransaction"
   },
   "tx": 83,
   "tx_bytes": 20124,

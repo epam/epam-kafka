@@ -13,7 +13,7 @@ public class TransactionStatistics
     /// Current idempotent producer id state.
     /// </summary>
     [JsonPropertyName("idemp_state")]
-    public string IdempotentState { get; set; } = string.Empty;
+    public IdempotentProducerIdState IdempotentState { get; set; } = IdempotentProducerIdState.None;
 
     /// <summary>
     /// Time elapsed since last <see cref="IdempotentState"/> change (milliseconds).
@@ -25,7 +25,7 @@ public class TransactionStatistics
     /// Current transactional producer state.
     /// </summary>
     [JsonPropertyName("txn_state")]
-    public string TransactionState { get; set; } = string.Empty;
+    public TransactionalProducerState TransactionState { get; set; } = TransactionalProducerState.None;
 
     /// <summary>
     /// Time elapsed since last <see cref="TransactionState"/> change (milliseconds).
