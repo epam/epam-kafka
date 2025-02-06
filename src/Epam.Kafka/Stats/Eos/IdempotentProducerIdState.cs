@@ -1,6 +1,6 @@
 ﻿// Copyright © 2024 EPAM Systems
 
-namespace Epam.Kafka.Stats;
+namespace Epam.Kafka.Stats.Eos;
 
 /// <summary>
 /// Enum representing the states of an idempotent producer's ID.

@@ -1,10 +1,9 @@
 ﻿// Copyright © 2024 EPAM Systems
 
 using Confluent.Kafka;
-
 using System.Text.Json.Serialization;
 
-namespace Epam.Kafka.Stats;
+namespace Epam.Kafka.Stats.Broker;
 
 /// <summary>
 /// Per broker statistics. See https://github.com/confluentinc/librdkafka/blob/master/STATISTICS.md for details.
@@ -33,13 +32,13 @@ public class BrokerStatistics
     /// Broker source (learned, configured, internal, logical)
     /// </summary>
     [JsonPropertyName("source")]
-    public string Source { get; set; } = string.Empty;
+    public BrokerSource Source { get; set; } = BrokerSource.None;
 
     /// <summary>
-    /// Broker state (INIT, DOWN, CONNECT, AUTH, APIVERSION_QUERY, AUTH_HANDSHAKE, UP, UPDATE)
+    /// Broker state
     /// </summary>
     [JsonPropertyName("state")]
-    public string State { get; set; } = string.Empty;
+    public BrokerState State { get; set; } = BrokerState.None;
 
     /// <summary>
     /// Time since last broker state change (microseconds)

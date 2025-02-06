@@ -68,7 +68,7 @@ namespace Epam.Kafka
         [System.Text.Json.Serialization.JsonPropertyName("age")]
         public long AgeMicroseconds { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("brokers")]
-        public System.Collections.Generic.Dictionary<string, Epam.Kafka.Stats.BrokerStatistics> Brokers { get; }
+        public System.Collections.Generic.Dictionary<string, Epam.Kafka.Stats.Broker.BrokerStatistics> Brokers { get; }
         [System.Text.Json.Serialization.JsonPropertyName("client_id")]
         public string ClientId { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("ts")]
@@ -80,7 +80,7 @@ namespace Epam.Kafka
         [System.Text.Json.Serialization.JsonPropertyName("rx")]
         public long ConsumedRequestsTotal { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("cgrp")]
-        public Epam.Kafka.Stats.GroupStatistics ConsumerGroup { get; }
+        public Epam.Kafka.Stats.Group.GroupStatistics ConsumerGroup { get; }
         [System.Text.Json.Serialization.JsonPropertyName("name")]
         public string Name { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("replyq")]
@@ -94,13 +94,13 @@ namespace Epam.Kafka
         [System.Text.Json.Serialization.JsonPropertyName("msg_size_max")]
         public long ProducerQueueSizeMax { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("eos")]
-        public Epam.Kafka.Stats.TransactionStatistics ProducerTransaction { get; }
+        public Epam.Kafka.Stats.Eos.TransactionStatistics ProducerTransaction { get; }
         [System.Text.Json.Serialization.JsonIgnore]
         public string RawJson { get; }
         [System.Text.Json.Serialization.JsonPropertyName("time")]
         public long TimeEpochSeconds { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("topics")]
-        public System.Collections.Generic.Dictionary<string, Epam.Kafka.Stats.TopicStatistics> Topics { get; }
+        public System.Collections.Generic.Dictionary<string, Epam.Kafka.Stats.Topic.TopicStatistics> Topics { get; }
         [System.Text.Json.Serialization.JsonPropertyName("tx_bytes")]
         public long TransmittedBytesTotal { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("txmsgs")]
@@ -148,8 +148,52 @@ namespace Epam.Kafka.Options
         public Confluent.Kafka.ProducerConfig ProducerConfig { get; set; }
     }
 }
-namespace Epam.Kafka.Stats
+namespace Epam.Kafka.Stats.Broker
 {
+    [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<Epam.Kafka.Stats.Broker.BrokerSource>))]
+    public enum BrokerSource
+    {
+        [System.Text.Json.Serialization.JsonIgnore]
+        None = 0,
+        [System.Text.Json.Serialization.JsonStringEnumMemberName("learned")]
+        Learned = 1,
+        [System.Text.Json.Serialization.JsonStringEnumMemberName("configured")]
+        Configured = 2,
+        [System.Text.Json.Serialization.JsonStringEnumMemberName("internal")]
+        Internal = 3,
+        [System.Text.Json.Serialization.JsonStringEnumMemberName("logical")]
+        Logical = 4,
+    }
+    [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<Epam.Kafka.Stats.Broker.BrokerState>))]
+    public enum BrokerState
+    {
+        [System.Text.Json.Serialization.JsonIgnore]
+        None = 0,
+        [System.Text.Json.Serialization.JsonStringEnumMemberName("INIT")]
+        Init = 1,
+        [System.Text.Json.Serialization.JsonStringEnumMemberName("DOWN")]
+        Down = 2,
+        [System.Text.Json.Serialization.JsonStringEnumMemberName("TRY_CONNECT")]
+        TryConnect = 3,
+        [System.Text.Json.Serialization.JsonStringEnumMemberName("CONNECT")]
+        Connect = 4,
+        [System.Text.Json.Serialization.JsonStringEnumMemberName("SSL_HANDSHAKE")]
+        SslHandshake = 5,
+        [System.Text.Json.Serialization.JsonStringEnumMemberName("AUTH_LEGACY")]
+        AuthLegacy = 6,
+        [System.Text.Json.Serialization.JsonStringEnumMemberName("UP")]
+        Up = 7,
+        [System.Text.Json.Serialization.JsonStringEnumMemberName("UPDATE")]
+        Update = 8,
+        [System.Text.Json.Serialization.JsonStringEnumMemberName("APIVERSION_QUERY")]
+        ApiVersionQuery = 9,
+        [System.Text.Json.Serialization.JsonStringEnumMemberName("AUTH_HANDSHAKE")]
+        AuthHandshake = 10,
+        [System.Text.Json.Serialization.JsonStringEnumMemberName("AUTH_REQ")]
+        AuthReq = 11,
+        [System.Text.Json.Serialization.JsonStringEnumMemberName("REAUTH")]
+        Reauth = 12,
+    }
     public class BrokerStatistics
     {
         public BrokerStatistics() { }
@@ -160,15 +204,67 @@ namespace Epam.Kafka.Stats
         [System.Text.Json.Serialization.JsonPropertyName("nodename")]
         public string NodeName { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("source")]
-        public string Source { get; set; }
+        public Epam.Kafka.Stats.Broker.BrokerSource Source { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("state")]
-        public string State { get; set; }
+        public Epam.Kafka.Stats.Broker.BrokerState State { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("stateage")]
         public long StateAgeMicroseconds { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("toppars")]
         public System.Collections.Generic.Dictionary<string, Confluent.Kafka.TopicPartition> TopicPartitions { get; }
     }
-    public enum ConsumerGroupJoinState
+}
+namespace Epam.Kafka.Stats.Eos
+{
+    public enum IdempotentProducerIdState
+    {
+        None = 0,
+        Init = 1,
+        Terminate = 2,
+        FatalError = 3,
+        RequestPID = 4,
+        WaitTransport = 5,
+        WaitPID = 6,
+        Assigned = 7,
+        DrainReset = 8,
+        DrainBump = 9,
+        WaitTxnAbort = 10,
+    }
+    public class TransactionStatistics
+    {
+        public TransactionStatistics() { }
+        [System.Text.Json.Serialization.JsonPropertyName("txn_may_enq")]
+        public bool EnqAllowed { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("idemp_stateage")]
+        public long IdempotentAgeMilliseconds { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("idemp_state")]
+        public Epam.Kafka.Stats.Eos.IdempotentProducerIdState IdempotentState { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("txn_stateage")]
+        public long TransactionAgeMilliseconds { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("txn_state")]
+        public Epam.Kafka.Stats.Eos.TransactionalProducerState TransactionState { get; set; }
+    }
+    public enum TransactionalProducerState
+    {
+        None = 0,
+        Init = 1,
+        WaitPID = 2,
+        ReadyNotAcked = 3,
+        Ready = 4,
+        InTransaction = 5,
+        BeginCommit = 6,
+        CommittingTransaction = 7,
+        CommitNotAcked = 8,
+        BeginAbort = 9,
+        AbortingTransaction = 10,
+        AbortNotAcked = 11,
+        AbortableError = 12,
+        FatalError = 13,
+    }
+}
+namespace Epam.Kafka.Stats.Group
+{
+    [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<Epam.Kafka.Stats.Group.GroupJoinState>))]
+    public enum GroupJoinState
     {
         [System.Text.Json.Serialization.JsonIgnore]
         None = 0,
@@ -191,7 +287,8 @@ namespace Epam.Kafka.Stats
         [System.Text.Json.Serialization.JsonStringEnumMemberName("leaving")]
         Leaving = 9,
     }
-    public enum ConsumerGroupState
+    [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<Epam.Kafka.Stats.Group.GroupState>))]
+    public enum GroupState
     {
         [System.Text.Json.Serialization.JsonIgnore]
         None = 0,
@@ -216,7 +313,7 @@ namespace Epam.Kafka.Stats
         [System.Text.Json.Serialization.JsonPropertyName("assignment_size")]
         public long AssignmentCount { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("join_state")]
-        public Epam.Kafka.Stats.ConsumerGroupJoinState JoinState { get; set; }
+        public Epam.Kafka.Stats.Group.GroupJoinState JoinState { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("rebalance_age")]
         public long RebalanceAgeMilliseconds { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("rebalance_cnt")]
@@ -224,24 +321,14 @@ namespace Epam.Kafka.Stats
         [System.Text.Json.Serialization.JsonPropertyName("rebalance_reason")]
         public string RebalanceReason { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("state")]
-        public Epam.Kafka.Stats.ConsumerGroupState State { get; set; }
+        public Epam.Kafka.Stats.Group.GroupState State { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("stateage")]
         public long StateAgeMilliseconds { get; set; }
     }
-    public enum IdempotentProducerIdState
-    {
-        None = 0,
-        Init = 1,
-        Terminate = 2,
-        FatalError = 3,
-        RequestPID = 4,
-        WaitTransport = 5,
-        WaitPID = 6,
-        Assigned = 7,
-        DrainReset = 8,
-        DrainBump = 9,
-        WaitTxnAbort = 10,
-    }
+}
+namespace Epam.Kafka.Stats.Topic
+{
+    [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<Epam.Kafka.Stats.Topic.PartitionFetchState>))]
     public enum PartitionFetchState
     {
         [System.Text.Json.Serialization.JsonStringEnumMemberName("none")]
@@ -270,7 +357,7 @@ namespace Epam.Kafka.Stats
         [System.Text.Json.Serialization.JsonPropertyName("fetchq_cnt")]
         public long FetchCount { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("fetch_state")]
-        public Epam.Kafka.Stats.PartitionFetchState FetchState { get; set; }
+        public Epam.Kafka.Stats.Topic.PartitionFetchState FetchState { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("hi_offset")]
         public long HiOffset { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("partition")]
@@ -300,39 +387,11 @@ namespace Epam.Kafka.Stats
         [System.Text.Json.Serialization.JsonPropertyName("topic")]
         public string Name { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("partitions")]
-        public System.Collections.Generic.Dictionary<long, Epam.Kafka.Stats.PartitionStatistics> Partitions { get; }
+        public System.Collections.Generic.Dictionary<long, Epam.Kafka.Stats.Topic.PartitionStatistics> Partitions { get; }
     }
-    public class TransactionStatistics
-    {
-        public TransactionStatistics() { }
-        [System.Text.Json.Serialization.JsonPropertyName("txn_may_enq")]
-        public bool EnqAllowed { get; set; }
-        [System.Text.Json.Serialization.JsonPropertyName("idemp_stateage")]
-        public long IdempotentAgeMilliseconds { get; set; }
-        [System.Text.Json.Serialization.JsonPropertyName("idemp_state")]
-        public Epam.Kafka.Stats.IdempotentProducerIdState IdempotentState { get; set; }
-        [System.Text.Json.Serialization.JsonPropertyName("txn_stateage")]
-        public long TransactionAgeMilliseconds { get; set; }
-        [System.Text.Json.Serialization.JsonPropertyName("txn_state")]
-        public Epam.Kafka.Stats.TransactionalProducerState TransactionState { get; set; }
-    }
-    public enum TransactionalProducerState
-    {
-        None = 0,
-        Init = 1,
-        WaitPID = 2,
-        ReadyNotAcked = 3,
-        Ready = 4,
-        InTransaction = 5,
-        BeginCommit = 6,
-        CommittingTransaction = 7,
-        CommitNotAcked = 8,
-        BeginAbort = 9,
-        AbortingTransaction = 10,
-        AbortNotAcked = 11,
-        AbortableError = 12,
-        FatalError = 13,
-    }
+}
+namespace Epam.Kafka.Stats
+{
     public class WindowStatistics
     {
         public WindowStatistics() { }

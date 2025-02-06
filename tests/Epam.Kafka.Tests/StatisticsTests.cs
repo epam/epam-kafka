@@ -3,14 +3,16 @@
 using Confluent.Kafka;
 
 using Epam.Kafka.Metrics;
-using Epam.Kafka.Stats;
+using Epam.Kafka.Stats.Broker;
+using Epam.Kafka.Stats.Eos;
+using Epam.Kafka.Stats.Group;
+using Epam.Kafka.Stats.Topic;
 using Epam.Kafka.Tests.Common;
 
 using Shouldly;
 
 using Xunit;
 using Xunit.Abstractions;
-using ConsumerGroupState = Epam.Kafka.Stats.ConsumerGroupState;
 
 namespace Epam.Kafka.Tests;
 
@@ -58,8 +60,8 @@ public class StatisticsTests
         broker.Name.ShouldBe("sasl_ssl://kafka-4.sandbox.contoso.com:9095/534");
         broker.NodeId.ShouldBe(534);
         broker.NodeName.ShouldBe("kafka-4.sandbox.contoso.com:9095");
-        broker.Source.ShouldBe("learned");
-        broker.State.ShouldBe("UP");
+        broker.Source.ShouldBe(BrokerSource.Learned);
+        broker.State.ShouldBe(BrokerState.ApiVersionQuery);
         broker.StateAgeMicroseconds.ShouldBe(23884830);
 
         broker.TopicPartitions.ShouldNotBeNull().Count.ShouldBe(1);
@@ -86,9 +88,9 @@ public class StatisticsTests
         partition.FetchState.ShouldBe(PartitionFetchState.OffsetQuery);
 
         GroupStatistics group = value.ConsumerGroup.ShouldNotBeNull();
-        group.State.ShouldBe(ConsumerGroupState.Up);
+        group.State.ShouldBe(GroupState.Up);
         group.StateAgeMilliseconds.ShouldBe(39225);
-        group.JoinState.ShouldBe(ConsumerGroupJoinState.WaitJoin);
+        group.JoinState.ShouldBe(GroupJoinState.WaitJoin);
         group.RebalanceAgeMilliseconds.ShouldBe(35748);
         group.RebalanceCount.ShouldBe(1);
 
@@ -121,7 +123,6 @@ public class StatisticsTests
         cm.OnNext(new Statistics { ClientId = "c1", Name = "n1", ConsumedMessagesTotal = 124 });
         pm.OnNext(new Statistics { ClientId = "p1", Name = "n1", TransmittedMessagesTotal = 112, AgeMicroseconds = 555000000 });
 
-        ml.Results.Clear();
         ml.RecordObservableInstruments(this.Output);
 
         ml.Results.Count.ShouldBe(4);
@@ -130,7 +131,6 @@ public class StatisticsTests
 
         pm.OnCompleted();
 
-        ml.Results.Clear();
         ml.RecordObservableInstruments(this.Output);
         ml.Results.Count.ShouldBe(0);
     }
@@ -154,14 +154,14 @@ public class StatisticsTests
 
         ml.RecordObservableInstruments(this.Output);
 
-        ml.Results.Count.ShouldBe(1);
+        ml.Results.Count.ShouldBe(2);
         ml.Results["epam_kafka_stats_tp_lag_Group:qwe-Handler:n1-Name:c1-Type:c-Desired:True-Topic:t1-Partition:2"].ShouldBe(445);
+        ml.Results["epam_kafka_stats_tp_fetch_state_Group:qwe-Handler:n1-Name:c1-Type:c-Desired:True-Topic:t1-Partition:2"].ShouldBe(5);
 
         statistics.Topics.Clear();
 
         cm.OnNext(statistics);
 
-        ml.Results.Clear();
         ml.RecordObservableInstruments(this.Output);
         ml.Results.Count.ShouldBe(0);
 
@@ -212,7 +212,7 @@ public class StatisticsTests
         ml.Results["epam_kafka_stats_eos_txn_state_Handler:n1-Name:c1-Type:c"].ShouldBe(4);
         ml.Results["epam_kafka_stats_eos_idemp_state_Handler:n1-Name:c1-Type:c"].ShouldBe(7);
 
-        cm.OnError(new Exception("test"));
+        cm.OnError(new InvalidOperationException("test"));
         ml.RecordObservableInstruments();
         ml.Results.Count.ShouldBe(0);
 
@@ -233,8 +233,8 @@ public class StatisticsTests
         ConsumerMetrics cm = new(new ConsumerConfig { GroupId = "qwe" });
 
         Statistics statistics = new Statistics { ClientId = "c1", Name = "n1", Type = "c" };
-        statistics.ConsumerGroup.State = ConsumerGroupState.Up;
-        statistics.ConsumerGroup.JoinState = ConsumerGroupJoinState.WaitAssign;
+        statistics.ConsumerGroup.State = GroupState.Up;
+        statistics.ConsumerGroup.JoinState = GroupJoinState.WaitAssign;
         statistics.ConsumerGroup.RebalanceCount = 22;
         statistics.ConsumerGroup.RebalanceAgeMilliseconds = 12000;
         statistics.ConsumerGroup.AssignmentCount = 4;

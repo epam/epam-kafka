@@ -2,7 +2,7 @@
 
 using System.Text.Json.Serialization;
 
-namespace Epam.Kafka.Stats;
+namespace Epam.Kafka.Stats.Eos;
 
 /// <summary>
 /// EOS / Idempotent producer state and metrics

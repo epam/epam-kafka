@@ -475,7 +475,7 @@
       "nodeid": 534,
       "nodename": "kafka-4.sandbox.contoso.com:9095",
       "source": "learned",
-      "state": "UP",
+      "state": "APIVERSION_QUERY",
       "stateage": 23884830,
       "outbuf_cnt": 0,
       "outbuf_msg_cnt": 0,
