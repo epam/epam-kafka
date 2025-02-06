@@ -3,13 +3,13 @@
 using Confluent.Kafka;
 
 using Epam.Kafka.PubSub.Publication.Pipeline;
+using Epam.Kafka.PubSub.Subscription.Options;
 using Epam.Kafka.PubSub.Subscription.Pipeline;
 
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 using System.Collections.Concurrent;
 using System.Diagnostics.Metrics;
-using Epam.Kafka.PubSub.Subscription.Options;
 
 namespace Epam.Kafka.PubSub.Common.Pipeline;
 
@@ -125,7 +125,7 @@ public abstract class PipelineMonitor
 
             foreach (string t in options.GetTopicNames())
             {
-                Tuple<string, string> key = new (config.GroupId, t);
+                Tuple<string, string> key = new(config.GroupId, t);
 
                 result = ids.TryAdd(key, options.HandlerType!) || ids.TryUpdate(key, options.HandlerType!, options.HandlerType!);
 

@@ -1,21 +1,26 @@
 ﻿// Copyright © 2024 EPAM Systems
 
-using System.Text.Json;
 using Confluent.Kafka;
+
 using Epam.Kafka;
 using Epam.Kafka.PubSub;
 using Epam.Kafka.PubSub.EntityFrameworkCore.Publication.Contracts;
 using Epam.Kafka.PubSub.Publication;
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
+using System.Text.Json;
+
 namespace PublishEfCoreTransactional;
 
 internal class Program
 {
-    static void Main(string[] args)
+    private static readonly string[] Tags = new[] { "live" };
+
+    private static void Main(string[] args)
     {
         IHostBuilder hostBuilder = Host.CreateDefaultBuilder(args);
 
@@ -32,7 +37,7 @@ internal class Program
             builder.WithConfigPlaceholders($"<{nameof(context.HostingEnvironment.EnvironmentName)}>", context.HostingEnvironment.EnvironmentName);
 
             // publication summary health check with "live" tag
-            builder.WithPublicationSummaryHealthCheck(new[] { "live" });
+            builder.WithPublicationSummaryHealthCheck(Tags);
 
             // Read data from DB using Entity framework core,
             // convert to multiple messages,
@@ -59,7 +64,7 @@ public class SampleDbEntity : IKafkaPublicationEntity
 {
     public int Id { get; set; }
 
-    public string Name { get; set; }
+    public required string Name { get; set; }
 
     public KafkaPublicationState KafkaPubState { get; set; }
 
@@ -70,7 +75,7 @@ public class SampleKafkaEntity
 {
     public long Id { get; set; }
 
-    public string Name { get; set; }
+    public required string Name { get; set; }
 }
 
 public class SampleKafkaEntitySerializer : ISerializer<SampleKafkaEntity>

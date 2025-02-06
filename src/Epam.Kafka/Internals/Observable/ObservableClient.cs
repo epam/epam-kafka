@@ -2,10 +2,16 @@
 
 using Confluent.Kafka;
 
+using Epam.Kafka.Stats;
+
 namespace Epam.Kafka.Internals.Observable;
 
-internal abstract class ObservableClient : ClientWrapper, IObservable<Error>, IObservable<string>
+#pragma warning disable CA1031 // notify other listeners even if one of them failed
+
+internal abstract class ObservableClient : ClientWrapper, IObservable<Error>, IObservable<string>, IObservable<Statistics>
 {
+    private readonly ParseStatsJsonObserver _parseObserver = new();
+
     protected List<IObserver<Error>>? ErrorObservers { get; set; }
     protected List<IObserver<string>>? StatObservers { get; set; }
 
@@ -13,7 +19,14 @@ internal abstract class ObservableClient : ClientWrapper, IObservable<Error>, IO
     {
         foreach (IObserver<string> observer in this.StatObservers!)
         {
-            observer.OnNext(json);
+            try
+            {
+                observer.OnNext(json);
+            }
+            catch
+            {
+                // notify other listeners even if one of them failed
+            }
         }
     }
 
@@ -21,36 +34,49 @@ internal abstract class ObservableClient : ClientWrapper, IObservable<Error>, IO
     {
         foreach (IObserver<Error> observer in this.ErrorObservers!)
         {
-            observer.OnNext(error);
+            try
+            {
+                observer.OnNext(error);
+            }
+            catch
+            {
+                // notify other listeners even if one of them failed
+            }
         }
     }
 
-    protected void ClearObservers()
+    protected void CompleteObservers()
     {
-        ClearObservers(this.ErrorObservers);
-        ClearObservers(this.StatObservers);
+        CompleteObservers(this.ErrorObservers);
+        CompleteObservers(this.StatObservers);
     }
 
-    private static void ClearObservers<T>(List<IObserver<T>>? items)
+    private static void CompleteObservers<T>(List<IObserver<T>>? items)
     {
         if (items == null)
         {
             return;
         }
 
-        foreach (IObserver<T> item in items.ToArray())
+        foreach (IObserver<T> item in items)
         {
-            if (items.Contains(item))
+            try
             {
                 item.OnCompleted();
             }
+            catch
+            {
+                // notify other listeners even if one of them failed
+            }
         }
-
-        items.Clear();
     }
 
     public IDisposable Subscribe(IObserver<Error> observer)
     {
+        if (observer == null) throw new ArgumentNullException(nameof(observer));
+
+        this.EnsureNotDisposed();
+
         if (this.ErrorObservers == null)
         {
             throw new InvalidOperationException(
@@ -67,6 +93,10 @@ internal abstract class ObservableClient : ClientWrapper, IObservable<Error>, IO
 
     public IDisposable Subscribe(IObserver<string> observer)
     {
+        if (observer == null) throw new ArgumentNullException(nameof(observer));
+
+        this.EnsureNotDisposed();
+
         if (this.StatObservers == null)
         {
             throw new InvalidOperationException(
@@ -81,20 +111,17 @@ internal abstract class ObservableClient : ClientWrapper, IObservable<Error>, IO
         return new Unsubscriber<string>(this.StatObservers, observer);
     }
 
-    private class Unsubscriber<T> : IDisposable
+    public IDisposable Subscribe(IObserver<Statistics> observer)
     {
-        private readonly List<IObserver<T>> _observers;
-        private readonly IObserver<T> _observer;
+        if (observer == null) throw new ArgumentNullException(nameof(observer));
 
-        public Unsubscriber(List<IObserver<T>> observers, IObserver<T> observer)
-        {
-            this._observers = observers;
-            this._observer = observer;
-        }
+        this.EnsureNotDisposed();
 
-        public void Dispose()
-        {
-            this._observers.Remove(this._observer);
-        }
+#pragma warning disable CA2000 // don't need to unsubscribe
+        this.Subscribe(this._parseObserver);
+#pragma warning restore CA2000
+        return this._parseObserver.Subscribe(observer);
     }
 }
+
+#pragma warning restore CA1031

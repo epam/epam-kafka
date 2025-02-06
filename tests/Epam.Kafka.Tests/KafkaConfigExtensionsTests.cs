@@ -41,6 +41,18 @@ public class KafkaConfigExtensionsTests
         Assert.Throws<ArgumentOutOfRangeException>(() => cfg.GetCancellationDelayMaxMs());
     }
 
+    [Theory]
+    [InlineData(DebugContext.None, "")]
+    [InlineData(DebugContext.All, "all")]
+    [InlineData(DebugContext.Broker, "broker")]
+    [InlineData(DebugContext.Broker | DebugContext.Admin, "broker,admin")]
+    public void SetDebugContext(DebugContext value, string result)
+    {
+        ClientConfig cfg = new ClientConfig();
+        cfg.SetDebugContexts(value);
+        cfg.Debug.ShouldBe(result);
+    }
+
     [Fact]
     public void LoggerCategory()
     {

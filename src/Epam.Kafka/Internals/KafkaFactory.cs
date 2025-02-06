@@ -157,7 +157,7 @@ internal sealed class KafkaFactory : IKafkaFactory, IDisposable
 
         try
         {
-            consumer = new ObservableConsumer<TKey, TValue>(builder);
+            consumer = new ObservableConsumer<TKey, TValue>(builder, config);
 
             logger.ConsumerCreateOk(PrepareConfigForLogs(config), typeof(TKey), typeof(TValue), oauthSet, logSet);
         }
@@ -252,7 +252,7 @@ internal sealed class KafkaFactory : IKafkaFactory, IDisposable
             {
                 if (!this._clients.TryGetValue(clusterOptions, out result))
                 {
-                    result = new SharedClient(this, cluster);
+                    result = new SharedClient(this, cluster ?? this._topicOptions.CurrentValue.Cluster);
 
                     this._clients.Add(clusterOptions, result);
                 }

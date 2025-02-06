@@ -126,6 +126,42 @@ public static class KafkaConfigExtensions
     }
 
     /// <summary>
+    /// Set 'debug' value to config.
+    /// </summary>
+    /// <param name="config">The config to update</param>
+    /// <param name="value">The value</param>
+    /// <returns></returns>
+    /// <exception cref="ArgumentNullException"></exception>
+    public static void SetDebugContexts(this ClientConfig config, DebugContext value)
+    {
+        if (config == null) throw new ArgumentNullException(nameof(config));
+
+        if (value == DebugContext.All)
+        {
+            config.Debug = DebugContext.All.ToString("G").ToLowerInvariant();
+        }
+        else
+        {
+#if NET6_0_OR_GREATER
+            DebugContext[] contexts = Enum.GetValues<DebugContext>();
+#else
+        Array contexts = Enum.GetValues(typeof(DebugContext));
+#endif
+            List<string> items = new();
+
+            foreach (DebugContext item in contexts)
+            {
+                if ((item & value) == item && item != DebugContext.None)
+                {
+                    items.Add(item.ToString("G").ToLowerInvariant());
+                }
+            }
+
+            config.Debug = string.Join(",", items);
+        }
+    }
+
+    /// <summary>
     /// Clone existing config and optionally replace placeholders if <paramref name="placeholders"/> is not null
     /// </summary>
     /// <param name="config">The base config</param>

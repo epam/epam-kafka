@@ -45,16 +45,7 @@ public abstract class PubSubBuilder<TBuilder, TOptions>
     /// </summary>
     public string Key { get; }
 
-    private IHostedService Build(IServiceProvider sp)
-    {
-        IOptionsMonitor<TOptions> optionsMonitor = sp.GetRequiredService<IOptionsMonitor<TOptions>>();
-
-        TOptions options = optionsMonitor.Get(this.Key);
-
-        return this.CreateInstance(sp, options);
-    }
-
-    internal abstract IHostedService CreateInstance(IServiceProvider sp, TOptions options);
+    internal abstract IHostedService Build(IServiceProvider sp);
 
     /// <summary>
     ///     Wait for dependencies before starting processing pipeline.

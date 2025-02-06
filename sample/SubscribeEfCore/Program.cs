@@ -4,23 +4,24 @@ using Confluent.Kafka;
 
 using Epam.Kafka;
 using Epam.Kafka.PubSub;
+using Epam.Kafka.PubSub.EntityFrameworkCore;
+using Epam.Kafka.PubSub.EntityFrameworkCore.Subscription;
+using Epam.Kafka.PubSub.EntityFrameworkCore.Subscription.State;
 
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Microsoft.EntityFrameworkCore;
 
 using System.Text.Json;
-
-using Epam.Kafka.PubSub.EntityFrameworkCore.Subscription;
-using Epam.Kafka.PubSub.EntityFrameworkCore.Subscription.State;
-using Epam.Kafka.PubSub.EntityFrameworkCore;
 
 namespace SubscribeEfCore;
 
 internal class Program
 {
-    static void Main(string[] args)
+    private static readonly string[] Tags = new[] { "live" };
+
+    private static void Main(string[] args)
     {
         IHostBuilder hostBuilder = Host.CreateDefaultBuilder(args);
 
@@ -40,7 +41,7 @@ internal class Program
             builder.WithConfigPlaceholders($"<{nameof(context.HostingEnvironment.EnvironmentName)}>", context.HostingEnvironment.EnvironmentName);
 
             // subscription summary health check with "live" tag
-            builder.WithSubscriptionSummaryHealthCheck(new[] { "live" });
+            builder.WithSubscriptionSummaryHealthCheck(Tags);
 
             // add subscription with default offsets storage managed by kafka broker
             builder.AddSubscription<long, SampleKafkaEntity?, SubSample>(nameof(SubSample))
@@ -59,7 +60,7 @@ internal class Program
                     sp.GetRequiredKeyedService<TestMockCluster>("Sandbox").SeedTopic("sample.name",
                            new Message<byte[], byte[]?> { Key = Serializers.Int64.Serialize(e1.Id, SerializationContext.Empty), Value = vs.Serialize(e1, SerializationContext.Empty) },
                            new Message<byte[], byte[]?> { Key = Serializers.Int64.Serialize(e2.Id, SerializationContext.Empty), Value = vs.Serialize(e1, SerializationContext.Empty) },
-                           new Message<byte[], byte[]?> { Key = Serializers.Int64.Serialize(e1.Id, SerializationContext.Empty), Value = null});
+                           new Message<byte[], byte[]?> { Key = Serializers.Int64.Serialize(e1.Id, SerializationContext.Empty), Value = null });
 
                     return Task.CompletedTask;
                 });
@@ -71,7 +72,7 @@ internal class Program
 public class SampleDbEntity
 {
     public long Id { get; init; }
-    public string Name { get; set; }
+    public string? Name { get; set; }
     public int Partition { get; set; }
     public long Offset { get; set; }
 }
@@ -80,7 +81,7 @@ public class SampleKafkaEntity
 {
     public long Id { get; set; }
 
-    public string Name { get; set; }
+    public required string Name { get; set; }
 }
 
 public class SampleKafkaEntitySerializer : ISerializer<SampleKafkaEntity>, IDeserializer<SampleKafkaEntity?>
@@ -111,7 +112,6 @@ public class SampleDbContext : DbContext, IKafkaStateDbContext
         modelBuilder.AddKafkaState();
     }
 }
-
 
 public class SubSample : DbContextEntitySubscriptionHandler<long, SampleKafkaEntity?, SampleDbContext, SampleDbEntity>
 {
