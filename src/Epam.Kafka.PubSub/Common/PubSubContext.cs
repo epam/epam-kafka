@@ -1,5 +1,7 @@
 ﻿// Copyright © 2024 EPAM Systems
 
+using Confluent.Kafka;
+
 using Epam.Kafka.PubSub.Common.Options;
 using Epam.Kafka.PubSub.Common.Pipeline;
 using Epam.Kafka.PubSub.Publication.Pipeline;
@@ -11,7 +13,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Polly;
 
 using System.Collections.Concurrent;
-using Confluent.Kafka;
 
 namespace Epam.Kafka.PubSub.Common;
 

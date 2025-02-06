@@ -2,8 +2,8 @@
 
 using Confluent.Kafka;
 
-using Epam.Kafka.PubSub.Utils;
 using Epam.Kafka.PubSub.Subscription.State;
+using Epam.Kafka.PubSub.Utils;
 
 using System.Text.RegularExpressions;
 

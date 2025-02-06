@@ -77,7 +77,7 @@ internal class SubscriptionBackgroundService<TKey, TValue> : PubSubBackgroundSer
             throw;
         }
 
-        return new SubscriptionTopicWrapper<TKey, TValue>(this.KafkaFactory, this.Monitor, this._optionsMonitor, this.Options, 
+        return new SubscriptionTopicWrapper<TKey, TValue>(this.KafkaFactory, this.Monitor, this._optionsMonitor, this.Options,
             ks, vs, this.Logger);
     }
 
