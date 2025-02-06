@@ -32,7 +32,7 @@ public class MetricsTests : TestWithServices
         using IClient c1 = this.KafkaFactory.GetOrCreateClient();
         Assert.NotNull(c1);
 
-        await Task.Delay(1000).ConfigureAwait(false);
+        await Task.Delay(1000);
         ml.RecordObservableInstruments(this.Output);
 
         ml.Results.Count.ShouldBe(4);
@@ -76,17 +76,17 @@ public class MetricsTests : TestWithServices
         consumer.Consume(200);
 
         ml.RecordObservableInstruments(this.Output);
-        ml.Results.Count.ShouldBe(4);
-        ml.Results.Keys.Count(s => s.Contains("Desired:False-Topic:test1-Partition:0")).ShouldBe(1);
-        ml.Results.Keys.Count(s => s.Contains("Desired:True-Topic:test1-Partition:1")).ShouldBe(1);
-        ml.Results.Keys.Count(s => s.Contains("Desired:False-Topic:test1-Partition:2")).ShouldBe(1);
-        ml.Results.Keys.Count(s => s.Contains("Desired:False-Topic:test1-Partition:3")).ShouldBe(1);
+        ml.Results.Count.ShouldBe(8);
+        ml.Results.Keys.Count(s => s.Contains("Desired:False-Topic:test1-Partition:0")).ShouldBe(2);
+        ml.Results.Keys.Count(s => s.Contains("Desired:True-Topic:test1-Partition:1")).ShouldBe(2);
+        ml.Results.Keys.Count(s => s.Contains("Desired:False-Topic:test1-Partition:2")).ShouldBe(2);
+        ml.Results.Keys.Count(s => s.Contains("Desired:False-Topic:test1-Partition:3")).ShouldBe(2);
 
         // No assigned topic partitions
         consumer.Unassign();
         consumer.Consume(200);
         ml.RecordObservableInstruments(this.Output);
-        ml.Results.Count.ShouldBe(4);
+        ml.Results.Count.ShouldBe(8);
         ml.Results.Keys.Count(s => s.Contains("Desired:True-Topic:test1-Partition:1")).ShouldBe(0);
     }
 
@@ -106,7 +106,8 @@ public class MetricsTests : TestWithServices
                 StatisticsIntervalMs = 100
             }, MockCluster.ClusterName);
 
-        await Task.Delay(200);
+        producer.Poll(TimeSpan.FromMilliseconds(500));
+
         ml.RecordObservableInstruments(this.Output);
         ml.Results.Count.ShouldBe(2);
 

@@ -2,7 +2,7 @@
 
 using System.Text.Json.Serialization;
 
-namespace Epam.Kafka.Stats;
+namespace Epam.Kafka.Stats.Group;
 
 /// <summary>
 /// Consumer group metrics.
@@ -13,7 +13,7 @@ public class GroupStatistics
     /// Local consumer group handler's state.
     /// </summary>
     [JsonPropertyName("state")]
-    public ConsumerGroupState State { get; set; } = ConsumerGroupState.None;
+    public GroupState State { get; set; } = GroupState.None;
 
     /// <summary>
     /// Time elapsed since last state change (milliseconds).
@@ -31,7 +31,7 @@ public class GroupStatistics
     /// Local consumer group handler's join state.
     /// </summary>
     [JsonPropertyName("join_state")]
-    public ConsumerGroupJoinState JoinState { get; set; } = ConsumerGroupJoinState.None;
+    public GroupJoinState JoinState { get; set; } = GroupJoinState.None;
 
     /// <summary>
     /// Time elapsed since last re-balance (assign or revoke) (milliseconds).

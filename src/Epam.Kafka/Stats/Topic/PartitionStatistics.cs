@@ -2,7 +2,7 @@
 
 using System.Text.Json.Serialization;
 
-namespace Epam.Kafka.Stats;
+namespace Epam.Kafka.Stats.Topic;
 
 /// <summary>
 /// Partition statistics. See https://github.com/confluentinc/librdkafka/blob/master/STATISTICS.md for details.
@@ -45,7 +45,7 @@ public class PartitionStatistics
     public long FetchCount { get; set; }
 
     /// <summary>
-    /// Consumer fetch state for this partition (none, stopping, stopped, offset-query, offset-wait, active)
+    /// Consumer fetch state for this partition
     /// </summary>
     [JsonPropertyName("fetch_state")]
     public PartitionFetchState FetchState { get; set; } = PartitionFetchState.None;

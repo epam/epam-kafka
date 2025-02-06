@@ -4,7 +4,7 @@ using System.Diagnostics.Metrics;
 
 using Confluent.Kafka;
 
-using Epam.Kafka.Stats;
+using Epam.Kafka.Stats.Topic;
 
 namespace Epam.Kafka.Metrics;
 
@@ -60,6 +60,18 @@ internal sealed class ConsumerMetrics : CommonMetrics
 
     private void ConfigureTopParMeter(Meter topParMeter)
     {
+        topParMeter.CreateObservableGauge("epam_kafka_stats_tp_fetch_state", () => this.Value!.Topics
+                .SelectMany(p =>
+                    p.Value.Partitions.Where(x => x.Key != PartitionStatistics.InternalUnassignedPartition)
+                        .Select(x => new KeyValuePair<TopicStatistics, PartitionStatistics>(p.Value, x.Value)))
+                .Select(m => new Measurement<long>((long)m.Value.FetchState, new[]
+                {
+                    new KeyValuePair<string, object?>(DesiredTagName, m.Value.Desired),
+                    new KeyValuePair<string, object?>(TopicTagName, m.Key.Name),
+                    new KeyValuePair<string, object?>(PartitionTagName, m.Value.Id),
+                })),
+            null, "Consumer lag");
+
         topParMeter.CreateObservableGauge("epam_kafka_stats_tp_lag", () => this.Value!.Topics
                 .SelectMany(p =>
                     p.Value.Partitions.Where(x => x.Key != PartitionStatistics.InternalUnassignedPartition)

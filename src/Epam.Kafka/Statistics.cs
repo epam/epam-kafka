@@ -1,10 +1,14 @@
 ﻿// Copyright © 2024 EPAM Systems
 
 using Epam.Kafka.Stats;
+using Epam.Kafka.Stats.Broker;
+using Epam.Kafka.Stats.Eos;
+using Epam.Kafka.Stats.Topic;
 
 using System.Diagnostics.Metrics;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Epam.Kafka.Stats.Group;
 
 namespace Epam.Kafka;
 

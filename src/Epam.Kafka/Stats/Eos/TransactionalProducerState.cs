@@ -1,6 +1,6 @@
 ﻿// Copyright © 2024 EPAM Systems
 
-namespace Epam.Kafka.Stats;
+namespace Epam.Kafka.Stats.Eos;
 
 /// <summary>
 /// Enum representing the current states of a transactional producer.

@@ -2,7 +2,7 @@
 
 using System.Text.Json.Serialization;
 
-namespace Epam.Kafka.Stats;
+namespace Epam.Kafka.Stats.Topic;
 
 /// <summary>
 /// Topic statistics. See https://github.com/confluentinc/librdkafka/blob/master/STATISTICS.md for details.

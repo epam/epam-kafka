@@ -2,11 +2,12 @@
 
 using System.Text.Json.Serialization;
 
-namespace Epam.Kafka.Stats;
+namespace Epam.Kafka.Stats.Topic;
 
 /// <summary>
 /// Enum representing the states of consumer fetch for a partition.
 /// </summary>
+[JsonConverter(typeof(JsonStringEnumConverter<PartitionFetchState>))]
 public enum PartitionFetchState
 {
     /// <summary>

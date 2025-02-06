@@ -2,12 +2,13 @@
 
 using System.Text.Json.Serialization;
 
-namespace Epam.Kafka.Stats;
+namespace Epam.Kafka.Stats.Group;
 
 /// <summary>
 /// Enum representing the local consumer group handler's overall states in librdkafka.
 /// </summary>
-public enum ConsumerGroupState
+[JsonConverter(typeof(JsonStringEnumConverter<GroupState>))]
+public enum GroupState
 {
     /// <summary>
     /// State not available
