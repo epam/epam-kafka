@@ -11,9 +11,8 @@ namespace Epam.Kafka.Stats.Group;
 public enum GroupJoinState
 {
     /// <summary>
-    /// State not available
+    /// Not available
     /// </summary>
-    [JsonIgnore]
     None,
 
     /// <summary>

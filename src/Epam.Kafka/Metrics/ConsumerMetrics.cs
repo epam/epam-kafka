@@ -1,10 +1,10 @@
 ﻿// Copyright © 2024 EPAM Systems
 
-using System.Diagnostics.Metrics;
-
 using Confluent.Kafka;
 
 using Epam.Kafka.Stats.Topic;
+
+using System.Diagnostics.Metrics;
 
 namespace Epam.Kafka.Metrics;
 

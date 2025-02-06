@@ -3,12 +3,12 @@
 using Epam.Kafka.Stats;
 using Epam.Kafka.Stats.Broker;
 using Epam.Kafka.Stats.Eos;
+using Epam.Kafka.Stats.Group;
 using Epam.Kafka.Stats.Topic;
 
 using System.Diagnostics.Metrics;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Epam.Kafka.Stats.Group;
 
 namespace Epam.Kafka;
 
@@ -203,5 +203,5 @@ public class Statistics
     /// EOS / Idempotent producer state and metrics.
     /// </summary>
     [JsonPropertyName("eos")]
-    public TransactionStatistics ProducerTransaction { get; } = new();
+    public EosStatistics ExactlyOnceSemantics { get; } = new();
 }

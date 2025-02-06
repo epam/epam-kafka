@@ -5,9 +5,9 @@ using System.Text.Json.Serialization;
 namespace Epam.Kafka.Stats.Eos;
 
 /// <summary>
-/// EOS / Idempotent producer state and metrics
+/// Exactly-once semantics (EOS)
 /// </summary>
-public class TransactionStatistics
+public class EosStatistics
 {
     /// <summary>
     /// Current idempotent producer id state.

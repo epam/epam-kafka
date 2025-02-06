@@ -13,13 +13,13 @@ internal sealed class ProducerMetrics : CommonMetrics
 
         Meter meter = meterFactory(Statistics.TransactionMeterName, null);
 
-        meter.CreateObservableGauge("epam_kafka_stats_eos_txn_state", () => (long)this.Value!.ProducerTransaction.TransactionState,
+        meter.CreateObservableGauge("epam_kafka_stats_eos_txn_state", () => (long)this.Value!.ExactlyOnceSemantics.TransactionState,
             null, "Transaction state");
 
-        meter.CreateObservableGauge("epam_kafka_stats_eos_idemp_state", () => (long)this.Value!.ProducerTransaction.IdempotentState,
+        meter.CreateObservableGauge("epam_kafka_stats_eos_idemp_state", () => (long)this.Value!.ExactlyOnceSemantics.IdempotentState,
             null, "Idempotent state");
     }
-#pragma warning restore CA2000 // Meter will be disposed in base class
+#pragma warning restore CA2000
     protected override long GetTxRxMsg(Statistics value)
     {
         return value.TransmittedMessagesTotal;

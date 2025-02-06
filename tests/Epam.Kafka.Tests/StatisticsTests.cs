@@ -1,8 +1,11 @@
 ﻿// Copyright © 2024 EPAM Systems
 
+using System.Text.Json;
+
 using Confluent.Kafka;
 
 using Epam.Kafka.Metrics;
+using Epam.Kafka.Stats;
 using Epam.Kafka.Stats.Broker;
 using Epam.Kafka.Stats.Eos;
 using Epam.Kafka.Stats.Group;
@@ -31,6 +34,20 @@ public class StatisticsTests
         Assert.Throws<ArgumentNullException>(() => Statistics.FromJson(null!));
         Assert.Throws<ArgumentException>(() => Statistics.FromJson(""));
         Assert.Throws<ArgumentException>(() => Statistics.FromJson("not a json"));
+    }
+
+    [Fact]
+    public void SerializeOk()
+    {
+        Statistics statistics = new Statistics();
+        statistics.Brokers.Add("b1", new BrokerStatistics());
+        TopicStatistics t = new TopicStatistics();
+        t.Partitions.Add(0, new PartitionStatistics());
+        statistics.Topics.Add("t1", t);
+
+        string value = JsonSerializer.Serialize(statistics, StatsJsonContext.Default.Statistics);
+
+        this.Output.WriteLine(value);
     }
 
     [Fact]
@@ -94,7 +111,7 @@ public class StatisticsTests
         group.RebalanceAgeMilliseconds.ShouldBe(35748);
         group.RebalanceCount.ShouldBe(1);
 
-        TransactionStatistics transaction = value.ProducerTransaction.ShouldNotBeNull();
+        EosStatistics transaction = value.ExactlyOnceSemantics.ShouldNotBeNull();
         transaction.TransactionState.ShouldBe(TransactionalProducerState.InTransaction);
         transaction.IdempotentState.ShouldBe(IdempotentProducerIdState.None);
     }
@@ -176,8 +193,8 @@ public class StatisticsTests
         ProducerMetrics cm = new();
 
         Statistics statistics = new Statistics { ClientId = "c1", Name = "n1", Type = "c" };
-        statistics.ProducerTransaction.TransactionState = TransactionalProducerState.Ready;
-        statistics.ProducerTransaction.IdempotentState = IdempotentProducerIdState.Assigned;
+        statistics.ExactlyOnceSemantics.TransactionState = TransactionalProducerState.Ready;
+        statistics.ExactlyOnceSemantics.IdempotentState = IdempotentProducerIdState.Assigned;
 
         cm.OnNext(statistics);
         ml.RecordObservableInstruments(this.Output);
@@ -185,7 +202,7 @@ public class StatisticsTests
         ml.Results["epam_kafka_stats_eos_txn_state_Handler:n1-Name:c1-Type:c"].ShouldBe(4);
         ml.Results["epam_kafka_stats_eos_idemp_state_Handler:n1-Name:c1-Type:c"].ShouldBe(7);
 
-        statistics.ProducerTransaction.TransactionState = TransactionalProducerState.InTransaction;
+        statistics.ExactlyOnceSemantics.TransactionState = TransactionalProducerState.InTransaction;
         cm.OnNext(statistics);
         ml.RecordObservableInstruments(this.Output);
         ml.Results.Count.ShouldBe(2);
@@ -203,8 +220,8 @@ public class StatisticsTests
         ProducerMetrics cm = new();
 
         Statistics statistics = new Statistics { ClientId = "c1", Name = "n1", Type = "c" };
-        statistics.ProducerTransaction.TransactionState = TransactionalProducerState.Ready;
-        statistics.ProducerTransaction.IdempotentState = IdempotentProducerIdState.Assigned;
+        statistics.ExactlyOnceSemantics.TransactionState = TransactionalProducerState.Ready;
+        statistics.ExactlyOnceSemantics.IdempotentState = IdempotentProducerIdState.Assigned;
 
         cm.OnNext(statistics);
         ml.RecordObservableInstruments(this.Output);
