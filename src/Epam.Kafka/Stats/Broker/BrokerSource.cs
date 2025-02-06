@@ -13,7 +13,6 @@ public enum BrokerSource
     /// <summary>
     /// Not available
     /// </summary>
-    [JsonIgnore]
     None,
 
     /// <summary>

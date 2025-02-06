@@ -12,9 +12,8 @@ namespace Epam.Kafka.Stats.Broker;
 public enum BrokerState
 {
     /// <summary>
-    /// State not available
+    /// Not available
     /// </summary>
-    [JsonIgnore]
     None,
 
     /// <summary>
