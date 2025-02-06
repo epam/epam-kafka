@@ -1,5 +1,31 @@
 namespace Epam.Kafka
 {
+    [System.Flags]
+    public enum DebugContext
+    {
+        None = 0,
+        Generic = 1,
+        Broker = 2,
+        Topic = 4,
+        Metadata = 8,
+        Feature = 16,
+        Queue = 32,
+        Msg = 64,
+        Protocol = 128,
+        Cgrp = 256,
+        Security = 512,
+        Fetch = 1024,
+        Interceptor = 2048,
+        Plugin = 4096,
+        Consumer = 8192,
+        Admin = 16384,
+        Eos = 32768,
+        Mock = 65536,
+        Assignor = 131072,
+        Conf = 262144,
+        Telemetry = 524288,
+        All = 1048575,
+    }
     public interface IKafkaFactory
     {
         Confluent.Kafka.IConsumer<TKey, TValue> CreateConsumer<TKey, TValue>(Confluent.Kafka.ConsumerConfig config, string? cluster = null, System.Action<Confluent.Kafka.ConsumerBuilder<TKey, TValue>>? configure = null);
@@ -32,6 +58,7 @@ namespace Epam.Kafka
         public static int GetCancellationDelayMaxMs(this Confluent.Kafka.ConsumerConfig config) { }
         public static string GetDotnetLoggerCategory(this Confluent.Kafka.Config config) { }
         public static void SetCancellationDelayMaxMs(this Confluent.Kafka.ConsumerConfig config, int value) { }
+        public static void SetDebugContexts(this Confluent.Kafka.ClientConfig config, Epam.Kafka.DebugContext value) { }
         public static void SetDotnetLoggerCategory(this Confluent.Kafka.Config config, string value) { }
     }
     public static class LogExtensions
