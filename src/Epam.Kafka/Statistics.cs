@@ -28,9 +28,9 @@ public class Statistics
     public const string TopicPartitionMeterName = "Epam.Kafka.Statistics.TopicPartition";
 
     /// <summary>
-    /// Name of <see cref="Meter"/> used to expose producer transaction statistics.
+    /// Name of <see cref="Meter"/> used to expose producer eos statistics.
     /// </summary>
-    public const string TransactionMeterName = "Epam.Kafka.Statistics.Transaction";
+    public const string EosMeterName = "Epam.Kafka.Statistics.Eos";
 
     /// <summary>
     /// Name of <see cref="Meter"/> used to expose consumer group statistics.

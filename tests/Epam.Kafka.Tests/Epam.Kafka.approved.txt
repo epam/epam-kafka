@@ -88,9 +88,9 @@ namespace Epam.Kafka
     public class Statistics
     {
         public const string ConsumerGroupMeterName = "Epam.Kafka.Statistics.ConsumerGroup";
+        public const string EosMeterName = "Epam.Kafka.Statistics.Eos";
         public const string TopLevelMeterName = "Epam.Kafka.Statistics";
         public const string TopicPartitionMeterName = "Epam.Kafka.Statistics.TopicPartition";
-        public const string TransactionMeterName = "Epam.Kafka.Statistics.Transaction";
         public Statistics() { }
         [System.Text.Json.Serialization.JsonPropertyName("age")]
         public long AgeMicroseconds { get; set; }

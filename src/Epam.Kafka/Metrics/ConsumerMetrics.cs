@@ -43,19 +43,19 @@ internal sealed class ConsumerMetrics : CommonMetrics
     private void ConfigureCgMeter(Meter cgMeter)
     {
         cgMeter.CreateObservableGauge("epam_kafka_stats_cg_state", () => (long)this.Value!.ConsumerGroup.State,
-            null, "Consumer group handler state");
+            null, "Consumer group handler state.");
 
         cgMeter.CreateObservableGauge("epam_kafka_stats_cg_join_state", () => (long)this.Value!.ConsumerGroup.JoinState,
-            null, "Consumer group handler join state");
+            null, "Consumer group handler join state.");
 
         cgMeter.CreateObservableGauge("epam_kafka_stats_cg_rebalance_age", () => this.Value!.ConsumerGroup.RebalanceAgeMilliseconds / 1000,
-            "seconds", "Time elapsed since last rebalance seconds");
+            "seconds", "Time elapsed since last rebalance (seconds).");
 
         cgMeter.CreateObservableCounter("epam_kafka_stats_cg_rebalance_count", () => this.Value!.ConsumerGroup.RebalanceCount,
-            null, "Total number of rebalances");
+            null, "Total number of rebalances.");
 
         cgMeter.CreateObservableGauge("epam_kafka_stats_cg_assignment_count", () => this.Value!.ConsumerGroup.AssignmentCount,
-            null, "Current assignment's partition count");
+            null, "Current assignment's partition count.");
     }
 
     private void ConfigureTopParMeter(Meter topParMeter)
@@ -70,7 +70,7 @@ internal sealed class ConsumerMetrics : CommonMetrics
                     new KeyValuePair<string, object?>(TopicTagName, m.Key.Name),
                     new KeyValuePair<string, object?>(PartitionTagName, m.Value.Id),
                 })),
-            null, "Consumer lag");
+            null, "Consumer fetch state.");
 
         topParMeter.CreateObservableGauge("epam_kafka_stats_tp_lag", () => this.Value!.Topics
                 .SelectMany(p =>
@@ -82,7 +82,7 @@ internal sealed class ConsumerMetrics : CommonMetrics
                     new KeyValuePair<string, object?>(TopicTagName, m.Key.Name),
                     new KeyValuePair<string, object?>(PartitionTagName, m.Value.Id),
                 })),
-            null, "Consumer lag");
+            null, "Consumer lag.");
     }
 
     protected override long GetTxRxMsg(Statistics value)

@@ -22,7 +22,6 @@ internal abstract class StatisticsMetrics : IObserver<Statistics>
     private KeyValuePair<string, object?>[] _topLevelTags = null!;
 
     protected Statistics? Value { get; private set; }
-    protected static IEnumerable<Measurement<long>> Empty { get; } = Enumerable.Empty<Measurement<long>>();
 
     public void OnNext(Statistics value)
     {
