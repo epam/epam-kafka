@@ -23,7 +23,10 @@ internal class Program
         hostBuilder.ConfigureServices(services =>
         {
             services.AddOpenTelemetry().WithMetrics(
-                mb => mb.AddMeter(Statistics.TopLevelMeterName, Statistics.TopicPartitionMeterName)
+                mb => mb.AddMeter(
+                        // Choose required meters (see https://github.com/epam/epam-kafka/wiki/Low-level-consumer,-producer,-and-admin-client#metrics)
+                        Statistics.TopLevelMeterName, 
+                        Statistics.TopicPartitionMeterName)
                     .AddReader(new PeriodicExportingMetricReader(new CustomConsoleExporter(), 1000)));
 
             KafkaBuilder kafkaBuilder = services.AddKafka();
