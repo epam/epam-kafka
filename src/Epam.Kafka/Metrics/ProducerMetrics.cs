@@ -11,7 +11,7 @@ internal sealed class ProducerMetrics : CommonMetrics
     {
         base.Initialize(meterFactory);
 
-        Meter meter = meterFactory(Statistics.TransactionMeterName, null);
+        Meter meter = meterFactory(Statistics.EosMeterName, null);
 
         meter.CreateObservableGauge("epam_kafka_stats_eos_txn_state", () => (long)this.Value!.ExactlyOnceSemantics.TransactionState,
             null, "Transaction state");

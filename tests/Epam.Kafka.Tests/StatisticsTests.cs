@@ -188,7 +188,7 @@ public class StatisticsTests
     [Fact]
     public void TransactionMetricsTests()
     {
-        using MeterHelper ml = new(Statistics.TransactionMeterName);
+        using MeterHelper ml = new(Statistics.EosMeterName);
 
         ProducerMetrics cm = new();
 
@@ -215,7 +215,7 @@ public class StatisticsTests
     [Fact]
     public void MetricsAfterErrorTests()
     {
-        using MeterHelper ml = new(Statistics.TransactionMeterName);
+        using MeterHelper ml = new(Statistics.EosMeterName);
 
         ProducerMetrics cm = new();
 

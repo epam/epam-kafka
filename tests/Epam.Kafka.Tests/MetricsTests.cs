@@ -95,7 +95,7 @@ public class MetricsTests : TestWithServices
     {
         this.Services.AddKafka(false).WithTestMockCluster(MockCluster.ClusterName);
 
-        using MeterHelper ml = new(Statistics.TransactionMeterName);
+        using MeterHelper ml = new(Statistics.EosMeterName);
         ml.RecordObservableInstruments();
         ml.Results.Count.ShouldBe(0);
 
