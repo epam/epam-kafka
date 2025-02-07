@@ -38,4 +38,9 @@ internal abstract class MetricsWithName : IDisposable
     {
         this._meter.CreateObservableGauge(name, () => new Measurement<T>(observeValue()), unit, description);
     }
+
+    public Histogram<long> CreateHistogram(string name, string? description, string? unit = null)
+    {
+        return this._meter.CreateHistogram<long>(name, unit, description);
+    }
 }
