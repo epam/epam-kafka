@@ -1,5 +1,6 @@
 ﻿// Copyright © 2024 EPAM Systems
 
+using Epam.Kafka.PubSub.Common.Metrics;
 using Epam.Kafka.PubSub.Common.Options;
 using Epam.Kafka.PubSub.Common.Pipeline;
 using Epam.Kafka.PubSub.Utils;
@@ -24,6 +25,7 @@ internal abstract class PubSubBackgroundService<TOptions, TBatchResult, TMonitor
 {
     private readonly DiagnosticListener _diagnosticListener;
     private readonly IServiceScopeFactory _serviceScopeFactory;
+    private readonly BatchTimingMetrics _timingMeter;
 
     protected PubSubBackgroundService(
         IServiceScopeFactory serviceScopeFactory,
@@ -39,17 +41,23 @@ internal abstract class PubSubBackgroundService<TOptions, TBatchResult, TMonitor
         this.Logger = loggerFactory?.CreateLogger(monitor.FullName) ?? NullLogger.Instance;
         this.Monitor = monitor ?? throw new ArgumentNullException(nameof(monitor));
         this._diagnosticListener = new DiagnosticListener(this.Monitor.FullName);
+        this._timingMeter = new BatchTimingMetrics(monitor);
+
+        this.Monitor.Batch.SetTimingHistogram(
+            this._timingMeter.CreateHistogram(PipelineMonitor.TimingBatchHistogramName, "Batch state timing.",
+                "milliseconds"));
     }
 
     protected IKafkaFactory KafkaFactory { get; }
     protected TMonitor Monitor { get; }
     protected ILogger Logger { get; }
     protected int? AdaptiveBatchSize { get; set; }
-
     protected TOptions Options { get; }
 
     public override void Dispose()
     {
+        this._timingMeter.Dispose();
+
         this._diagnosticListener.Dispose();
 
         base.Dispose();

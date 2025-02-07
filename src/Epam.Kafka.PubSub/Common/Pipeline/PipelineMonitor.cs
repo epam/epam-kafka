@@ -30,9 +30,14 @@ public abstract class PipelineMonitor
     public const string HealthGaugeName = "epam_kafka_pubsub_health";
 
     /// <summary>
-    ///     Name of the <see cref="Meter" /> with last batch result metrics.
+    ///     Name of the <see cref="Meter" /> with status metrics.
     /// </summary>
     public const string StatusMeterName = "Epam.Kafka.PubSub.Status";
+
+    /// <summary>
+    ///     Name of the <see cref="Meter" /> with status metrics.
+    /// </summary>
+    public const string StatusTimingMeterName = "Epam.Kafka.PubSub.Status.Timing";
 
     /// <summary>
     ///     Name of the <see cref="ObservableGauge{T}" /> with pipeline status metrics. Int values corresponds to
@@ -45,6 +50,11 @@ public abstract class PipelineMonitor
     ///     <see cref="BatchStatus" />.
     /// </summary>
     public const string StatusBatchGaugeName = "epam_kafka_pubsub_status_batch";
+
+    /// <summary>
+    ///     Name of the <see cref="Histogram{T}" /> with batch status timing metrics.
+    /// </summary>
+    public const string TimingBatchHistogramName = "epam_kafka_pubsub_timing_batch";
 
     /// <summary>
     /// Age of batch status (elapsed milliseconds since last batch status change)
