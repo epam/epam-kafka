@@ -40,6 +40,24 @@ internal sealed class ConsumerMetrics : CommonMetrics
         this.ConfigureTopParMeter(topParMeter);
     }
 
+    protected override void InitSpecificTopLevel(Meter meter)
+    {
+        meter.CreateObservableGauge("epam_kafka_stats_lag", () =>
+        {
+            long result = -1;
+
+            long[] sum = this.SelectTopicPartitions().Where(x => x.Value.Desired && !x.Value.Unknown && x.Value.ConsumerLag >= 0)
+                .Select(x => x.Value.ConsumerLag).ToArray();
+
+            if (sum.Length > 0)
+            {
+                result = sum.Sum();
+            }
+
+            return result;
+        }, null, "Sum of lags for desired topic partitions.");
+    }
+
     private void ConfigureCgMeter(Meter cgMeter)
     {
         cgMeter.CreateObservableGauge("epam_kafka_stats_cg_state", () => (long)this.Value!.ConsumerGroup.State,
@@ -72,10 +90,7 @@ internal sealed class ConsumerMetrics : CommonMetrics
                 })),
             null, "Consumer fetch state.");
 
-        topParMeter.CreateObservableGauge("epam_kafka_stats_tp_lag", () => this.Value!.Topics
-                .SelectMany(p =>
-                    p.Value.Partitions.Where(x => x.Key != PartitionStatistics.InternalUnassignedPartition)
-                        .Select(x => new KeyValuePair<TopicStatistics, PartitionStatistics>(p.Value, x.Value)))
+        topParMeter.CreateObservableGauge("epam_kafka_stats_tp_lag", () => this.SelectTopicPartitions()
                 .Select(m => new Measurement<long>(m.Value.ConsumerLag, new[]
                 {
                     new KeyValuePair<string, object?>(DesiredTagName, m.Value.Desired),
@@ -83,6 +98,14 @@ internal sealed class ConsumerMetrics : CommonMetrics
                     new KeyValuePair<string, object?>(PartitionTagName, m.Value.Id),
                 })),
             null, "Consumer lag.");
+    }
+
+    private IEnumerable<KeyValuePair<TopicStatistics, PartitionStatistics>> SelectTopicPartitions()
+    {
+        return this.Value!.Topics
+            .SelectMany(p =>
+                p.Value.Partitions.Where(x => x.Key != PartitionStatistics.InternalUnassignedPartition)
+                    .Select(x => new KeyValuePair<TopicStatistics, PartitionStatistics>(p.Value, x.Value)));
     }
 
     protected override long GetTxRxMsg(Statistics value)

@@ -21,6 +21,13 @@ internal abstract class CommonMetrics : StatisticsMetrics
 
         meter.CreateObservableGauge("epam_kafka_stats_age", () => this.Value!.AgeMicroseconds / 1000000, "seconds",
             "Time since this client instance was created (seconds).");
+
+        this.InitSpecificTopLevel(meter);
+    }
+
+    protected virtual void InitSpecificTopLevel(Meter meter)
+    {
+
     }
 
     protected abstract long GetTxRxMsg(Statistics value);
