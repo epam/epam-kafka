@@ -9,6 +9,13 @@ internal abstract class PubSubStatusMetrics : MetricsWithName
     protected PubSubStatusMetrics(PipelineMonitor monitor) : base(PipelineMonitor.StatusMeterName, monitor)
     {
         this.CreateObservableGauge(PipelineMonitor.StatusPipelineGaugeName, () => (int)monitor.Pipeline.Value,
-            "Pipeline processing state: 0 - Not started, 1 - Cancelled, 2 - Disabled, 3 - Running, 4 - Not running (will run after timeout), 5 - Not running (only application restart could help)");
+            "Pipeline processing state.");
+
+        this.CreateObservableGauge(PipelineMonitor.StatusBatchGaugeName, () => (int)monitor.Batch.Value,
+            "Batch processing state.");
+
+        this.CreateObservableGauge(PipelineMonitor.StatusBatchAgeGaugeName,
+            () => (long)(DateTime.UtcNow - monitor.Batch.TimestampUtc).TotalSeconds,
+            "Batch processing state age (seconds).", "seconds");
     }
 }

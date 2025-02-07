@@ -11,6 +11,6 @@ internal sealed class PublicationStatusMetrics : PubSubStatusMetrics
     public PublicationStatusMetrics(PublicationMonitor monitor) : base(monitor)
     {
         this.CreateObservableGauge(PipelineMonitor.StatusResultGaugeName, () => (int)monitor.Result.Value,
-            "The result of publication batch iteration: 0 - None, 1 - Error, 2 - Empty (no messages to publish), 3 - Processed, 30 - Processed partially");
+            "The result of last batch iteration.");
     }
 }

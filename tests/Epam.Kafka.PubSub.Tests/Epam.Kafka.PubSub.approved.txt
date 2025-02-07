@@ -35,9 +35,12 @@ namespace Epam.Kafka.PubSub.Common.Pipeline
     {
         public const string HealthGaugeName = "epam_kafka_pubsub_health";
         public const string HealthMeterName = "Epam.Kafka.PubSub.Health";
+        public const string StatusBatchAgeGaugeName = "epam_kafka_pubsub_status_age_batch";
+        public const string StatusBatchGaugeName = "epam_kafka_pubsub_status_batch";
         public const string StatusMeterName = "Epam.Kafka.PubSub.Status";
         public const string StatusPipelineGaugeName = "epam_kafka_pubsub_status_pipeline";
         public const string StatusResultGaugeName = "epam_kafka_pubsub_status_result";
+        public Epam.Kafka.PubSub.Common.Pipeline.StatusDetails<Epam.Kafka.PubSub.Common.Pipeline.BatchStatus> Batch { get; }
         public string Name { get; }
         public Epam.Kafka.PubSub.Common.Pipeline.StatusDetails<Epam.Kafka.PubSub.Common.Pipeline.PipelineStatus> Pipeline { get; }
         public int PipelineRetryIteration { get; }
@@ -54,7 +57,6 @@ namespace Epam.Kafka.PubSub.Common.Pipeline
     public abstract class PubSubMonitor<TBatchResult> : Epam.Kafka.PubSub.Common.Pipeline.PipelineMonitor
         where TBatchResult :  struct, System.Enum
     {
-        public Epam.Kafka.PubSub.Common.Pipeline.StatusDetails<Epam.Kafka.PubSub.Common.Pipeline.BatchStatus> Batch { get; }
         public Epam.Kafka.PubSub.Common.Pipeline.StatusDetails<TBatchResult> Result { get; }
         public override string ToString() { }
     }
