@@ -73,6 +73,7 @@ public class StateErrorTests : TestWithServices
         // iteration 3
         observer.AssertStart();
         observer.AssertAssign();
+        observer.AssertRead(0);
         observer.AssertProcess();
         observer.AssertCommitExternal();
         observer.AssertStop(exception);
