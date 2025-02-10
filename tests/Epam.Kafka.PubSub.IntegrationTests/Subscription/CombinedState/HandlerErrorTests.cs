@@ -42,24 +42,33 @@ public class HandlerErrorTests : TestWithServices
                 x.BatchSize = 6;
             });
 
-        Dictionary<TestEntityKafka, TopicPartitionOffset> m1 = await MockCluster.SeedKafka(this, 6, tp3);
-        Dictionary<TestEntityKafka, TopicPartitionOffset> m2 = await MockCluster.SeedKafka(this, 4, tp3);
+        Dictionary<TestEntityKafka, TopicPartitionOffset> m = await MockCluster.SeedKafka(this, 10, tp3);
 
-        handler.WithError(2, exception, m1);
-        handler.WithError(3, exception, m1);
-        handler.WithError(4, exception, m1.Take(3));
-        handler.WithError(5, exception, m1.Take(1));
-        handler.WithSuccess(6, m1.Take(1));
-        handler.WithSuccess(7, m1.Skip(1));
-        handler.WithSuccess(8, m2);
+        deserializer.WithSuccess(2, m.Keys.Take(6).ToArray());
+        handler.WithError(2, exception, m.Take(6));
 
-        deserializer.WithSuccess(2, m1.Keys.ToArray());
-        deserializer.WithSuccess(8, m2.Keys.ToArray());
+        deserializer.WithSuccess(3, m.Keys.Skip(5).Take(1).ToArray());
+        handler.WithError(3, exception, m.Take(6));
+
+        deserializer.WithSuccess(4, m.Keys.Skip(5).Take(1).ToArray());
+        handler.WithError(4, exception, m.Take(3));
+
+        deserializer.WithSuccess(5, m.Keys.Skip(5).Take(1).ToArray());
+        handler.WithError(5, exception, m.Take(1));
+
+        deserializer.WithSuccess(6, m.Keys.Skip(5).Take(1).ToArray());
+        handler.WithSuccess(6, m.Take(1));
+
+        deserializer.WithSuccess(7, m.Keys.Skip(6).Take(1).ToArray());
+        handler.WithSuccess(7, m.Skip(1).Take(6));
+
+        deserializer.WithSuccess(8, m.Keys.Skip(7).Take(3).ToArray());
+        handler.WithSuccess(8, m.Skip(7).Take(3));
 
         var unset = new TopicPartitionOffset(tp3, Offset.Unset);
         var autoReset = new TopicPartitionOffset(tp3, 0);
         var offset1 = new TopicPartitionOffset(tp3, 1);
-        var offset6 = new TopicPartitionOffset(tp3, 6);
+        var offset7 = new TopicPartitionOffset(tp3, 7);
         var offset10 = new TopicPartitionOffset(tp3, 10);
 
         offsets.WithGet(2, unset);
@@ -69,7 +78,7 @@ public class HandlerErrorTests : TestWithServices
         offsets.WithGet(5, autoReset);
         offsets.WithGet(6, autoReset);
         offsets.WithSetAndGetForNextIteration(6, offset1);
-        offsets.WithSetAndGetForNextIteration(7, offset6);
+        offsets.WithSetAndGetForNextIteration(7, offset7);
         offsets.WithSet(8, offset10);
 
         await this.RunBackgroundServices();
@@ -91,24 +100,28 @@ public class HandlerErrorTests : TestWithServices
         // iteration 3
         observer.AssertStart();
         observer.AssertAssign();
+        observer.AssertRead(1);
         observer.AssertProcess();
         observer.AssertStop(exception);
 
         // iteration 4
         observer.AssertStart();
         observer.AssertAssign();
+        observer.AssertRead(1);
         observer.AssertProcess();
         observer.AssertStop(exception);
 
         // iteration 5
         observer.AssertStart();
         observer.AssertAssign();
+        observer.AssertRead(1);
         observer.AssertProcess();
         observer.AssertStop(exception);
 
         // iteration 6
         observer.AssertStart();
         observer.AssertAssign();
+        observer.AssertRead(1);
         observer.AssertProcess();
         observer.AssertCommitExternal();
         observer.AssertCommitKafka();
@@ -117,6 +130,7 @@ public class HandlerErrorTests : TestWithServices
         // iteration 7
         observer.AssertStart();
         observer.AssertAssign();
+        observer.AssertRead(1);
         observer.AssertProcess();
         observer.AssertCommitExternal();
         observer.AssertCommitKafka();
@@ -125,7 +139,7 @@ public class HandlerErrorTests : TestWithServices
         // iteration 8
         observer.AssertStart();
         observer.AssertAssign();
-        observer.AssertRead(4);
+        observer.AssertRead(3);
         observer.AssertProcess();
         observer.AssertCommitExternal();
         observer.AssertCommitKafka();
