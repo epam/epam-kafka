@@ -23,6 +23,7 @@ internal sealed class SubscriptionTopicWrapper<TKey, TValue> : IDisposable
     private readonly HashSet<TopicPartition> _paused = new();
 
     private readonly int _consumeTimeoutMs;
+    private readonly bool _rebalance;
 
     private readonly HashSet<TopicPartition> _newPartitions = new();
     private readonly Dictionary<TopicPartition, Offset> _offsets = new();
@@ -43,7 +44,11 @@ internal sealed class SubscriptionTopicWrapper<TKey, TValue> : IDisposable
         this.Monitor = monitor ?? throw new ArgumentNullException(nameof(monitor));
         this.Options = options ?? throw new ArgumentNullException(nameof(options));
         this.Logger = logger ?? throw new ArgumentNullException(nameof(logger));
+
         this._buffer = new List<ConsumeResult<TKey, TValue>>(options.BatchSize);
+
+        this._rebalance = this.Options.StateType.Name == typeof(CombinedState<>).Name ||
+                          this.Options.StateType == typeof(InternalKafkaState);
 
         ConsumerConfig config = kafkaFactory.CreateConsumerConfig(options.Consumer);
 
@@ -110,6 +115,20 @@ internal sealed class SubscriptionTopicWrapper<TKey, TValue> : IDisposable
             }
 
             this.Logger.PartitionsAssigned(this.Monitor.Name, null, items);
+        }
+    }
+
+    private void CheckRebalance()
+    {
+        // ensure to consume at least one message
+        // to trigger potential rebalance
+        if (this._rebalance && this._buffer.Count >= this.Options.BatchSize)
+        {
+            ConsumeResult<TKey, TValue> last = this._buffer.Last();
+
+            this.Consumer.Seek(last.TopicPartitionOffset);
+
+            this.CleanupBuffer(x => x.TopicPartitionOffset == last.TopicPartitionOffset, "check rebalance");
         }
     }
 
@@ -204,8 +223,12 @@ internal sealed class SubscriptionTopicWrapper<TKey, TValue> : IDisposable
     public IReadOnlyCollection<ConsumeResult<TKey, TValue>> GetBatch(ActivityWrapper activitySpan,
         CancellationToken cancellationToken)
     {
-        if (this._buffer.Count == 0)
+        if (this._buffer.Count == 0 || this._rebalance)
         {
+            this.CheckRebalance();
+
+            int initialCount = this._buffer.Count;
+
             using ActivityWrapper wrapper = activitySpan.CreateSpan("read");
 
             this.ReadToBuffer(activitySpan, cancellationToken);
@@ -216,7 +239,7 @@ internal sealed class SubscriptionTopicWrapper<TKey, TValue> : IDisposable
                 this.ReadToBuffer(activitySpan, cancellationToken);
             }
 
-            wrapper.SetResult(this._buffer.Count);
+            wrapper.SetResult(this._buffer.Count - initialCount);
         }
 
         return this._buffer;
@@ -457,49 +480,68 @@ internal sealed class SubscriptionTopicWrapper<TKey, TValue> : IDisposable
             config.SetDotnetLoggerCategory(this.Monitor.FullName);
         }
 
-        const int maxPollBufferMs = 3 * 60 * 1000;
-
         // to avoid leaving group in case of long-running processing
-        if (this.Options.StateType.Name == typeof(CombinedState<>).Name || this.Options.StateType == typeof(InternalKafkaState))
+        if (!config.MaxPollIntervalMs.HasValue && this._rebalance)
         {
-            if (this.Options.HandlerConcurrencyGroup.HasValue)
+            TimeSpan handlerTimeout = this.CalculateMaxHandlerTimeout(optionsMonitor);
+
+            // guard against extremely large values
+            int mpi = (int)Math.Min(handlerTimeout.TotalMilliseconds, TimeSpan.FromHours(3).TotalMilliseconds);
+
+            config.MaxPollIntervalMs = mpi;
+        }
+    }
+
+    private TimeSpan CalculateMaxHandlerTimeout(IOptionsMonitor<SubscriptionOptions> optionsMonitor)
+    {
+        TimeSpan result = this.Options.HandlerTimeout;
+
+        if (this.Options.HandlerConcurrencyGroup.HasValue)
+        {
+            foreach (SubscriptionMonitor sm in this.Monitor.Context.Subscriptions.Values.Where(x => x.FullName != this.Monitor.FullName))
             {
-                if (!config.MaxPollIntervalMs.HasValue)
+                try
                 {
-                    long sum = 0;
+                    SubscriptionOptions so = optionsMonitor.Get(sm.Name);
 
-                    foreach (SubscriptionMonitor sm in this.Monitor.Context.Subscriptions.Values)
+                    if (so.Enabled && so.HandlerConcurrencyGroup == this.Options.HandlerConcurrencyGroup)
                     {
-                        try
-                        {
-                            SubscriptionOptions so = optionsMonitor.Get(sm.Name);
-
-                            if (so.Enabled && so.HandlerConcurrencyGroup == this.Options.HandlerConcurrencyGroup)
-                            {
-                                sum += so.HandlerConcurrencyGroup.Value;
-                            }
-                        }
-#pragma warning disable CA1031 // don't fail if not possible to create options for other subscriptions
-                        catch (Exception e)
-                        {
-                            this.Logger.PollIntervalIgnoreOptions(e, this.Monitor.Name, sm.Name,
-                                this.Options.HandlerConcurrencyGroup.Value);
-                        }
-#pragma warning restore CA1031
+                        result += so.HandlerTimeout;
                     }
-
-                    sum = Math.Min(sum, 3 * 60 * 60 * 1000);
-
-                    config.MaxPollIntervalMs = (int)sum + maxPollBufferMs;
                 }
-            }
-            else
-            {
-                // interval can be calculated
-                config.MaxPollIntervalMs ??=
-                    (int)this.Options.HandlerTimeout.TotalMilliseconds + maxPollBufferMs;
+#pragma warning disable CA1031 // don't fail if not possible to create options for other subscriptions
+                catch (Exception e)
+                {
+                    this.Logger.PollIntervalIgnoreOptions(e, this.Monitor.Name, sm.Name,
+                        this.Options.HandlerConcurrencyGroup.Value);
+                }
+#pragma warning restore CA1031
             }
         }
+
+        if (this.Options.BatchRetryCount > 0)
+        {
+            // potential rebalance may happen only after retry attempt
+            result += this.Options.BatchRetryMaxTimeout;
+        }
+
+        if (this.Options.BatchNotAssignedTimeout > result)
+        {
+            result = this.Options.BatchNotAssignedTimeout;
+        }
+
+        if (this.Options.BatchPausedTimeout > result)
+        {
+            result = this.Options.BatchPausedTimeout;
+        }
+
+        if (this.Options.BatchEmptyTimeout > result)
+        {
+            result = this.Options.BatchEmptyTimeout;
+        }
+
+        // time buffer for external state handling
+        return result.Add(TimeSpan.FromMinutes(2));
     }
 
     public void CommitOffsets(ActivityWrapper activitySpan, IReadOnlyCollection<TopicPartitionOffset> offsets)
