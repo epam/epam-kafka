@@ -37,7 +37,7 @@ public abstract class PipelineMonitor
     /// <summary>
     ///     Name of the <see cref="Meter" /> with status metrics.
     /// </summary>
-    public const string StatusTimingMeterName = "Epam.Kafka.PubSub.Status.Timing";
+    public const string TimingMeterName = "Epam.Kafka.PubSub.Timing";
 
     /// <summary>
     ///     Name of the <see cref="ObservableGauge{T}" /> with pipeline status metrics. Int values corresponds to

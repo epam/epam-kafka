@@ -43,8 +43,8 @@ internal abstract class PubSubBackgroundService<TOptions, TBatchResult, TMonitor
         this._diagnosticListener = new DiagnosticListener(this.Monitor.FullName);
         this._timingMeter = new BatchTimingMetrics(monitor);
 
-        this.Monitor.Batch.SetTimingHistogram(
-            this._timingMeter.CreateHistogram(PipelineMonitor.TimingBatchHistogramName, "Batch state timing.",
+        this.Monitor.Batch.SetTimingCounter(
+            this._timingMeter.CreateCounter(PipelineMonitor.TimingBatchHistogramName, "Batch state timing.",
                 "milliseconds"));
     }
 

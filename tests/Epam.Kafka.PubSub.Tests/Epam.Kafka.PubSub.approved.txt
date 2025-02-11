@@ -40,8 +40,8 @@ namespace Epam.Kafka.PubSub.Common.Pipeline
         public const string StatusMeterName = "Epam.Kafka.PubSub.Status";
         public const string StatusPipelineGaugeName = "epam_kafka_pubsub_status_pipeline";
         public const string StatusResultGaugeName = "epam_kafka_pubsub_status_result";
-        public const string StatusTimingMeterName = "Epam.Kafka.PubSub.Status.Timing";
         public const string TimingBatchHistogramName = "epam_kafka_pubsub_timing_batch";
+        public const string TimingMeterName = "Epam.Kafka.PubSub.Timing";
         public Epam.Kafka.PubSub.Common.Pipeline.StatusDetails<Epam.Kafka.PubSub.Common.Pipeline.BatchStatus> Batch { get; }
         public string Name { get; }
         public Epam.Kafka.PubSub.Common.Pipeline.StatusDetails<Epam.Kafka.PubSub.Common.Pipeline.PipelineStatus> Pipeline { get; }
