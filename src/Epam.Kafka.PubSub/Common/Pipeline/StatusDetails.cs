@@ -12,7 +12,7 @@ public class StatusDetails<TValue> where TValue : Enum
 {
     private const string StatusTagName = "Status";
 
-    private Histogram<long>? _histogram;
+    private Counter<long>? _histogram;
     internal StatusDetails(TValue value)
     {
         this.Value = value;
@@ -28,7 +28,7 @@ public class StatusDetails<TValue> where TValue : Enum
     /// </summary>
     public TValue Value { get; private set; }
 
-    internal void SetTimingHistogram(Histogram<long> value)
+    internal void SetTimingCounter(Counter<long> value)
     {
         this._histogram = value;
     }
@@ -37,7 +37,7 @@ public class StatusDetails<TValue> where TValue : Enum
     {
         if (!value.Equals(this.Value))
         {
-            this._histogram?.Record((long)(DateTime.UtcNow - this.TimestampUtc).TotalMilliseconds,
+            this._histogram?.Add((long)(DateTime.UtcNow - this.TimestampUtc).TotalMilliseconds,
                 new KeyValuePair<string, object?>(StatusTagName, this.Value.ToString("G")));
 
             this.TimestampUtc = DateTime.UtcNow;

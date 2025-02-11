@@ -6,7 +6,7 @@ namespace Epam.Kafka.PubSub.Common.Metrics;
 
 internal sealed class BatchTimingMetrics : MetricsWithName
 {
-    public BatchTimingMetrics(PipelineMonitor monitor) : base(PipelineMonitor.StatusTimingMeterName, monitor)
+    public BatchTimingMetrics(PipelineMonitor monitor) : base(PipelineMonitor.TimingMeterName, monitor)
     {
     }
 }
