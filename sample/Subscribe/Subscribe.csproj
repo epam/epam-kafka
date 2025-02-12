@@ -9,7 +9,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Epam.Kafka.PubSub" Version="2.5.233" />
+		<PackageReference Include="Epam.Kafka.PubSub" Version="2.5.241-rc" />
 		<PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.1" />
 	</ItemGroup>
 
