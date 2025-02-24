@@ -15,7 +15,7 @@ internal static
     public static Regex TopicNameRegex { get; } = GetTopicNameRegex();
 
     // topic name with partitions (e.g. qwe-1 [0,1])
-    private const string TopicPartitionsRegexValue = @"^([\w|\d|\.|\-]*)\s*\[([\d]+[\d,]*)\]$";
+    private const string TopicPartitionsRegexValue = @"^([\w|\d|\.|\-]*)\s*\[(\s*[\d]+(\s*,\s*[\d]+\s*)*)\]$";
     public static Regex TopicPartitionsRegex { get; } = GetTopicPartitionsRegex();
 
     private const string NameRegexValue = "^[a-zA-Z]{1}[a-zA-Z0-9]+$";
