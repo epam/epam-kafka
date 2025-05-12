@@ -3,6 +3,8 @@
 Set of .NET libraries aimed to simplify Confluent.Kafka usage by leveraging best patterns and practices. 
 Also it is a framework for building pub/sub batch processing applications.
 
+https://deepwiki.com/epam/epam-kafka
+
 ## Features
 
 * Abstraction to create various kafka related objects with fluent configuration in `IServiceCollection`.
@@ -17,8 +19,8 @@ Also it is a framework for building pub/sub batch processing applications.
 
 ### Subscription specific
 
- * Subscribe and internal offsets (default): kafka internal offsets storage. Partition assignment performed by group’s coordinator kafka broker.
- * Subscribe and external offsets: `IExternalOffsetsStorage` interface implementation for offsets storage. Partition assignment performed by group’s coordinator kafka broker.
+ * Subscribe and internal offsets (default): kafka internal offsets storage. Partition assignment performed by groupâ€™s coordinator kafka broker.
+ * Subscribe and external offsets: `IExternalOffsetsStorage` interface implementation for offsets storage. Partition assignment performed by groupâ€™s coordinator kafka broker.
  * Assign and external offsets: `IExternalOffsetsStorage` interface implementation for offsets storage. Partition assigmnent based on configuration.
  * Default implementation for `IExternalOffsetsStorage` using EntityFramework (Core and EF6).
  * Default implementation for subscription that store data using EntityFramework (Core and EF6). Possibility to commit data and offsets in same database transaction.
