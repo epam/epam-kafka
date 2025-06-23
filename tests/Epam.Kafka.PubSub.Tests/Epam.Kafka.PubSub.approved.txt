@@ -206,6 +206,7 @@ namespace Epam.Kafka.PubSub.Subscription
     {
         protected SubscriptionHandler(Microsoft.Extensions.Logging.ILogger logger) { }
         protected virtual bool AllowCompaction { get; }
+        protected virtual Microsoft.Extensions.Logging.LogLevel BatchHandlerExecutedLogLevel { get; }
         protected System.Func<Confluent.Kafka.ConsumeResult<TKey, TValue>, bool>? Filter { get; set; }
         protected Microsoft.Extensions.Logging.ILogger Logger { get; set; }
         public void Execute(System.Collections.Generic.IReadOnlyCollection<Confluent.Kafka.ConsumeResult<TKey, TValue>> items, System.Threading.CancellationToken cancellationToken) { }
