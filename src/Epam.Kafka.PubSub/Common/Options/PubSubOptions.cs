@@ -15,7 +15,7 @@ namespace Epam.Kafka.PubSub.Common.Options;
 /// </summary>
 public abstract class PubSubOptions
 {
-    internal readonly List<Func<IServiceProvider, Task>> WaitForDependencies = new();
+    internal readonly List<Func<IServiceProvider, CancellationToken, Task>> WaitForDependencies = new();
 
     internal Type? KeyType;
     internal Type? ValueType;

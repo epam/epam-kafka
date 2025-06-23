@@ -11,14 +11,14 @@ internal static partial class LogExtensions
     [LoggerMessage(
         EventId = 0,
         EventName = "WaitBegin",
-        Level = LogLevel.Debug,
+        Level = LogLevel.Information,
         Message = "Waiting {Count} item(s) for '{IndexedKey}'.")]
     public static partial void WaitBegin(this ILogger logger, string indexedKey, int count);
 
     [LoggerMessage(
         EventId = 1,
         EventName = "WaitEnd",
-        Level = LogLevel.Debug,
+        Level = LogLevel.Information,
         Message = "Wait end for '{IndexedKey}'.")]
     public static partial void WaitEnd(this ILogger logger, string indexedKey);
 
@@ -40,7 +40,7 @@ internal static partial class LogExtensions
     [LoggerMessage(
         EventId = 12,
         EventName = "ConsumerNotAssigned",
-        Level = LogLevel.Debug,
+        Level = LogLevel.Warning,
         Message = "Consumer not assigned for '{IndexedKey}'.")]
     public static partial void ConsumerNotAssigned(this ILogger logger, string indexedKey);
 
@@ -69,7 +69,7 @@ internal static partial class LogExtensions
     [LoggerMessage(
         EventId = 20,
         EventName = "OffsetsCommitted",
-        Level = LogLevel.Information,
+        Level = LogLevel.Debug,
         Message = "Offsets committed for '{IndexedKey}'. {TopicPartitionOffsets}")]
     public static partial void OffsetsCommitted(this ILogger logger, string indexedKey,
         IEnumerable<TopicPartitionOffset> topicPartitionOffsets);
@@ -248,7 +248,7 @@ internal static partial class LogExtensions
     [LoggerMessage(
         EventId = 93,
         EventName = "OffsetsSendToTransaction",
-        Level = LogLevel.Information,
+        Level = LogLevel.Debug,
         Message = "Offsets send to transaction for '{IndexedKey}'. {TopicPartitionOffsets}")]
     public static partial void OffsetsSendToTransaction(this ILogger logger, string indexedKey,
         IEnumerable<TopicPartitionOffset> topicPartitionOffsets);
