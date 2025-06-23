@@ -55,6 +55,11 @@ public abstract class SubscriptionHandler<TKey, TValue> : ISubscriptionHandler<T
     /// </summary>
     protected ILogger Logger { get; set; }
 
+    /// <summary>
+    /// Log level for BatchHandlerExecuted event.
+    /// </summary>
+    protected virtual LogLevel BatchHandlerExecutedLogLevel  => LogLevel.Information;
+
     /// <inheritdoc />
     public void Execute(IReadOnlyCollection<ConsumeResult<TKey, TValue>> items, CancellationToken cancellationToken)
     {
@@ -80,7 +85,7 @@ public abstract class SubscriptionHandler<TKey, TValue> : ISubscriptionHandler<T
 
         this.Logger.BatchHandlerExecuted(items.Count,
             results.GroupBy(x => x.Value ?? UnknownResult)
-                .Select(g => new KeyValuePair<string, int>(g.Key, g.Count())));
+                .Select(g => new KeyValuePair<string, int>(g.Key, g.Count())), this.BatchHandlerExecutedLogLevel);
     }
 
     /// <summary>

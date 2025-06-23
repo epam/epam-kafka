@@ -60,6 +60,22 @@ public abstract class PubSubBuilder<TBuilder, TOptions>
             throw new ArgumentNullException(nameof(waitFor));
         }
 
+        return this.WaitFor((sp, ct) => waitFor(sp));
+    }
+
+    /// <summary>
+    ///     Wait for dependencies before starting processing pipeline.
+    /// </summary>
+    /// <param name="waitFor">The factory to create <see cref="Task" /> that represent dependency.</param>
+    /// <returns>The builder.</returns>
+    /// <exception cref="ArgumentNullException"></exception>
+    public TBuilder WaitFor(Func<IServiceProvider, CancellationToken, Task> waitFor)
+    {
+        if (waitFor == null)
+        {
+            throw new ArgumentNullException(nameof(waitFor));
+        }
+
         this._options.Configure(x => x.WaitForDependencies.Add(waitFor));
 
         return (TBuilder)this;
