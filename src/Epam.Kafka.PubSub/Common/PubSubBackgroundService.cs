@@ -65,35 +65,36 @@ internal abstract class PubSubBackgroundService<TOptions, TBatchResult, TMonitor
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        await Task.Yield();
-
-        if (!this.Options.Enabled)
+        await Task.Factory.StartNew(() =>
         {
-            this.Monitor.Pipeline.Update(PipelineStatus.Disabled);
-            return;
-        }
-
-        try
-        {
-            this.WaitDependencies(stoppingToken);
-        }
-        catch (Exception exception)
-        {
-            if (stoppingToken.IsCancellationRequested)
+            if (!this.Options.Enabled)
             {
-                this.Monitor.Pipeline.Update(PipelineStatus.Cancelled);
-            }
-            else
-            {
-                this.Monitor.Pipeline.Update(PipelineStatus.Failed);
-
-                this.Logger.PipelineFailed(exception, this.Monitor.Name);
+                this.Monitor.Pipeline.Update(PipelineStatus.Disabled);
+                return;
             }
 
-            throw;
-        }
+            try
+            {
+                this.WaitDependencies(stoppingToken);
+            }
+            catch (Exception exception)
+            {
+                if (stoppingToken.IsCancellationRequested)
+                {
+                    this.Monitor.Pipeline.Update(PipelineStatus.Cancelled);
+                }
+                else
+                {
+                    this.Monitor.Pipeline.Update(PipelineStatus.Failed);
 
-        this.ExecutePipeline(stoppingToken);
+                    this.Logger.PipelineFailed(exception, this.Monitor.Name);
+                }
+
+                throw;
+            }
+
+            this.ExecutePipeline(stoppingToken);
+        }, stoppingToken, TaskCreationOptions.LongRunning, TaskScheduler.Default).ConfigureAwait(false);
     }
 
     private void WaitDependencies(CancellationToken stoppingToken)
@@ -106,7 +107,7 @@ internal abstract class PubSubBackgroundService<TOptions, TBatchResult, TMonitor
 
             using IServiceScope scope = this._serviceScopeFactory.CreateScope();
 
-            Task[] tasks = this.Options.WaitForDependencies.Select(x => x.Invoke(scope.ServiceProvider)).ToArray();
+            Task[] tasks = this.Options.WaitForDependencies.Select(x => x.Invoke(scope.ServiceProvider, stoppingToken)).ToArray();
 
             this.Monitor.Pipeline.Update(PipelineStatus.None);
 
