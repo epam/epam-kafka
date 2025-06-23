@@ -9,7 +9,6 @@
 		<LangVersion>12</LangVersion>
 		<EnableConfigurationBindingGenerator>true</EnableConfigurationBindingGenerator>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
-
 		<IsPackable>True</IsPackable>
 		<GeneratePackageOnBuild>False</GeneratePackageOnBuild>
 		<Title>$(AssemblyName)</Title>
